@@ -10,7 +10,7 @@ const Tenant = require("../models/tenant");
 const authController = {
   superAdminLogin: async (req, res) => {
     try {
-      const role = "superAdmin";
+      const role = "Superadmin";
       const { username, password } = req.body;
       if (!username || !password) {
         return res
@@ -61,7 +61,7 @@ const authController = {
 
   adminLogin: async (req, res) => {
     try {
-      const role = "admin";
+      const role = "Admin";
       const { username, password } = req.body;
       if (!username || !password) {
         return res
@@ -112,7 +112,7 @@ const authController = {
 
   supervisorLogin: async (req, res) => {
     try {
-      const role = "supervisor";
+      const role = "Supervisor";
       const { username, password } = req.body;
       if (!username || !password) {
         return res
@@ -163,7 +163,7 @@ const authController = {
 
   receptionistLogin: async (req, res) => {
     try {
-      const role = "receptionist";
+      const role = "Receptionist";
       const { username, password } = req.body;
       if (!username || !password) {
         return res
