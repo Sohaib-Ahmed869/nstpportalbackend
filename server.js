@@ -1,12 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const authRoutes = require("./routes/authRoutes");
-const signupRoutes = require("./routes/signupRoutes");
-// const productRoutes = require("./Routes/productRoutes");
-// const clientRoutes = require("./Routes/clientRoutes");
-// const warehouseRoutes = require("./Routes/warehouseRoutes");
-// const emailRoutes = require("./Routes/emailRoute");
-// const cashierRoutes = require("./Routes/cashierRoutes");
+
+
 const https = require("https");
 const fs = require("fs");
 const dotenv = require("dotenv");
@@ -15,11 +10,14 @@ const cookieParser = require("cookie-parser");
 
 dotenv.config();
 const app = express();
+app.use(cookieParser());
+app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
 
-app.use(cookieParser());
-app.use(express.json());
+const authRoutes = require("./routes/authRoutes");
+const signupRoutes = require("./routes/signupRoutes");
+const tenantRoutes = require("./routes/tenantRoutes");
 
 // Connect to MongoDB
 
@@ -54,6 +52,7 @@ app.get("/", (req, res) => {
 // Use auth routes
 app.use("/auth", authRoutes);
 app.use("/signup", signupRoutes);
+app.use("/tenant", tenantRoutes);
 
 // // SSL options
 // const options = {

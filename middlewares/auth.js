@@ -9,8 +9,11 @@ const authMiddlewares = {
 
       jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) return res.status(401).send({ message: "Unauthorized" });
+
         req.id = decoded.id;
         req.role = decoded.role;
+
+        // console.log("🚀 ~ jwt.verify ~ req.id:", req.id);
 
         next();
       });
