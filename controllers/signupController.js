@@ -42,9 +42,10 @@ const signupController = {
         job_start: jobStart,
       });
       await admin.save();
+      return res.status(200).json({ message: "Signup successful" });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 
