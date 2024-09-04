@@ -1,16 +1,25 @@
 const Tenant = require("../models/tenant");
 const Employee = require("../models/employee");
+const CardAllocation = require("../models/cardAllocation");
 
 const tenantController = {
   registerEmployee: async (req, res) => {
     try {
       const tenantId = req.id;
+      console.log("🚀 ~ registerEmployee: ~ tenantId:", tenantId);
       if (!tenantId) {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
-      const tenantName = await Tenant.findById(tenantId).select("name");
-      if (!tenantName) {
+      const tenant = await Tenant.findById(tenantId).select(
+        "registration.organizationName"
+      );
+      console.log("🚀 ~ registerEmployee: ~ tenant:", tenant);
+      if (!tenant) {
         return res.status(400).json({ message: "Tenant not found" });
+      }
+      const tenantName = tenant.registration.organizationName;
+      if (!tenantName) {
+        return res.status(400).json({ message: "Tenant name not found" });
       }
       const {
         email,
@@ -55,6 +64,13 @@ const tenantController = {
         status_employment: statusEmployment,
         is_nustian: isNustian,
       });
+
+      const cardAllocation = new CardAllocation({
+        tenant_id: tenantId,
+        employee_id: employee._id,
+      });
+
+      await cardAllocation.save();
       await employee.save();
       return res
         .status(200)
@@ -79,32 +95,36 @@ const tenantController = {
     }
   },
 
-  // requestCard: async (req, res) => {
-  //   try {
-  //     const tenant_id = req.id;
-  //     const { employeeId } = req.body;
-  //     if (!tenant_id) {
-  //       return res.status(400).json({ message: "Please provide tenant ID" });
-  //     }
-  //     const employees = await Employee.find({ tenant_id });
-  //     if (!employees) {
-  //       return res.status(400).json({ message: "No employees found" });
-  //     }
-  //     const employee = employees.find((emp) => emp._id == employeeId);
-  //     if (!employee) {
-  //       return res.status(400).json({ message: "Employee not found" });
-  //     }
-  //     if (employee.status_card) {
-  //       return res.status(400).json({ message: "Card already requested" });
-  //     }
-  //     employee.status_card = true;
-  //     await employee.save();
-  //     return res.status(200).json({ message: "Card requested successfully" });
-  //   } catch (err) {
-  //     console.log("🚀 ~ requestCard: ~ err:", err);
-  //     return res.status(500).json({ message: "Internal server error" });
-  //   }
-  // },
+  requestCard: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { employeeId } = req.body;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const employee = await Employee.findById(employeeId);
+      if (!employee) {
+        return res.status(400).json({ message: "No employee found" });
+      }
+
+      const cardAllocation = await CardAllocation.findOne({
+        tenant_id,
+        employee_id: employeeId,
+      });
+      if (!cardAllocation) {
+        return res.status(400).json({ message: "No card allocation found" });
+      }
+
+      cardAllocation.is_requested = true;
+      cardAllocation.date_requested = new Date();
+      await cardAllocation.save();
+
+      return res.status(200).json({ message: "Card requested successfully" });
+    } catch (err) {
+      console.log("🚀 ~ requestCard: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
 };
 
 module.exports = tenantController;

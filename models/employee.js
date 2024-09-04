@@ -50,10 +50,6 @@ const employeeSchema = new Schema({
     type: Boolean,
     required: true,
   },
-  status_card: {
-    type: Boolean,
-    default: false,
-  },
   is_nustian: {
     type: Boolean,
     required: true,

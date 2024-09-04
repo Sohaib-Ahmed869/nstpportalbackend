@@ -1,7 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
 
-
 const https = require("https");
 const fs = require("fs");
 const dotenv = require("dotenv");
@@ -17,6 +16,7 @@ const PORT = process.env.PORT || 3001;
 
 const authRoutes = require("./routes/authRoutes");
 const signupRoutes = require("./routes/signupRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 const tenantRoutes = require("./routes/tenantRoutes");
 
 // Connect to MongoDB
@@ -52,6 +52,7 @@ app.get("/", (req, res) => {
 // Use auth routes
 app.use("/auth", authRoutes);
 app.use("/signup", signupRoutes);
+app.use("/admin", adminRoutes);
 app.use("/tenant", tenantRoutes);
 
 // // SSL options
