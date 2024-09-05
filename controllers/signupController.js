@@ -108,6 +108,7 @@ const signupController = {
 
   tenantSignup: async (req, res) => {
     try {
+      console.log("🚀 ~ tenantSignup: ~ req.body", req.body);
       const {
         registration,
         contactInfo,
@@ -116,6 +117,16 @@ const signupController = {
         industrySector,
         companyResourceComposition,
       } = req.body;
+
+      console.log(
+        "🚀 ~ tenantSignup: ~ ",
+        registration,
+        contactInfo,
+        stakeholders,
+        companyProfile,
+        industrySector,
+        companyResourceComposition
+      );
 
       const registrationFields = [
         "category",

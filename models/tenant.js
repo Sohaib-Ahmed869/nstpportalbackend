@@ -8,7 +8,7 @@ const registrationSchema = new Schema({
   organizationName: { type: String, required: true },
   presentAddress: { type: String, required: true },
   website: { type: String, required: true },
-  companyEmail: { type: String }, // Corrected typo from "conpanyEmail"
+  companyEmail: { type: String, required: true },
 });
 
 const contactInformationSchema = new Schema({
@@ -48,8 +48,8 @@ const companyResourceCompositionSchema = new Schema({
   engineering: { type: Number, required: true },
   marketingAndSales: { type: Number, required: true },
   remainingPredominantArea: { type: String }, // Optional
-  areasOfResearch: { type: String, required: true }, 
-  nustSchoolToCollab: { type: String }, 
+  areasOfResearch: { type: String, required: true },
+  nustSchoolToCollab: { type: String },
 });
 
 const tenantSchema = new Schema({
