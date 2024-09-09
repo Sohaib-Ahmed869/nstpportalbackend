@@ -1,11 +1,55 @@
 const Tenant = require("../models/tenant");
 const Employee = require("../models/employee");
 const CardAllocation = require("../models/cardAllocation");
+const EtagAllocation = require("../models/etagAllocation");
 
 const tenantController = {
   registerEmployee: async (req, res) => {
     try {
       const tenantId = req.id;
+      console.log("🚀 ~ registerEmployee: ~ req.body:", req.body);
+      const { empBody } = req.body;
+      const {
+        name,
+        photo,
+        email,
+        cnic,
+        dob,
+        doj,
+        designation,
+        empType,
+        contractDuration,
+        address,
+        internType,
+      } = empBody;
+
+      console.log(
+        "🚀 ~ registerEmployee ~ required fields:",
+        name,
+        email,
+        cnic,
+        dob,
+        doj,
+        designation,
+        empType,
+        address
+      );
+
+      if (
+        !name ||
+        !email ||
+        !cnic ||
+        !dob ||
+        !doj ||
+        !designation ||
+        !empType ||
+        !address
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Please provide all required fields" });
+      }
+
       console.log("🚀 ~ registerEmployee: ~ tenantId:", tenantId);
       if (!tenantId) {
         return res.status(400).json({ message: "Please provide tenant ID" });
@@ -21,47 +65,21 @@ const tenantController = {
       if (!tenantName) {
         return res.status(400).json({ message: "Tenant name not found" });
       }
-      const {
-        email,
-        name,
-        designation,
-        cnic,
-        dob,
-        dateJoining,
-        contractType,
-        contractEnd,
-        statusEmployment,
-        isNustian,
-      } = req.body;
-
-      if (
-        !email ||
-        !name ||
-        !designation ||
-        !cnic ||
-        !dob ||
-        !dateJoining ||
-        !contractType ||
-        !contractEnd ||
-        statusEmployment === undefined ||
-        isNustian === undefined
-      ) {
-        return res
-          .status(400)
-          .json({ message: "Please provide all required fields" });
-      }
+      const isNustian = internType === "Nustian" ? true : false;
+      console.log("🚀 ~ registerEmployee: ~ isNustian:", isNustian);
       const employee = new Employee({
         tenant_id: tenantId,
         tenant_name: tenantName,
         email,
         name,
+        photo,
         designation,
         cnic,
         dob,
-        date_joining: dateJoining,
-        contract_type: contractType,
-        contract_end: contractEnd,
-        status_employment: statusEmployment,
+        address,
+        date_joining: doj,
+        employee_type: empType,
+        contract_duration: contractDuration,
         is_nustian: isNustian,
       });
 
@@ -70,7 +88,13 @@ const tenantController = {
         employee_id: employee._id,
       });
 
+      const etagAllocation = new EtagAllocation({
+        tenant_id: tenantId,
+        employee_id: employee._id,
+      });
+
       await cardAllocation.save();
+      await etagAllocation.save();
       await employee.save();
       return res
         .status(200)
@@ -91,6 +115,34 @@ const tenantController = {
       return res.status(200).json(employees);
     } catch (err) {
       console.log("🚀 ~ getEmployees: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getCardAllocations: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const cardAllocations = await CardAllocation.find({ tenant_id });
+      return res.status(200).json(cardAllocations);
+    } catch (err) {
+      console.log("🚀 ~ getCardAllocations: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getEtagAllocations: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const etagAllocations = await EtagAllocation.find({ tenant_id });
+      return res.status(200).json(etagAllocations);
+    } catch (err) {
+      console.log("🚀 ~ getEtagAllocations: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -125,6 +177,37 @@ const tenantController = {
       return res.status(500).json({ message: "Internal server error" });
     }
   },
+
+  requestEtag: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { employeeId } = req.body; // images
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const employee = await Employee.findById(employeeId);
+      if (!employee) {
+        return res.status(400).json({ message: "No employee found" });
+      }
+
+      const etagAllocation = await EtagAllocation.findOne({
+        tenant_id,
+        employee_id: employeeId,
+      });
+      if (!etagAllocation) {
+        return res.status(400).json({ message: "No etag allocation found" });
+      }
+
+      etagAllocation.is_requested = true;
+      etagAllocation.date_requested = new Date();
+      await etagAllocation.save();
+
+      return res.status(200).json({ message: "Etag requested successfully" });
+    } catch (err) {
+      console.log("🚀 ~ requestEtag: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
 };
 
 module.exports = tenantController;
@@ -137,6 +220,7 @@ module.exports = tenantController;
   "designation": "Software Engineer",
   "cnic": "12345-6789012-3",
   "dob": "1990-01-01T00:00:00.000Z",
+  "address": "123, St 12, F-16/1, Islamabad, Pakistan",
   "dateJoining": "2022-01-01T00:00:00.000Z",
   "contractType": "Full-time",
   "contractEnd": "2025-01-01T00:00:00.000Z",

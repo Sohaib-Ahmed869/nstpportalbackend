@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const cardAllocationSchema = new Schema({
+const etagAllocationSchema = new Schema({
+  etag_number: {
+    type: Number,
+  },
   tenant_id: {
     type: Schema.Types.ObjectId,
     ref: "Tenant",
@@ -12,9 +15,8 @@ const cardAllocationSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Employee",
     required: true,
-    index: true,
   },
-  card_number: {
+  etag_number: {
     type: Number,
   },
   is_issued: {
@@ -34,12 +36,30 @@ const cardAllocationSchema = new Schema({
   validity: {
     type: Number,
   },
-  is_returned: {
+  vehicle_number: {
+    type: String,
+  },
+  is_active: {
     type: Boolean,
-    default: false,
+    default: true,
+  },
+  image_car_book: {
+    type: String,
+  },
+  image_cnic_front: {
+    type: String,
+  },
+  image_cnic_back: {
+    type: String,
+  },
+  image_license_front: {
+    type: String,
+  },
+  image_license_back: {
+    type: String,
   },
 });
 
-const CardAllocation = mongoose.model("CardAllocation", cardAllocationSchema);
+const EtagAllocation = mongoose.model("EtagAllocation", etagAllocationSchema);
 
-module.exports = CardAllocation;
+module.exports = EtagAllocation;

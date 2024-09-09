@@ -36,23 +36,26 @@ const employeeSchema = new Schema({
     type: Date,
     required: true,
   },
-  date_joining: {
-    type: Date,
-  },
-  contract_type: {
+  address: {
     type: String,
     required: true,
   },
-  contract_end: {
+  date_joining: {
     type: Date,
+  },
+  employee_type: {
+    type: String,
+    required: true,
+  },
+  contract_duration: {
+    type: String,
   },
   status_employment: {
     type: Boolean,
-    required: true,
+    default: true,
   },
   is_nustian: {
     type: Boolean,
-    required: true,
   },
 });
 
