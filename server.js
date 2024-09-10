@@ -18,6 +18,7 @@ const authRoutes = require("./routes/authRoutes");
 const signupRoutes = require("./routes/signupRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const tenantRoutes = require("./routes/tenantRoutes");
+const commonRoutes = require("./routes/commonRoutes");
 
 // Connect to MongoDB
 
@@ -54,6 +55,7 @@ app.use("/auth", authRoutes);
 app.use("/signup", signupRoutes);
 app.use("/admin", adminRoutes);
 app.use("/tenant", tenantRoutes);
+app.use("/common", commonRoutes);
 
 // // SSL options
 // const options = {

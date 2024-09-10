@@ -14,5 +14,7 @@ router.post(
 );
 router.post("/request-card", auth.verifyToken, tenantController.requestCard);
 router.post("/request-etag", auth.verifyToken, tenantController.requestEtag);
+// router.post("/return-card", auth.verifyToken, tenantController.returnCard);
+router.post("/generate-complaint", auth.verifyToken, tenantController.generateComplaint);
 
 module.exports = router;

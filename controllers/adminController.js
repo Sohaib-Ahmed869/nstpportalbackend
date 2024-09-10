@@ -3,6 +3,7 @@ const Tenant = require("../models/tenant");
 const Employee = require("../models/employee");
 const CardAllocation = require("../models/cardAllocation");
 const EtagAllocation = require("../models/etagAllocation");
+const Service = require("../models/service");
 
 const adminController = {
   generateCard: async (req, res) => {
@@ -10,9 +11,7 @@ const adminController = {
       const sponsor = "NSTP";
       const { employeeId, cardNumber, validity } = req.body;
       if (!employeeId || cardNumber == undefined || !validity) {
-        return res
-          .status(400)
-          .json({ message: "Please provide all fields" });
+        return res.status(400).json({ message: "Please provide all fields" });
       }
 
       const employee = await Employee.findById(employeeId);
@@ -80,6 +79,29 @@ const adminController = {
       return res
         .status(200)
         .json({ message: "Etag issued successfully", etag });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  addService: async (req, res) => {
+    try {
+      const { name, description } = req.body;
+      if (!name || !description) {
+        return res.status(400).json({ message: "Please provide all fields" });
+      }
+
+      const service = new Service({
+        name,
+        description,
+      });
+
+      await service.save();
+
+      return res
+        .status(200)
+        .json({ message: "Service added successfully", service });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });

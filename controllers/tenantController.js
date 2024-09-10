@@ -2,6 +2,8 @@ const Tenant = require("../models/tenant");
 const Employee = require("../models/employee");
 const CardAllocation = require("../models/cardAllocation");
 const EtagAllocation = require("../models/etagAllocation");
+const Complaint = require("../models/complaint");
+const Service = require("../models/service");
 
 const tenantController = {
   registerEmployee: async (req, res) => {
@@ -205,6 +207,45 @@ const tenantController = {
       return res.status(200).json({ message: "Etag requested successfully" });
     } catch (err) {
       console.log("🚀 ~ requestEtag: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  generateComplaint: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const { complaintType, subject, description, urgency, serviceType } =
+        req.body;
+      if (!complaintType) {
+        return res
+          .status(400)
+          .json({ message: "Please provide Complaint Type" });
+      }
+
+      Service.findOne({ serviceType }).then((service) => {
+        if (!service) {
+          return res.status(400).json({ message: "Service not found" });
+        }
+        priority = service.priority;
+      });
+
+      const complaint = new Complaint({
+        tenant_id,
+        complaint_type: complaintType,
+        subject,
+        description,
+        urgency,
+        service_type: serviceType,
+      });
+      await complaint.save();
+      return res
+        .status(200)
+        .json({ message: "Complaint generated successfully" });
+    } catch (err) {
+      console.log("🚀 ~ generateComplaint: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
