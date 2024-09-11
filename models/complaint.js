@@ -24,6 +24,10 @@ const complaintSchema = new Schema({
   service_type: {
     type: String,
   },
+  is_resolved: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Complaint = mongoose.model("Complaint", complaintSchema);

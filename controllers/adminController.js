@@ -4,6 +4,8 @@ const Employee = require("../models/employee");
 const CardAllocation = require("../models/cardAllocation");
 const EtagAllocation = require("../models/etagAllocation");
 const Service = require("../models/service");
+const Complaint = require("../models/complaint");
+const { getEmployees } = require("./tenantController");
 
 const adminController = {
   generateCard: async (req, res) => {
@@ -102,6 +104,66 @@ const adminController = {
       return res
         .status(200)
         .json({ message: "Service added successfully", service });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getTenants: async (req, res) => {
+    try {
+      const tenants = await Tenant.find();
+      return res.status(200).json({ tenants });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getEmployees: async (req, res) => {
+    try {
+      const employees = await Employee.find();
+      return res.status(200).json({ employees });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+  getTenantEmployees: async (req, res) => {
+    try {
+      const tenantId = req.params.id;
+      const employees = await Employee.find({ tenant_id: tenantId });
+      return res.status(200).json({ employees });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getComplaints: async (req, res) => {
+    try {
+      const complaints = await Complaint.find();
+      return res.status(200).json({ complaints });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  resolveComplaint: async (req, res) => {
+    try {
+      const complaintId = req.params.id;
+      const complaint = await Complaint.findById(complaintId);
+      if (!complaint) {
+        return res.status(400).json({ message: "Complaint not found" });
+      }
+
+      complaint.is_resolved = true;
+      await complaint.save();
+
+      return res
+        .status(200)
+        .json({ message: "Complaint resolved successfully", complaint });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
