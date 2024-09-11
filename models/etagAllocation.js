@@ -17,7 +17,7 @@ const etagAllocationSchema = new Schema({
     required: true,
   },
   etag_number: {
-    type: Number,
+    type: String,
   },
   is_issued: {
     type: Boolean,

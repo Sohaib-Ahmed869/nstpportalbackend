@@ -55,7 +55,10 @@ const adminController = {
   generateEtag: async (req, res) => {
     try {
       const { employeeId, validity, etagNumber } = req.body;
-      if (!employeeId || !validity || etagNumber == undefined) {
+
+      console.log("🚀 ~ file: adminController.js ~ line 108 ~ generateEtag: ~ req.body", req.body)
+      
+      if (!employeeId || !validity || !etagNumber) {
         return res.status(400).json({ message: "Please provide all fields" });
       }
 
