@@ -56,8 +56,11 @@ const adminController = {
     try {
       const { employeeId, validity, etagNumber } = req.body;
 
-      console.log("🚀 ~ file: adminController.js ~ line 108 ~ generateEtag: ~ req.body", req.body)
-      
+      console.log(
+        "🚀 ~ file: adminController.js ~ line 108 ~ generateEtag: ~ req.body",
+        req.body
+      );
+
       if (!employeeId || !validity || !etagNumber) {
         return res.status(400).json({ message: "Please provide all fields" });
       }
@@ -155,10 +158,14 @@ const adminController = {
 
   resolveComplaint: async (req, res) => {
     try {
-      const complaintId = req.params.id;
+      const { complaintId } = req.body;
       const complaint = await Complaint.findById(complaintId);
       if (!complaint) {
         return res.status(400).json({ message: "Complaint not found" });
+      }
+
+      if(complaint.is_resolved) {
+        return res.status(400).json({ message: "Complaint already resolved" });
       }
 
       complaint.is_resolved = true;

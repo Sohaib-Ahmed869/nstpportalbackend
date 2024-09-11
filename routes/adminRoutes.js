@@ -12,5 +12,5 @@ router.post("/generate-card", auth.verifyToken, adminController.generateCard);
 router.post("/generate-etag", auth.verifyToken, adminController.generateEtag);
 router.post("/add-service", auth.verifyToken, adminController.addService);
 
-router.put("/resolve-complaint/:id", auth.verifyToken, adminController.resolveComplaint);
+router.put("/resolve-complaint", auth.verifyToken, adminController.resolveComplaint);
 module.exports = router;

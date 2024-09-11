@@ -12,9 +12,9 @@ const employeeSchema = new Schema({
     required: true,
   },
   email: {
+    //
     type: String,
     required: true,
-    unique: true,
     lowercase: true,
   },
   name: {
@@ -25,6 +25,7 @@ const employeeSchema = new Schema({
     type: String,
   },
   designation: {
+    //
     type: String,
     required: true,
   },
@@ -37,6 +38,7 @@ const employeeSchema = new Schema({
     required: true,
   },
   address: {
+    //
     type: String,
     required: true,
   },
@@ -44,13 +46,16 @@ const employeeSchema = new Schema({
     type: Date,
   },
   employee_type: {
+    //
     type: String,
     required: true,
   },
   contract_duration: {
+    //
     type: String,
   },
   status_employment: {
+    //
     type: Boolean,
     default: true,
   },
@@ -58,6 +63,9 @@ const employeeSchema = new Schema({
     type: Boolean,
   },
 });
+
+employeeSchema.index({ tenant_id: 1, email: 1 }, { unique: true });
+employeeSchema.index({ tenant_id: 1, cnic: 1 }, { unique: true });
 
 const Employee = mongoose.model("Employee", employeeSchema);
 

@@ -52,6 +52,15 @@ const tenantController = {
           .json({ message: "Please provide all required fields" });
       }
 
+      const existingEmployee = await Employee.findOne({
+        tenant_id: tenantId,
+        cnic,
+      });
+
+      if (existingEmployee && existingEmployee.status_employment) {
+        return res.status(400).json({ message: "Employee already exists" });
+      }
+
       console.log("🚀 ~ registerEmployee: ~ tenantId:", tenantId);
       if (!tenantId) {
         return res.status(400).json({ message: "Please provide tenant ID" });
@@ -69,6 +78,11 @@ const tenantController = {
       }
       const isNustian = internType === "Nustian" ? true : false;
       console.log("🚀 ~ registerEmployee: ~ isNustian:", isNustian);
+
+      // if (!existingEmployee.status_employment) {
+      //   this.updateEmployee(req, res);
+      // }
+
       const employee = new Employee({
         tenant_id: tenantId,
         tenant_name: tenantName,
@@ -106,6 +120,55 @@ const tenantController = {
       return res.status(500).json({ message: "Internal server error" });
     }
   },
+
+  // updateEmployee: async (req, res) => {
+  //   try {
+  //     const tenant_id = req.id;
+  //     const { employeeId, empBody } = req.body;
+  //     const {
+  //       name,
+  //       photo,
+  //       email,
+  //       cnic,
+  //       dob,
+  //       doj,
+  //       designation,
+  //       empType,
+  //       contractDuration,
+  //       address,
+  //       internType,
+  //     } = empBody;
+
+  //     if (!tenant_id) {
+  //       return res.status(400).json({ message: "Please provide tenant ID" });
+  //     }
+
+  //     const employee = await Employee.findById(employeeId);
+  //     if (!employee) {
+  //       return res.status(400).json({ message: "Employee not found" });
+  //     }
+
+  //     employee.email = email;
+  //     employee.name = name;
+  //     employee.photo = photo;
+  //     employee.designation = designation;
+  //     employee.cnic = cnic;
+  //     employee.dob = dob;
+  //     employee.address = address;
+  //     employee.date_joining = doj;
+  //     employee.employee_type = empType;
+  //     employee.contract_duration = contractDuration;
+  //     employee.is_nustian = internType === "Nustian" ? true : false;
+
+  //     await employee.save();
+  //     return res
+  //       .status(200)
+  //       .json({ message: "Employee updated successfully", employee });
+  //   } catch (err) {
+  //     console.log("🚀 ~ updateEmployee: ~ err:", err);
+  //     return res.status(500).json({ message: "Internal server error" });
+  //   }
+  // },
 
   getEmployees: async (req, res) => {
     try {
@@ -256,17 +319,16 @@ module.exports = tenantController;
 /*
 * Register Employee body
 {
-  "email": "employee@example.com",
-  "name": "John Doe",
-  "designation": "Software Engineer",
-  "cnic": "12345-6789012-3",
-  "dob": "1990-01-01T00:00:00.000Z",
-  "address": "123, St 12, F-16/1, Islamabad, Pakistan",
-  "dateJoining": "2022-01-01T00:00:00.000Z",
-  "contractType": "Full-time",
-  "contractEnd": "2025-01-01T00:00:00.000Z",
-  "statusEmployment": true,
-  "statusCard": false,
-  "isNustian": true
+  "empBody": {
+    "name": "John Doe",
+    "email": "employee@example.com",
+    "cnic": "6110166894529",
+    "dob": "1990-01-01T00:00:00.000Z",
+    "doj": "2022-01-01T00:00:00.000Z",
+    "designation": "Software Engineer",
+    "empType": "Full-time",
+    "contractDuration": "6 Months",
+    "address": "123, St 12, F-16/1, Islamabad, Pakistan"
+  }
 }
 */
