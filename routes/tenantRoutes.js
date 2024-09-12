@@ -20,4 +20,6 @@ router.post("/generate-complaint", auth.verifyToken, tenantController.generateCo
 router.put("/update-employee", auth.verifyToken, tenantController.updateEmployee);
 router.put("/layoff-employee", auth.verifyToken, tenantController.layoffEmployee);
 
+router.delete("/cancel-complaint", auth.verifyToken, tenantController.cancelComplaint);
+
 module.exports = router;

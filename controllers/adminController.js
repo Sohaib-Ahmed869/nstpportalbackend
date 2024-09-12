@@ -5,6 +5,7 @@ const CardAllocation = require("../models/cardAllocation");
 const EtagAllocation = require("../models/etagAllocation");
 const Service = require("../models/service");
 const Complaint = require("../models/complaint");
+const Receptionist = require("../models/receptionist");
 const { getEmployees } = require("./tenantController");
 
 const adminController = {
@@ -135,6 +136,32 @@ const adminController = {
       return res.status(500).json({ message: "Internal server error" });
     }
   },
+
+  layOffEmployee: async (req, res) => {
+    try {
+      const { employeeId } = req.body;
+      const employee = await Employee.findById(employeeId);
+      if (!employee) {
+        return res.status(400).json({ message: "Employee not found" });
+      }
+
+      if (!employee.status_employment) {
+        return res.status(400).json({ message: "Employee already laid off" });
+      }
+
+      employee.status_employment = false;
+      employee.layoff_date = new Date();
+      await employee.save();
+
+      return res
+        .status(200)
+        .json({ message: "Employee laid off successfully", employee });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   getTenantEmployees: async (req, res) => {
     try {
       const tenantId = req.params.id;
@@ -164,7 +191,7 @@ const adminController = {
         return res.status(400).json({ message: "Complaint not found" });
       }
 
-      if(complaint.is_resolved) {
+      if (complaint.is_resolved) {
         return res.status(400).json({ message: "Complaint already resolved" });
       }
 
@@ -174,6 +201,16 @@ const adminController = {
       return res
         .status(200)
         .json({ message: "Complaint resolved successfully", complaint });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getReceptionists: async (req, res) => {
+    try {
+      const receptionists = await Receptionist.find();
+      return res.status(200).json({ receptionists });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });

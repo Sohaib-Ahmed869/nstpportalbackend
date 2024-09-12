@@ -13,4 +13,5 @@ router.post("/generate-etag", auth.verifyToken, adminController.generateEtag);
 router.post("/add-service", auth.verifyToken, adminController.addService);
 
 router.put("/resolve-complaint", auth.verifyToken, adminController.resolveComplaint);
+router.put("/layoff-employee", auth.verifyToken, adminController.layOffEmployee);
 module.exports = router;

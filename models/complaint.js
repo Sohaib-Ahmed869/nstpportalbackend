@@ -29,6 +29,10 @@ const complaintSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  initiated_on: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const Complaint = mongoose.model("Complaint", complaintSchema);

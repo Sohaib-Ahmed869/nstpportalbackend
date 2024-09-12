@@ -178,6 +178,7 @@ const tenantController = {
 
       if (laidOff) {
         employee.date_joining = new Date();
+        employee.layoff_date = undefined;
         employee.status_employment = true;
       }
       await employee.save();
@@ -363,6 +364,30 @@ const tenantController = {
         .json({ message: "Complaint generated successfully" });
     } catch (err) {
       console.log("🚀 ~ generateComplaint: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  cancelComplaint: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { complaintId } = req.body;
+
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+
+      const complaint = await Complaint.findByIdAndDelete(complaintId);
+
+      if (!complaint) {
+        return res.status(400).json({ message: "Complaint not found" });
+      }
+
+      return res
+        .status(200)
+        .json({ message: "Complaint cancelled successfully", complaint });
+    } catch (err) {
+      console.log("🚀 ~ cancelComplaint: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
