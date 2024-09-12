@@ -57,6 +57,11 @@ const tenantController = {
         cnic,
       });
 
+      console.log(
+        "🚀 ~ registerEmployee: ~ existingEmployee:",
+        existingEmployee
+      );
+
       if (existingEmployee && existingEmployee.status_employment) {
         return res.status(400).json({ message: "Employee already exists" });
       }
@@ -79,10 +84,12 @@ const tenantController = {
       const isNustian = internType === "Nustian" ? true : false;
       console.log("🚀 ~ registerEmployee: ~ isNustian:", isNustian);
 
-      // if (!existingEmployee.status_employment) {
-      //   this.updateEmployee(req, res);
-      // }
+      if (existingEmployee && !existingEmployee.status_employment) {
+        req.laidOff = true;
+        return await tenantController.updateEmployee(req, res);
+      }
 
+      console.log("🚀 ~ registerEmployee: ~ Continue");
       const employee = new Employee({
         tenant_id: tenantId,
         tenant_name: tenantName,
@@ -121,54 +128,92 @@ const tenantController = {
     }
   },
 
-  // updateEmployee: async (req, res) => {
-  //   try {
-  //     const tenant_id = req.id;
-  //     const { employeeId, empBody } = req.body;
-  //     const {
-  //       name,
-  //       photo,
-  //       email,
-  //       cnic,
-  //       dob,
-  //       doj,
-  //       designation,
-  //       empType,
-  //       contractDuration,
-  //       address,
-  //       internType,
-  //     } = empBody;
+  updateEmployee: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const laidOff = req.laidOff;
+      console.log("🚀 ~ updateEmployee: ~ req.laidOff:", req.laidOff);
+      console.log("🚀 ~ updateEmployee: ~ req.body:", req.body);
+      const { employeeId, empBody } = req.body;
+      const {
+        name,
+        email,
+        designation,
+        address,
+        empType,
+        contractDuration,
+        internType,
+      } = empBody;
 
-  //     if (!tenant_id) {
-  //       return res.status(400).json({ message: "Please provide tenant ID" });
-  //     }
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
 
-  //     const employee = await Employee.findById(employeeId);
-  //     if (!employee) {
-  //       return res.status(400).json({ message: "Employee not found" });
-  //     }
+      let employee;
+      if (laidOff) {
+        let cnic = empBody.cnic;
+        console.log("🚀 ~ updateEmployee: ~ cnic:", cnic);
+        employee = await Employee.findOne({ tenant_id, cnic });
+      } else {
+        employee = await Employee.findById(employeeId);
+      }
 
-  //     employee.email = email;
-  //     employee.name = name;
-  //     employee.photo = photo;
-  //     employee.designation = designation;
-  //     employee.cnic = cnic;
-  //     employee.dob = dob;
-  //     employee.address = address;
-  //     employee.date_joining = doj;
-  //     employee.employee_type = empType;
-  //     employee.contract_duration = contractDuration;
-  //     employee.is_nustian = internType === "Nustian" ? true : false;
+      if (!employee) {
+        return res.status(400).json({ message: "Employee not found" });
+      }
 
-  //     await employee.save();
-  //     return res
-  //       .status(200)
-  //       .json({ message: "Employee updated successfully", employee });
-  //   } catch (err) {
-  //     console.log("🚀 ~ updateEmployee: ~ err:", err);
-  //     return res.status(500).json({ message: "Internal server error" });
-  //   }
-  // },
+      const isNustian = internType === "Nustian" ? true : false;
+
+      name ? (employee.name = name) : null;
+      employee.email = email;
+      employee.designation = designation;
+      employee.address = address;
+      employee.employee_type = empType;
+      empType === "Contract"
+        ? (employee.contract_duration = contractDuration)
+        : (employee.contract_duration = undefined);
+      empType === "Intern"
+        ? (employee.is_nustian = isNustian)
+        : (employee.is_nustian = undefined);
+
+      if (laidOff) {
+        employee.date_joining = new Date();
+        employee.status_employment = true;
+      }
+      await employee.save();
+      return res
+        .status(200)
+        .json({ message: "Employee updated successfully", employee });
+    } catch (err) {
+      console.log("🚀 ~ updateEmployee: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  layoffEmployee: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { employeeId } = req.body;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const employee = await Employee.findById(employeeId);
+      if (!employee) {
+        return res.status(400).json({ message: "Employee not found" });
+      }
+
+      employee.status_employment = false;
+      employee.layoff_date = new Date();
+
+      await employee.save();
+      return res
+        .status(200)
+        .json({ message: "Employee laid off successfully", employee });
+    } catch (err) {
+      console.log("🚀 ~ layoffEmployee: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
 
   getEmployees: async (req, res) => {
     try {
@@ -280,28 +325,37 @@ const tenantController = {
       if (!tenant_id) {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
-      const { complaintType, subject, description, urgency, serviceType } =
-        req.body;
+      const { complaintType, subject, description, serviceType } = req.body;
+      let { urgency } = req.body;
       if (!complaintType) {
         return res
           .status(400)
           .json({ message: "Please provide Complaint Type" });
       }
 
-      Service.findOne({ serviceType }).then((service) => {
-        if (!service) {
-          return res.status(400).json({ message: "Service not found" });
+      if (complaintType === "General") {
+        if (!subject || !description) {
+          return res
+            .status(400)
+            .json({ message: "Please provide Subject and Description" });
         }
-        priority = service.priority;
-      });
+
+        urgency = 3;
+      } else if (complaintType === "Service") {
+        if (!serviceType || urgency === undefined) {
+          return res
+            .status(400)
+            .json({ message: "Please provide Service Type and Urgency" });
+        }
+      }
 
       const complaint = new Complaint({
         tenant_id,
         complaint_type: complaintType,
         subject,
         description,
-        urgency,
         service_type: serviceType,
+        urgency,
       });
       await complaint.save();
       return res
@@ -331,4 +385,29 @@ module.exports = tenantController;
     "address": "123, St 12, F-16/1, Islamabad, Pakistan"
   }
 }
+
+* Update Employee body
+{
+  "employeeId":"66e276775b184d3b3065cfde",
+  "empBody": {
+    "email": "employee@example.com",
+    "designation": "Software Architect",
+    "empType": "Full-time", // if contract then add contractDuration, if intern then add internType
+    "address": "124, St 12, F-16/1, Islamabad, Pakistan"
+  }
+}
+
+* Complaints
+{
+  "complaintType":"Service",
+  "serviceType":"Electrician",
+  "urgency":2
+}
+
+{
+  "complaintType":"Service",
+  "serviceType":"Electrician",
+  "description":"Hexler bois are laughing out loud and watching CID on high volume"
+}
+
 */

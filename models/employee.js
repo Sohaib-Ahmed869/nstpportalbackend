@@ -43,6 +43,7 @@ const employeeSchema = new Schema({
     required: true,
   },
   date_joining: {
+    //
     type: Date,
   },
   employee_type: {
@@ -54,13 +55,16 @@ const employeeSchema = new Schema({
     //
     type: String,
   },
+  is_nustian: {
+    type: Boolean,
+  },
   status_employment: {
     //
     type: Boolean,
     default: true,
   },
-  is_nustian: {
-    type: Boolean,
+  layoff_date: {
+    type: Date,
   },
 });
 

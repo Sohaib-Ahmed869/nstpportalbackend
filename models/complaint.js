@@ -12,8 +12,9 @@ const complaintSchema = new Schema({
     type: String,
     required: true,
   },
-  priority: {
-    type: String,
+  urgency: {
+    type: Number,
+    enum: [1, 2, 3],
   },
   subject: {
     type: String,

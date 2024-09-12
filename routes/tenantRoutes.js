@@ -17,4 +17,7 @@ router.post("/request-etag", auth.verifyToken, tenantController.requestEtag);
 // router.post("/return-card", auth.verifyToken, tenantController.returnCard);
 router.post("/generate-complaint", auth.verifyToken, tenantController.generateComplaint);
 
+router.put("/update-employee", auth.verifyToken, tenantController.updateEmployee);
+router.put("/layoff-employee", auth.verifyToken, tenantController.layoffEmployee);
+
 module.exports = router;
