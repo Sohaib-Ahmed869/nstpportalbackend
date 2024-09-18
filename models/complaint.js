@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const complaintSchema = new Schema({
+  tower: {
+    type: Schema.Types.ObjectId,
+    ref: "Tower",
+    // required: true,
+  },
   tenant_id: {
     type: Schema.Types.ObjectId,
     ref: "Tenant",
@@ -33,7 +38,7 @@ const complaintSchema = new Schema({
     type: Date,
     default: Date.now,
   },
-});
+}, { timestamps: true });
 
 const Complaint = mongoose.model("Complaint", complaintSchema);
 

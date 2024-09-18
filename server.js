@@ -14,6 +14,7 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
 
+const superRoutes = require("./routes/superRoutes");
 const authRoutes = require("./routes/authRoutes");
 const signupRoutes = require("./routes/signupRoutes");
 const adminRoutes = require("./routes/adminRoutes");
@@ -50,7 +51,7 @@ app.get("/", (req, res) => {
   res.send("Welcome to the NSTP Portal");
 });
 
-// Use auth routes
+app.use("/super", superRoutes);
 app.use("/auth", authRoutes);
 app.use("/signup", signupRoutes);
 app.use("/admin", adminRoutes);

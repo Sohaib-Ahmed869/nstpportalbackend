@@ -58,7 +58,7 @@ const etagAllocationSchema = new Schema({
   image_license_back: {
     type: String,
   },
-});
+}, { timestamps: true });
 
 const EtagAllocation = mongoose.model("EtagAllocation", etagAllocationSchema);
 

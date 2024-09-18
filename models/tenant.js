@@ -64,7 +64,18 @@ const tenantSchema = new Schema({
   password: { type: String },
   dateJoining: { type: Date },
   logo: { type: String },
-});
+  offices: [
+    {
+      tower: {
+        type: Schema.Types.ObjectId,
+        ref: "Tower",
+      },
+      floor: { type: Number },
+      wing: { type: Number },
+      officeNumber: { type: String },
+    }
+  ]
+}, { timestamps: true });
 
 tenantSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {

@@ -36,13 +36,21 @@ const adminSchema = new Schema({
   image: {
     type: String,
   },
-  tasks: [
+  towers: [
     {
-      type: Schema.Types.ObjectId, // CONFIRM id or name, choose later
-      ref: "Task",
+      tower: {
+        type: Schema.Types.ObjectId,
+        ref: "Tower",
+      },
+      tasks: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Task",
+        },
+      ],
     },
   ],
-});
+}, { timestamps: true });
 
 adminSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {

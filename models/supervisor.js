@@ -35,7 +35,7 @@ const supervisorSchema = new Schema({
   image: {
     type: String,
   },
-});
+}, { timestamps: true });
 
 supervisorSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {

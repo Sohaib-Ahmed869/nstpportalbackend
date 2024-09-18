@@ -38,7 +38,7 @@ const cardAllocationSchema = new Schema({
     type: Boolean,
     default: false,
   },
-});
+}, { timestamps: true });
 
 const CardAllocation = mongoose.model("CardAllocation", cardAllocationSchema);
 

@@ -13,7 +13,7 @@ const tenantController = {
       const { empBody } = req.body;
       const {
         name,
-        photo,
+        image,
         email,
         cnic,
         dob,
@@ -95,7 +95,7 @@ const tenantController = {
         tenant_name: tenantName,
         email,
         name,
-        photo,
+        image,
         designation,
         cnic,
         dob,

@@ -35,7 +35,7 @@ const receptionistSchema = new Schema({
   image: {
     type: String,
   },
-});
+}, { timestamps: true });
 
 receptionistSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {

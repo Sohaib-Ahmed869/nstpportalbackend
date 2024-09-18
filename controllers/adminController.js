@@ -1,4 +1,3 @@
-const Admin = require("../models/admin");
 const Tenant = require("../models/tenant");
 const Employee = require("../models/employee");
 const CardAllocation = require("../models/cardAllocation");
@@ -6,7 +5,6 @@ const EtagAllocation = require("../models/etagAllocation");
 const Service = require("../models/service");
 const Complaint = require("../models/complaint");
 const Receptionist = require("../models/receptionist");
-const { getEmployees } = require("./tenantController");
 
 const adminController = {
   generateCard: async (req, res) => {
@@ -34,7 +32,7 @@ const adminController = {
 
       const card = {
         cardNumber: cardNumber,
-        photo: employee.photo,
+        image: employee.image,
         name: employee.name,
         designation: employee.designation,
         cnic: employee.cnic,
@@ -117,9 +115,37 @@ const adminController = {
     }
   },
 
+  assignOffice: async (req, res) => {
+    try {
+      const { tenantId, office } = req.body;
+
+      // Validate tenant
+      const tenant = await Tenant.findById(tenantId);
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant not found" });
+      }
+
+      // Add the new office to the tenant's offices array
+      tenant.offices.push(office);
+
+      // Save the updated tenant document
+      await tenant.save();
+
+      res.status(200).json({ message: "Office assigned successfully", tenant });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   getTenants: async (req, res) => {
     try {
-      const tenants = await Tenant.find();
+      const towerId = req.params.id;
+      const tenants = await Tenant.find({
+        offices: {
+          $elemMatch: { tower: towerId },
+        },
+      }).lean();
       return res.status(200).json({ tenants });
     } catch (err) {
       console.error(err);
@@ -129,7 +155,7 @@ const adminController = {
 
   getEmployees: async (req, res) => {
     try {
-      const employees = await Employee.find();
+      const employees = await Employee.find().lean();
       return res.status(200).json({ employees });
     } catch (err) {
       console.error(err);
@@ -165,7 +191,7 @@ const adminController = {
   getTenantEmployees: async (req, res) => {
     try {
       const tenantId = req.params.id;
-      const employees = await Employee.find({ tenant_id: tenantId });
+      const employees = await Employee.find({ tenant_id: tenantId }).lean();
       return res.status(200).json({ employees });
     } catch (err) {
       console.error(err);
@@ -175,7 +201,7 @@ const adminController = {
 
   getComplaints: async (req, res) => {
     try {
-      const complaints = await Complaint.find();
+      const complaints = await Complaint.find().lean();
       return res.status(200).json({ complaints });
     } catch (err) {
       console.error(err);
@@ -209,7 +235,7 @@ const adminController = {
 
   getReceptionists: async (req, res) => {
     try {
-      const receptionists = await Receptionist.find();
+      const receptionists = await Receptionist.find().lean();
       return res.status(200).json({ receptionists });
     } catch (err) {
       console.error(err);
@@ -219,3 +245,16 @@ const adminController = {
 };
 
 module.exports = adminController;
+
+/*
+req body for assignOffice
+{
+  "tenantId":"66ea5d475fa58a611ba1e0c4",
+  "office":{
+    "tower":"66ea52292b2783144e29063f",
+    "floor":1,
+    "wing":1,
+    "officeNumber":1103
+  }
+}
+*/
