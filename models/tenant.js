@@ -1,3 +1,5 @@
+console.log("Hello tenant");
+
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -64,14 +66,11 @@ const tenantSchema = new Schema({
   password: { type: String },
   dateJoining: { type: Date },
   logo: { type: String },
+  tower: { type: Schema.Types.ObjectId, ref: "Tower" },
   offices: [
     {
-      tower: {
-        type: Schema.Types.ObjectId,
-        ref: "Tower",
-      },
-      floor: { type: Number },
-      wing: { type: Number },
+      floor: { type: String },
+      wing: { type: String },
       officeNumber: { type: String },
     }
   ]

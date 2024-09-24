@@ -3,23 +3,25 @@ const router = express.Router();
 const tenantController = require("../controllers/tenantController");
 const auth = require("../middlewares/auth");
 
-router.get("/employees", auth.verifyToken, tenantController.getEmployees);
-router.get("/card-allocations", auth.verifyToken, tenantController.getCardAllocations);
-router.get("/etag-allocations", auth.verifyToken, tenantController.getEtagAllocations);
+const routes = [
+  { method: "get", path: "/employees", handler: tenantController.getEmployees },
+  { method: "get", path: "/card/allocations", handler: tenantController.getCardAllocations },
+  { method: "get", path: "/etag/allocations", handler: tenantController.getEtagAllocations },
 
-router.post(
-  "/register-employee",
-  auth.verifyToken,
-  tenantController.registerEmployee
-);
-router.post("/request-card", auth.verifyToken, tenantController.requestCard);
-router.post("/request-etag", auth.verifyToken, tenantController.requestEtag);
-// router.post("/return-card", auth.verifyToken, tenantController.returnCard);
-router.post("/generate-complaint", auth.verifyToken, tenantController.generateComplaint);
+  { method: "post", path: "/employee/register", handler: tenantController.registerEmployee },
+  { method: "post", path: "/card/request", handler: tenantController.requestCard },
+  { method: "post", path: "/etag/request", handler: tenantController.requestEtag },
+  // { method: "post", path: "/return-card", handler: tenantController.returnCard },
+  { method: "post", path: "/complaint/generate", handler: tenantController.generateComplaint },
 
-router.put("/update-employee", auth.verifyToken, tenantController.updateEmployee);
-router.put("/layoff-employee", auth.verifyToken, tenantController.layoffEmployee);
+  { method: "put", path: "/employee/update", handler: tenantController.updateEmployee },
+  { method: "put", path: "/employee/layoff", handler: tenantController.layoffEmployee },
+  
+  { method: "delete", path: "/complaint/cancel", handler: tenantController.cancelComplaint },
+];
 
-router.delete("/cancel-complaint", auth.verifyToken, tenantController.cancelComplaint);
+routes.forEach((route) => {
+  router[route.method](route.path, auth.verifyToken, auth.verifyTenant, route.handler);
+});
 
 module.exports = router;

@@ -4,6 +4,11 @@ const Schema = mongoose.Schema;
 const bcrypt = require("bcrypt");
 
 const receptionistSchema = new Schema({
+  tower: {
+    type: Schema.Types.ObjectId,
+    ref: "Tower",
+    // required: true,
+  },
   email: {
     type: String,
     required: true,

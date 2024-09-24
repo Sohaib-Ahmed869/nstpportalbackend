@@ -1,11 +1,6 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-
-const SuperAdmin = require("../models/superAdmin");
-const Admin = require("../models/admin");
-const Supervisor = require("../models/supervisor");
-const Receptionist = require("../models/receptionist");
-const Tenant = require("../models/tenant");
+const { SuperAdmin, Admin, Supervisor, Receptionist, Tenant } = require("../models");
 
 const authController = {
   superAdminLogin: async (req, res) => {

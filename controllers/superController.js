@@ -1,6 +1,7 @@
-const Tower = require("../models/tower");
-const Admin = require("../models/admin");
-const Task = require("../models/task");
+console.log("Hello superController");
+const { Tower, Admin, Task } = require("../models");
+const { validateRequiredFieldsArray } = require("../utils/validationUtils");
+
 
 const superController = {
   getTowers: async (req, res) => {
@@ -61,22 +62,34 @@ const superController = {
   //   }
   // },
 
-  addTask: async (req, res) => {
+  addTasks: async (req, res) => {
     try {
-      const { name, description } = req.body;
+      const tasks = req.body.tasks;
 
-      if (!name) {
-        return res.status(400).json({ message: "Please provide a name" });
+      if (!Array.isArray(tasks) || tasks.length === 0) {
+        return res
+          .status(400)
+          .json({ message: "Please provide an array of tasks" });
       }
 
-      const exists = await Task.findOne({ name });
-      if (exists) {
-        return res.status(400).json({ message: "Task already exists" });
+      const taskNames = tasks.map((task) => task.name);
+      const existingTasks = await Task.find({ name: { $in: taskNames } });
+
+      if (existingTasks.length > 0) {
+        const existingTaskNames = existingTasks.map((task) => task.name);
+        return res
+          .status(400)
+          .json({
+            message: `Tasks already exist: ${existingTaskNames.join(", ")}`,
+          });
       }
 
-      const task = new Task({ name, description });
-      await task.save();
-      res.status(201).json({ message: "Task added successfully" });
+      const newTasks = tasks.map(
+        (task) => new Task({ name: task.name, description: task.description })
+      );
+      await Task.insertMany(newTasks);
+
+      res.status(201).json({ message: "Tasks added successfully", newTasks });
     } catch (error) {
       res.status(400).json({ message: error.message });
     }

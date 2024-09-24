@@ -1,11 +1,17 @@
-const express = require('express');
-const authController = require('../controllers/authController');
+const express = require("express");
 const router = express.Router();
+const authController = require("../controllers/authController");
 
-router.post('/super-admin-login', authController.superAdminLogin);
-router.post('/admin-login', authController.adminLogin);
-router.post('/supervisor-login', authController.supervisorLogin);
-router.post('/receptionist-login', authController.receptionistLogin);
-router.post('/tenant-login', authController.tenantLogin);
+const routes = [
+  { method: "post", path: "/login/admin/super", handler: authController.superAdminLogin },
+  { method: "post", path: "/login/admin", handler: authController.adminLogin },
+  { method: "post", path: "/login/supervisor", handler: authController.supervisorLogin },
+  { method: "post", path: "/login/receptionist", handler: authController.receptionistLogin },
+  { method: "post", path: "/login/tenant", handler: authController.tenantLogin },
+];
+
+routes.forEach((route) => {
+  router[route.method](route.path, route.handler);
+});
 
 module.exports = router;

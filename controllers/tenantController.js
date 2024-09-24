@@ -1,20 +1,59 @@
-const Tenant = require("../models/tenant");
-const Employee = require("../models/employee");
-const CardAllocation = require("../models/cardAllocation");
-const EtagAllocation = require("../models/etagAllocation");
-const Complaint = require("../models/complaint");
-const Service = require("../models/service");
+const { Employee, CardAllocation, EtagAllocation, Tenant, Complaint } = require("../models");
 
 const tenantController = {
+  getEmployees: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const employees = await Employee.find({ tenant_id });
+      return res.status(200).json({ employees });
+    } catch (err) {
+      console.log("🚀 ~ getEmployees: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getCardAllocations: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const cardAllocations = await CardAllocation.find({ tenant_id });
+      return res.status(200).json({ cardAllocations });
+    } catch (err) {
+      console.log("🚀 ~ getCardAllocations: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getEtagAllocations: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const etagAllocations = await EtagAllocation.find({ tenant_id });
+      return res.status(200).json({ etagAllocations });
+    } catch (err) {
+      console.log("🚀 ~ getEtagAllocations: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   registerEmployee: async (req, res) => {
     try {
       const tenantId = req.id;
+      const towerId = req.towerId;
       console.log("🚀 ~ registerEmployee: ~ req.body:", req.body);
       const { empBody } = req.body;
       const {
         name,
         image,
         email,
+        phone,
         cnic,
         dob,
         doj,
@@ -29,6 +68,7 @@ const tenantController = {
         "🚀 ~ registerEmployee ~ required fields:",
         name,
         email,
+        phone,
         cnic,
         dob,
         doj,
@@ -40,6 +80,7 @@ const tenantController = {
       if (
         !name ||
         !email ||
+        !phone ||
         !cnic ||
         !dob ||
         !doj ||
@@ -91,9 +132,11 @@ const tenantController = {
 
       console.log("🚀 ~ registerEmployee: ~ Continue");
       const employee = new Employee({
+        tower: towerId,
         tenant_id: tenantId,
         tenant_name: tenantName,
         email,
+        phone,
         name,
         image,
         designation,
@@ -107,11 +150,13 @@ const tenantController = {
       });
 
       const cardAllocation = new CardAllocation({
+        tower: towerId,
         tenant_id: tenantId,
         employee_id: employee._id,
       });
 
       const etagAllocation = new EtagAllocation({
+        tower: towerId,
         tenant_id: tenantId,
         employee_id: employee._id,
       });
@@ -124,6 +169,116 @@ const tenantController = {
         .json({ message: "Employee registered successfully", employee });
     } catch (err) {
       console.log("🚀 ~ registerEmployee: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  requestCard: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { employeeId } = req.body;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const employee = await Employee.findById(employeeId);
+      if (!employee) {
+        return res.status(400).json({ message: "No employee found" });
+      }
+
+      const cardAllocation = await CardAllocation.findOne({
+        tenant_id,
+        employee_id: employeeId,
+      });
+      if (!cardAllocation) {
+        return res.status(400).json({ message: "No card allocation found" });
+      }
+
+      cardAllocation.is_requested = true;
+      cardAllocation.date_requested = new Date();
+      await cardAllocation.save();
+
+      return res.status(200).json({ message: "Card requested successfully" });
+    } catch (err) {
+      console.log("🚀 ~ requestCard: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  requestEtag: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { employeeId } = req.body; // images
+
+      const validation = await validateTenantAndEmployee(tenant_id, employeeId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const etagAllocation = await EtagAllocation.findOne({
+        tenant_id,
+        employee_id: employeeId,
+      });
+      if (!etagAllocation) {
+        return res.status(400).json({ message: "No etag allocation found" });
+      }
+
+      etagAllocation.is_requested = true;
+      etagAllocation.date_requested = new Date();
+      await etagAllocation.save();
+
+      return res.status(200).json({ message: "Etag requested successfully" });
+    } catch (err) {
+      console.log("🚀 ~ requestEtag: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  generateComplaint: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const towerId = req.towerId;
+
+      const { complaintType, subject, description, serviceType } = req.body;
+      let { urgency } = req.body;
+      if (!complaintType) {
+        return res
+          .status(400)
+          .json({ message: "Please provide Complaint Type" });
+      }
+
+      if (complaintType === "General") {
+        if (!subject || !description) {
+          return res
+            .status(400)
+            .json({ message: "Please provide Subject and Description" });
+        }
+
+        urgency = 3;
+      } else if (complaintType === "Service") {
+        if (!serviceType || urgency === undefined) {
+          return res
+            .status(400)
+            .json({ message: "Please provide Service Type and Urgency" });
+        }
+      }
+
+      const complaint = new Complaint({
+        tower: towerId,
+        tenant_id,
+        complaint_type: complaintType,
+        subject,
+        description,
+        service_type: serviceType,
+        urgency,
+      });
+      await complaint.save();
+      return res
+        .status(200)
+        .json({ message: "Complaint generated successfully" });
+    } catch (err) {
+      console.log("🚀 ~ generateComplaint: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -145,8 +300,11 @@ const tenantController = {
         internType,
       } = empBody;
 
-      if (!tenant_id) {
-        return res.status(400).json({ message: "Please provide tenant ID" });
+      const validation = await validateTenantAndEmployee(tenant_id, employeeId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
       }
 
       let employee;
@@ -195,13 +353,15 @@ const tenantController = {
     try {
       const tenant_id = req.id;
       const { employeeId } = req.body;
-      if (!tenant_id) {
-        return res.status(400).json({ message: "Please provide tenant ID" });
+
+      const validation = await validateTenantAndEmployee(tenant_id, employeeId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
       }
+
       const employee = await Employee.findById(employeeId);
-      if (!employee) {
-        return res.status(400).json({ message: "Employee not found" });
-      }
 
       employee.status_employment = false;
       employee.layoff_date = new Date();
@@ -216,158 +376,6 @@ const tenantController = {
     }
   },
 
-  getEmployees: async (req, res) => {
-    try {
-      const tenant_id = req.id;
-      if (!tenant_id) {
-        return res.status(400).json({ message: "Please provide tenant ID" });
-      }
-      const employees = await Employee.find({ tenant_id });
-      return res.status(200).json(employees);
-    } catch (err) {
-      console.log("🚀 ~ getEmployees: ~ err:", err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
-  getCardAllocations: async (req, res) => {
-    try {
-      const tenant_id = req.id;
-      if (!tenant_id) {
-        return res.status(400).json({ message: "Please provide tenant ID" });
-      }
-      const cardAllocations = await CardAllocation.find({ tenant_id });
-      return res.status(200).json(cardAllocations);
-    } catch (err) {
-      console.log("🚀 ~ getCardAllocations: ~ err:", err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
-  getEtagAllocations: async (req, res) => {
-    try {
-      const tenant_id = req.id;
-      if (!tenant_id) {
-        return res.status(400).json({ message: "Please provide tenant ID" });
-      }
-      const etagAllocations = await EtagAllocation.find({ tenant_id });
-      return res.status(200).json(etagAllocations);
-    } catch (err) {
-      console.log("🚀 ~ getEtagAllocations: ~ err:", err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
-  requestCard: async (req, res) => {
-    try {
-      const tenant_id = req.id;
-      const { employeeId } = req.body;
-      if (!tenant_id) {
-        return res.status(400).json({ message: "Please provide tenant ID" });
-      }
-      const employee = await Employee.findById(employeeId);
-      if (!employee) {
-        return res.status(400).json({ message: "No employee found" });
-      }
-
-      const cardAllocation = await CardAllocation.findOne({
-        tenant_id,
-        employee_id: employeeId,
-      });
-      if (!cardAllocation) {
-        return res.status(400).json({ message: "No card allocation found" });
-      }
-
-      cardAllocation.is_requested = true;
-      cardAllocation.date_requested = new Date();
-      await cardAllocation.save();
-
-      return res.status(200).json({ message: "Card requested successfully" });
-    } catch (err) {
-      console.log("🚀 ~ requestCard: ~ err:", err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
-  requestEtag: async (req, res) => {
-    try {
-      const tenant_id = req.id;
-      const { employeeId } = req.body; // images
-      if (!tenant_id) {
-        return res.status(400).json({ message: "Please provide tenant ID" });
-      }
-      const employee = await Employee.findById(employeeId);
-      if (!employee) {
-        return res.status(400).json({ message: "No employee found" });
-      }
-
-      const etagAllocation = await EtagAllocation.findOne({
-        tenant_id,
-        employee_id: employeeId,
-      });
-      if (!etagAllocation) {
-        return res.status(400).json({ message: "No etag allocation found" });
-      }
-
-      etagAllocation.is_requested = true;
-      etagAllocation.date_requested = new Date();
-      await etagAllocation.save();
-
-      return res.status(200).json({ message: "Etag requested successfully" });
-    } catch (err) {
-      console.log("🚀 ~ requestEtag: ~ err:", err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
-  generateComplaint: async (req, res) => {
-    try {
-      const tenant_id = req.id;
-      if (!tenant_id) {
-        return res.status(400).json({ message: "Please provide tenant ID" });
-      }
-      const { complaintType, subject, description, serviceType } = req.body;
-      let { urgency } = req.body;
-      if (!complaintType) {
-        return res
-          .status(400)
-          .json({ message: "Please provide Complaint Type" });
-      }
-
-      if (complaintType === "General") {
-        if (!subject || !description) {
-          return res
-            .status(400)
-            .json({ message: "Please provide Subject and Description" });
-        }
-
-        urgency = 3;
-      } else if (complaintType === "Service") {
-        if (!serviceType || urgency === undefined) {
-          return res
-            .status(400)
-            .json({ message: "Please provide Service Type and Urgency" });
-        }
-      }
-
-      const complaint = new Complaint({
-        tenant_id,
-        complaint_type: complaintType,
-        subject,
-        description,
-        service_type: serviceType,
-        urgency,
-      });
-      await complaint.save();
-      return res
-        .status(200)
-        .json({ message: "Complaint generated successfully" });
-    } catch (err) {
-      console.log("🚀 ~ generateComplaint: ~ err:", err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
   cancelComplaint: async (req, res) => {
     try {
       const tenant_id = req.id;
@@ -377,11 +385,13 @@ const tenantController = {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
 
-      const complaint = await Complaint.findByIdAndDelete(complaintId);
-
-      if (!complaint) {
-        return res.status(400).json({ message: "Complaint not found" });
+      const validation = await validateComplaint(complaintId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
       }
+      const complaint = await Complaint.findByIdAndDelete(complaintId);
 
       return res
         .status(200)
@@ -401,6 +411,7 @@ module.exports = tenantController;
   "empBody": {
     "name": "John Doe",
     "email": "employee@example.com",
+    "phone": "0123123123",
     "cnic": "6110166894529",
     "dob": "1990-01-01T00:00:00.000Z",
     "doj": "2022-01-01T00:00:00.000Z",

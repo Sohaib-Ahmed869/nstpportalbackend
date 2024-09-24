@@ -1,16 +1,26 @@
+console.log("Hello superRoutes");
+
 const express = require("express");
 const router = express.Router();
-const superController = require("../controllers/superController");
+const superController = require("../controllers/superController"); 
 
-router.get("/towers", superController.getTowers);
-router.get("/admins", superController.getAdmins);
-router.get("/tasks", superController.getTasks);
 
-router.post("/add-tower", superController.addTower);
-router.post("/add-task", superController.addTask);
 
-router.put("/assign-tower", superController.assignTower);
-router.put("/assign-tasks", superController.assignTasks);
-router.put("/unassign-tasks", superController.unassignTasks);
+const routes = [
+  { method: "get", path: "/towers", handler: superController.getTowers },
+  { method: "get", path: "/admins", handler: superController.getAdmins },
+  { method: "get", path: "/tasks", handler: superController.getTasks },
+
+  { method: "post", path: "/tower/add", handler: superController.addTower },
+  { method: "post", path: "/tasks/add", handler: superController.addTasks },
+
+  { method: "put", path: "/tower/assign", handler: superController.assignTower },
+  { method: "put", path: "/tasks/assign", handler: superController.assignTasks },
+  { method: "put", path: "/tasks/unassign", handler: superController.unassignTasks },
+];
+
+routes.forEach((route) => {
+  router[route.method](route.path, route.handler);
+});
 
 module.exports = router;

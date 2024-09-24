@@ -14,13 +14,6 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
 
-const superRoutes = require("./routes/superRoutes");
-const authRoutes = require("./routes/authRoutes");
-const signupRoutes = require("./routes/signupRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const tenantRoutes = require("./routes/tenantRoutes");
-const commonRoutes = require("./routes/commonRoutes");
-
 // Connect to MongoDB
 
 // mongoose
@@ -33,7 +26,12 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("MongoDB connected"))
+  .then(() => {
+    console.log("MongoDB connected");
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
   .catch((err) => console.log("Error: ", err));
 
 app.use(express.json({ limit: "50mb" }));
@@ -47,9 +45,30 @@ app.use(
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 console.log("timezone: ", timezone);
 
+
 app.get("/", (req, res) => {
   res.send("Welcome to the NSTP Portal");
 });
+
+console.log("Hello server");
+
+// const {
+//   routes: {
+//     superRoutes,
+//     authRoutes,
+//     signupRoutes,
+//     adminRoutes,
+//     tenantRoutes,
+//     commonRoutes,
+//   },
+// } = require("./index");
+
+const superRoutes = require("./routes/superRoutes");
+const authRoutes = require("./routes/authRoutes");
+const signupRoutes = require("./routes/signupRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const tenantRoutes = require("./routes/tenantRoutes");
+const commonRoutes = require("./routes/commonRoutes");
 
 app.use("/super", superRoutes);
 app.use("/auth", authRoutes);
@@ -57,6 +76,8 @@ app.use("/signup", signupRoutes);
 app.use("/admin", adminRoutes);
 app.use("/tenant", tenantRoutes);
 app.use("/common", commonRoutes);
+
+
 
 // // SSL options
 // const options = {
@@ -68,7 +89,3 @@ app.use("/common", commonRoutes);
 // https.createServer(options, app).listen(PORT, () => {
 //   console.log(`HTTPS Server is running on port ${PORT}`);
 // });
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
