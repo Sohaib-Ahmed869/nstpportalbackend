@@ -11,17 +11,23 @@ const routes = [
   { method: "post", path: "/employee/register", handler: tenantController.registerEmployee },
   { method: "post", path: "/card/request", handler: tenantController.requestCard },
   { method: "post", path: "/etag/request", handler: tenantController.requestEtag },
+  { method: "post", path: "/getepass/request", handler: tenantController.requestGatePass },
   // { method: "post", path: "/return-card", handler: tenantController.returnCard },
   { method: "post", path: "/complaint/generate", handler: tenantController.generateComplaint },
 
   { method: "put", path: "/employee/update", handler: tenantController.updateEmployee },
   { method: "put", path: "/employee/layoff", handler: tenantController.layoffEmployee },
-  
+
   { method: "delete", path: "/complaint/cancel", handler: tenantController.cancelComplaint },
 ];
 
 routes.forEach((route) => {
-  router[route.method](route.path, auth.verifyToken, auth.verifyTenant, route.handler);
+  router[route.method](
+    route.path,
+    auth.verifyToken,
+    auth.verifyTenant,
+    route.handler
+  );
 });
 
 module.exports = router;

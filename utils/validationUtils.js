@@ -1,5 +1,13 @@
 const mongoose = require("mongoose");
-const { Admin, Tenant, Employee, Complaint, Tower } = require("../models");
+const {
+  Admin,
+  Tenant,
+  Employee,
+  Complaint,
+  Tower,
+  MeetingRoom,
+  Service,
+} = require("../models");
 
 async function validateTenantAndEmployee(tenantId, employeeId) {
   try {
@@ -114,6 +122,14 @@ async function validateComplaint(complaintId) {
   return validateEntity(Complaint, complaintId, "Complaint");
 }
 
+async function validateMeetingRoom(meetingRoomId) {
+  return validateEntity(MeetingRoom, meetingRoomId, "Meeting Room");
+}
+
+async function validateService(serviceId) {
+  return validateEntity(Service, serviceId, "Service");
+}
+
 function validateRequiredFields(obj, requiredFields) {
   console.log("🚀 ~ validateRequiredFields ~ obj:", obj);
 
@@ -143,13 +159,15 @@ function validateRequiredFieldsArray(objs, requiredFields) {
 }
 
 module.exports = {
-  validateTenantAndEmployee,
-  validateAdminAndTower,
   validateTower,
   validateAdmin,
   validateTenant,
+  validateService,
   validateEmployee,
   validateComplaint,
+  validateMeetingRoom,
+  validateAdminAndTower,
   validateRequiredFields,
+  validateTenantAndEmployee,
   validateRequiredFieldsArray,
 };

@@ -1,4 +1,11 @@
-const { Employee, CardAllocation, EtagAllocation, Tenant, Complaint } = require("../models");
+const {
+  Employee,
+  CardAllocation,
+  EtagAllocation,
+  Tenant,
+  Complaint,
+  MeetingRoom,
+} = require("../models");
 
 const tenantController = {
   getEmployees: async (req, res) => {
@@ -22,6 +29,9 @@ const tenantController = {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
       const cardAllocations = await CardAllocation.find({ tenant_id });
+      // const activeAllocations = cardAllocations.filter(
+      //   (allocation) => allocation.is_issued
+      // );
       return res.status(200).json({ cardAllocations });
     } catch (err) {
       console.log("🚀 ~ getCardAllocations: ~ err:", err);
@@ -31,11 +41,16 @@ const tenantController = {
 
   getEtagAllocations: async (req, res) => {
     try {
+      console.log("🚀 ~ getEtagAllocations: ~ req.id:", req.id);
       const tenant_id = req.id;
       if (!tenant_id) {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
       const etagAllocations = await EtagAllocation.find({ tenant_id });
+      // const activeAllocations = etagAllocations.filter((allocation) => {
+      //   console.log("🚀 ~ getEtagAllocations: ~ allocation:", allocation);
+      //   return allocation.is_active;
+      // });
       return res.status(200).json({ etagAllocations });
     } catch (err) {
       console.log("🚀 ~ getEtagAllocations: ~ err:", err);
@@ -235,6 +250,26 @@ const tenantController = {
     }
   },
 
+  requestGatePass: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { employeeId } = req.body;
+
+      const validation = await validateTenantAndEmployee(tenant_id, employeeId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      // 
+      
+    } catch (err) {
+      console.log("🚀 ~ requestGatePass: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   generateComplaint: async (req, res) => {
     try {
       const tenant_id = req.id;
@@ -279,6 +314,40 @@ const tenantController = {
         .json({ message: "Complaint generated successfully" });
     } catch (err) {
       console.log("🚀 ~ generateComplaint: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  sendBookingRequest: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { meetingRoomId, timeStart, timeEnd } = req.body;
+
+      const meetingRoomValidation = await validateMeetingRoom(meetingRoomId);
+      if (!meetingRoomValidation.isValid) {
+        return res
+          .status(meetingRoomValidation.status)
+          .json({ message: meetingRoomValidation.message });
+      }
+
+      if (!timeStart || !timeEnd) {
+        return res.status(400).json({ message: "Please provide time slots" });
+      }
+
+      const meetingRoom = await MeetingRoom.findById(meetingRoomId);
+
+      const booking = {
+        tenant_id,
+        time_start: timeStart,
+        time_end: timeEnd,
+      };
+
+      meetingRoom.bookings.push(booking);
+      await meetingRoom.save();
+
+      return res.status(200).json({ message: "Booking request sent", booking });
+    } catch (err) {
+      console.log("🚀 ~ bookMeetingRoom: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },

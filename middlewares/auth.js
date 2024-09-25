@@ -25,31 +25,31 @@ const authMiddlewares = {
   },
 
   verifySuperAdmin: (req, res, next) => {
-    if (req.role !== "superAdmin")
+    if (req.role !== "Superadmin")
       return res.status(403).send({ message: "Require Super Admin Role!" });
     next();
   },
 
   verifyAdmin: (req, res, next) => {
-    if (req.role !== "admin")
+    if (req.role !== "Admin")
       return res.status(403).send({ message: "Require Admin Role!" });
     next();
   },
 
   verifySupervisor: (req, res, next) => {
-    if (req.role !== "supervisor")
+    if (req.role !== "Supervisor")
       return res.status(403).send({ message: "Require Supervisor Role!" });
     next();
   },
 
   verifyReceptionist: (req, res, next) => {
-    if (req.role !== "receptionist")
+    if (req.role !== "Receptionist")
       return res.status(403).send({ message: "Require Receptionist Role!" });
     next();
   },
 
   verifyTenant: async (req, res, next) => {
-    if (req.role !== "tenant")
+    if (req.role !== "Tenant")
       return res.status(403).send({ message: "Require Tenant Role!" });
 
     const tenantId = req.id;

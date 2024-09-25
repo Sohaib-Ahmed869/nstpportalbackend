@@ -48,7 +48,7 @@ const etagAllocationSchema = new Schema(
     },
     is_active: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     image_car_book: {
       type: String,

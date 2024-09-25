@@ -1,6 +1,21 @@
 console.log("Hello adminC");
-const { Tenant, Receptionist, Employee, Complaint, CardAllocation, EtagAllocation, Service } = require("../models");
-const { validateAdminAndTower, validateTenant } = require("../utils/validationUtils");
+const {
+  Tenant,
+  Receptionist,
+  Employee,
+  Complaint,
+  CardAllocation,
+  EtagAllocation,
+  Service,
+  MeetingRoom,
+} = require("../models");
+const {
+  validateAdminAndTower,
+  validateTenant,
+  validateMeetingRoom,
+  validateService,
+  validateComplaint,
+} = require("../utils/validationUtils");
 
 const adminController = {
   getTenants: async (req, res) => {
@@ -181,6 +196,7 @@ const adminController = {
       }
 
       const towerId = employee.tower._id;
+      const sponsor = employee.tower.name;
 
       const validation = await validateAdminAndTower(adminId, towerId);
       if (!validation.isValid) {
@@ -251,6 +267,7 @@ const adminController = {
 
       etagAllocation.etag_number = etagNumber;
       etagAllocation.is_issued = true;
+      etagAllocation.is_active = true;
       etagAllocation.date_issued = new Date();
 
       await etagAllocation.save();
@@ -300,6 +317,51 @@ const adminController = {
     }
   },
 
+  addMeetingRoom: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const {
+        towerId,
+        name,
+        floor,
+        timeStart,
+        timeEnd,
+        description,
+        capacity,
+      } = req.body;
+      if (!name || !floor || !timeStart || !timeEnd) {
+        return res.status(400).json({ message: "Please provide all fields" });
+      }
+
+      const validation = await validateAdminAndTower(adminId, towerId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      // add meeting room to tower
+      const meetingRoom = new MeetingRoom({
+        tower: towerId,
+        name,
+        floor,
+        time_start: timeStart,
+        time_end: timeEnd,
+        description,
+        capacity,
+      });
+
+      await meetingRoom.save();
+
+      return res
+        .status(200)
+        .json({ message: "Meeting room added successfully", meetingRoom });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   assignOffice: async (req, res) => {
     // CONFIRM office service
     try {
@@ -324,16 +386,56 @@ const adminController = {
     }
   },
 
+  resolveComplaint: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { complaintId } = req.body;
+      const complaintValidation = await validateComplaint(complaintId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const complaint = await Complaint.findById(complaintId);
+      const towerId = complaint.tower;
+
+      const validation = await validateAdminAndTower(adminId, towerId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      if (complaint.is_resolved) {
+        return res.status(400).json({ message: "Complaint already resolved" });
+      }
+
+      complaint.is_resolved = true;
+      await complaint.save();
+
+      return res
+        .status(200)
+        .json({ message: "Complaint resolved successfully", complaint });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   layOffEmployee: async (req, res) => {
     try {
       const adminId = req.id;
       const { employeeId } = req.body;
-      const employee = await Employee.findById(employeeId).populate("tower");
-      if (!employee) {
-        return res.status(400).json({ message: "Employee not found" });
+      const employeeValidation = await validateEmployee(employeeId);
+      if (!employeeValidation.isValid) {
+        return res
+          .status(employeeValidation.status)
+          .json({ message: employeeValidation.message });
       }
 
-      const towerId = employee.tower._id;
+      const employee = await Employee.findById(employeeId);
+      const towerId = employee.tower;
 
       const validation = await validateAdminAndTower(adminId, towerId);
       if (!validation.isValid) {
@@ -359,16 +461,16 @@ const adminController = {
     }
   },
 
-  resolveComplaint: async (req, res) => {
+  startCompanyTenure: async (req, res) => {
     try {
       const adminId = req.id;
-      const { complaintId } = req.body;
-      const complaint = await Complaint.findById(complaintId).populate("tower");
-      if (!complaint) {
-        return res.status(400).json({ message: "Complaint not found" });
+      const { tenantId } = req.body;
+      const tenant = await Tenant.findById(tenantId);
+      if (!tenant) {
+        return res.status(400).json({ message: "Tenant not found" });
       }
 
-      const towerId = complaint.tower._id;
+      const towerId = tenant.tower;
 
       const validation = await validateAdminAndTower(adminId, towerId);
       if (!validation.isValid) {
@@ -377,21 +479,139 @@ const adminController = {
           .json({ message: validation.message });
       }
 
-      if (complaint.is_resolved) {
-        return res.status(400).json({ message: "Complaint already resolved" });
+      if (tenant.statusTenancy) {
+        return res.status(400).json({ message: "Tenancy already started" });
       }
 
-      complaint.is_resolved = true;
-      await complaint.save();
+      tenant.statusTenancy = true;
+      tenant.dateJoining = new Date();
+      await tenant.save();
 
       return res
         .status(200)
-        .json({ message: "Complaint resolved successfully", complaint });
+        .json({ message: "Tenancy started successfully", tenant });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
+
+  endCompanyTenure: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { tenantId } = req.body;
+      const tenant = await Tenant.findById(tenantId);
+      if (!tenant) {
+        return res.status(400).json({ message: "Tenant not found" });
+      }
+
+      const towerId = tenant.tower;
+
+      const validation = await validateAdminAndTower(adminId, towerId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      if (!tenant.statusTenancy) {
+        return res.status(400).json({ message: "Tenancy already ended" });
+      }
+
+      tenant.statusTenancy = false;
+      tenant.dateLeaving = new Date();
+      await tenant.save();
+
+      return res
+        .status(200)
+        .json({ message: "Tenancy ended successfully", tenant });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  updateMeetingRoom: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const {
+        meetingRoomId,
+        name,
+        floor,
+        timeStart,
+        timeEnd,
+        description,
+        capacity,
+      } = req.body;
+      if (!name || !floor || !timeStart || !timeEnd) {
+        return res.status(400).json({ message: "Please provide all fields" });
+      }
+
+      const meetingRoomValidation = await validateMeetingRoom(meetingRoomId);
+      if (!meetingRoomValidation.isValid) {
+        return res
+          .status(meetingRoomValidation.status)
+          .json({ message: meetingRoomValidation.message });
+      }
+
+      const meetingRoom = await MeetingRoom.findById(meetingRoomId);
+      const towerId = meetingRoom.tower;
+
+      const validation = await validateAdminAndTower(adminId, towerId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      meetingRoom.name = name;
+      meetingRoom.floor = floor;
+      meetingRoom.time_start = timeStart;
+      meetingRoom.time_end = timeEnd;
+      meetingRoom.description = description;
+      meetingRoom.capacity = capacity;
+
+      await meetingRoom.save();
+
+      return res
+        .status(200)
+        .json({ message: "Meeting room updated successfully", meetingRoom });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  deleteMeetingRoom: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { meetingRoomId } = req.body;
+
+      const meetingRoomValidation = await validateMeetingRoom(meetingRoomId);
+      if (!meetingRoomValidation.isValid) {
+        return res
+          .status(meetingRoomValidation.status)
+          .json({ message: meetingRoomValidation.message });
+      }
+
+      const meetingRoom = await MeetingRoom.findById(meetingRoomId);
+      const towerId = meetingRoom.tower;
+
+      const validation = await validateAdminAndTower(adminId, towerId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      await meetingRoom.remove();
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  
 };
 
 module.exports = adminController;

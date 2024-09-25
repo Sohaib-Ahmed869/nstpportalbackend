@@ -10,6 +10,7 @@ const Supervisor = require("./supervisor");
 const Task = require("./task");
 const Tenant = require("./tenant");
 const Tower = require("./tower");
+const MeetingRoom = require("./meetingRoom");
 
 module.exports = {
   Admin,
@@ -24,4 +25,5 @@ module.exports = {
   Task,
   Tenant,
   Tower,
+  MeetingRoom,
 };

@@ -16,9 +16,15 @@ const routes = [
   { method: "post", path: "/etag/generate", handler: adminController.generateEtag },
   { method: "post", path: "/service/add", handler: adminController.addService },
   { method: "post", path: "/office/assign", handler: adminController.assignOffice },
+  { method: "post", path: "/meeting-room/add", handler: adminController.addMeetingRoom },
   
   { method: "put", path: "/complaint/resolve", handler: adminController.resolveComplaint },
   { method: "put", path: "/employee/layoff", handler: adminController.layOffEmployee },
+  { method: "put", path: "/tenant/tenure/start", handler: adminController.startCompanyTenure },
+  { method: "put", path: "/tenant/tenure/end", handler: adminController.endCompanyTenure },
+  { method: "put", path: "/meeting-room/update", handler: adminController.updateMeetingRoom },
+
+  { method: "delete", path: "/meeting-room/delete", handler: adminController.deleteMeetingRoom },
 ];
 
 routes.forEach((route) => {
