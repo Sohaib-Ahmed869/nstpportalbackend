@@ -45,6 +45,9 @@ const cardAllocationSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    date_returned: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

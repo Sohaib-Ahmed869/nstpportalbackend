@@ -5,6 +5,7 @@ const auth = require("../middlewares/auth");
 
 const routes = [
   { method: "get", path: "/services", handler: commonController.getServices },
+  { method: "get", path: "/lostAndFound", handler: commonController.getLostAndFound },
 ];
 
 routes.forEach((route) => {

@@ -1,7 +1,6 @@
 console.log("Hello superController");
 const { Tower, Admin, Task } = require("../models");
-const { validateRequiredFieldsArray } = require("../utils/validationUtils");
-
+const { validationUtils } = require("../utils/validationUtils");
 
 const superController = {
   getTowers: async (req, res) => {
@@ -160,19 +159,19 @@ const superController = {
     try {
       const { adminId, towerId, tasks } = req.body;
 
-      // Validate admin
+      // validate admin
       const admin = await Admin.findById(adminId);
       if (!admin) {
         return res.status(404).json({ message: "Admin not found" });
       }
 
-      // Validate tower
+      // validate tower
       const tower = await Tower.findById(towerId);
       if (!tower) {
         return res.status(404).json({ message: "Tower not found" });
       }
 
-      // Validate tasks
+      // validate tasks
       const validTasks = await Task.find({ _id: { $in: tasks } });
       if (validTasks.length !== tasks.length) {
         return res

@@ -7,15 +7,10 @@ const {
   CardAllocation,
   EtagAllocation,
   Service,
-  MeetingRoom,
+  Room,
+  Clearance,
 } = require("../models");
-const {
-  validateAdminAndTower,
-  validateTenant,
-  validateMeetingRoom,
-  validateService,
-  validateComplaint,
-} = require("../utils/validationUtils");
+const { validationUtils } = require("../utils");
 
 const adminController = {
   getTenants: async (req, res) => {
@@ -23,7 +18,11 @@ const adminController = {
       const towerId = req.params.towerId;
       const adminId = req.id;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation =
+        await validationUtils.validationUtils.validateAdminAndTower(
+          adminId,
+          towerId
+        );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -45,7 +44,10 @@ const adminController = {
       const towerId = req.params.towerId;
       const adminId = req.id;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -65,7 +67,10 @@ const adminController = {
       const towerId = req.params.towerId;
       const adminId = req.id;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -88,7 +93,10 @@ const adminController = {
       const towerId = req.params.towerId;
       const adminId = req.id;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -111,14 +119,17 @@ const adminController = {
       const tenantId = req.params.tenantId;
       const adminId = req.id;
 
-      const validTenant = await validateTenant(tenantId);
+      const validTenant = await validationUtils.validateTenant(tenantId);
       if (!validTenant.isValid) {
         return res
           .status(validTenant.status)
           .json({ message: validTenant.message });
       }
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -141,7 +152,10 @@ const adminController = {
       const towerId = req.params.towerId;
       const adminId = req.id;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -163,7 +177,10 @@ const adminController = {
       const towerId = req.params.towerId;
       const adminId = req.id;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -174,6 +191,92 @@ const adminController = {
         tower: towerId,
       }).lean();
       return res.status(200).json({ etagAllocations });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getRooms: async (req, res) => {
+    try {
+      const towerId = req.params.towerId;
+      const adminId = req.id;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const rooms = await Room.find({
+        tower: towerId,
+      }).lean();
+      return res.status(200).json({ rooms });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getServices: async (req, res) => {
+    try {
+      const towerId = req.params.towerId;
+      const adminId = req.id;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const services = await Service.find({
+        tower: towerId,
+      }).lean();
+      return res.status(200).json({ services });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getReceptionistsPerformance: async (req, res) => {
+    try {
+      const towerId = req.params.towerId;
+      const adminId = req.id;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const receptionists = await Receptionist.find({
+        tower: towerId,
+      }).lean();
+
+      const receptionistsPerformance = receptionists.map((receptionist) => {
+        return {
+          id: receptionist._id,
+          name: receptionist.name,
+          handledBookings: receptionist.handled_bookings,
+          handledComplaints: receptionist.handled_complaints,
+          handledGatepasses: receptionist.handled_gatepasses,
+        };
+      });
+
+      return res.status(200).json({ receptionistsPerformance });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
@@ -198,7 +301,10 @@ const adminController = {
       const towerId = employee.tower._id;
       const sponsor = employee.tower.name;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -254,7 +360,10 @@ const adminController = {
 
       const towerId = employee.tower._id;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -293,7 +402,10 @@ const adminController = {
         return res.status(400).json({ message: "Please provide all fields" });
       }
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -317,7 +429,7 @@ const adminController = {
     }
   },
 
-  addMeetingRoom: async (req, res) => {
+  addRoom: async (req, res) => {
     try {
       const adminId = req.id;
       const {
@@ -333,15 +445,18 @@ const adminController = {
         return res.status(400).json({ message: "Please provide all fields" });
       }
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
           .json({ message: validation.message });
       }
 
-      // add meeting room to tower
-      const meetingRoom = new MeetingRoom({
+      // add room to tower
+      const room = new Room({
         tower: towerId,
         name,
         floor,
@@ -351,11 +466,9 @@ const adminController = {
         capacity,
       });
 
-      await meetingRoom.save();
+      await room.save();
 
-      return res
-        .status(200)
-        .json({ message: "Meeting room added successfully", meetingRoom });
+      return res.status(200).json({ message: "Room added successfully", room });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
@@ -367,14 +480,14 @@ const adminController = {
     try {
       const { tenantId, office } = req.body;
 
-      // Validate tenant
+      // validationUtils.validate tenant
       const tenant = await Tenant.findById(tenantId);
       if (!tenant) {
         return res.status(404).json({ message: "Tenant not found" });
       }
 
-      // Add the new office to the tenant's offices array
       tenant.offices.push(office);
+      tenant.dateJoining = new Date();
 
       // Save the updated tenant document
       await tenant.save();
@@ -390,7 +503,9 @@ const adminController = {
     try {
       const adminId = req.id;
       const { complaintId } = req.body;
-      const complaintValidation = await validateComplaint(complaintId);
+      const complaintValidation = await validationUtils.validateComplaint(
+        complaintId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -400,7 +515,10 @@ const adminController = {
       const complaint = await Complaint.findById(complaintId);
       const towerId = complaint.tower;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -427,7 +545,9 @@ const adminController = {
     try {
       const adminId = req.id;
       const { employeeId } = req.body;
-      const employeeValidation = await validateEmployee(employeeId);
+      const employeeValidation = await validationUtils.validateEmployee(
+        employeeId
+      );
       if (!employeeValidation.isValid) {
         return res
           .status(employeeValidation.status)
@@ -437,7 +557,10 @@ const adminController = {
       const employee = await Employee.findById(employeeId);
       const towerId = employee.tower;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -472,7 +595,10 @@ const adminController = {
 
       const towerId = tenant.tower;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -507,7 +633,10 @@ const adminController = {
 
       const towerId = tenant.tower;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -531,87 +660,186 @@ const adminController = {
     }
   },
 
-  updateMeetingRoom: async (req, res) => {
+  updateRoom: async (req, res) => {
     try {
       const adminId = req.id;
-      const {
-        meetingRoomId,
-        name,
-        floor,
-        timeStart,
-        timeEnd,
-        description,
-        capacity,
-      } = req.body;
+      const { roomId, name, floor, timeStart, timeEnd, description, capacity } =
+        req.body;
       if (!name || !floor || !timeStart || !timeEnd) {
         return res.status(400).json({ message: "Please provide all fields" });
       }
 
-      const meetingRoomValidation = await validateMeetingRoom(meetingRoomId);
-      if (!meetingRoomValidation.isValid) {
+      const roomValidation = await validationUtils.validateRoom(roomId);
+      if (!roomValidation.isValid) {
         return res
-          .status(meetingRoomValidation.status)
-          .json({ message: meetingRoomValidation.message });
+          .status(roomValidation.status)
+          .json({ message: roomValidation.message });
       }
 
-      const meetingRoom = await MeetingRoom.findById(meetingRoomId);
-      const towerId = meetingRoom.tower;
+      const room = await Room.findById(roomId);
+      const towerId = room.tower;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
           .json({ message: validation.message });
       }
 
-      meetingRoom.name = name;
-      meetingRoom.floor = floor;
-      meetingRoom.time_start = timeStart;
-      meetingRoom.time_end = timeEnd;
-      meetingRoom.description = description;
-      meetingRoom.capacity = capacity;
+      room.name = name;
+      room.floor = floor;
+      room.time_start = timeStart;
+      room.time_end = timeEnd;
+      room.description = description;
+      room.capacity = capacity;
 
-      await meetingRoom.save();
+      await room.save();
 
       return res
         .status(200)
-        .json({ message: "Meeting room updated successfully", meetingRoom });
+        .json({ message: "Room updated successfully", room });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
 
-  deleteMeetingRoom: async (req, res) => {
+  resolveClearance: async (req, res) => {
     try {
       const adminId = req.id;
-      const { meetingRoomId } = req.body;
+      const { clearanceId } = req.body;
 
-      const meetingRoomValidation = await validateMeetingRoom(meetingRoomId);
-      if (!meetingRoomValidation.isValid) {
+      const clearanceValidation = await validationUtils.validateClearance(
+        clearanceId
+      );
+      if (!clearanceValidation.isValid) {
         return res
-          .status(meetingRoomValidation.status)
-          .json({ message: meetingRoomValidation.message });
+          .status(clearanceValidation.status)
+          .json({ message: clearanceValidation.message });
       }
 
-      const meetingRoom = await MeetingRoom.findById(meetingRoomId);
-      const towerId = meetingRoom.tower;
+      const clearance = await Clearance.findById(clearanceId).populate(
+        "tenant"
+      );
+      const towerId = clearance.tower;
 
-      const validation = await validateAdminAndTower(adminId, towerId);
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
           .json({ message: validation.message });
       }
 
-      await meetingRoom.remove();
+      if (clearance.is_resolved) {
+        return res.status(400).json({ message: "Clearance already resolved" });
+      }
+
+      clearance.is_resolved = true;
+      clearance.resolved_by = adminId;
+      clearance.date_resolved = new Date();
+
+      clearance.tenant.statusTenancy = false;
+
+      await clearance.save();
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
 
-  
+  resolveWorkPermit: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { workPermitId, approval } = req.body;
+
+      if (approval == undefined) {
+        return res
+          .status(400)
+          .json({ message: "Please provide approval status" });
+      }
+
+      const workPermitValidation = await validationUtils.validateWorkPermit(
+        workPermitId
+      );
+      if (!workPermitValidation.isValid) {
+        return res
+          .status(workPermitValidation.status)
+          .json({ message: workPermitValidation.message });
+      }
+
+      const workPermit = await WorkPermit.findById(workPermitId);
+      const towerId = workPermit.tower;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      if (workPermit.is_resolved) {
+        return res
+          .status(400)
+          .json({ message: "Work permit already resolved" });
+      }
+
+      if (approval) {
+        workPermit.status = "approved";
+      } else {
+        workPermit.status = "rejected";
+      }
+
+      workPermit.is_resolved = true;
+      workPermit.resolved_by = adminId;
+      workPermit.date_resolved = new Date();
+
+      await workPermit.save();
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  deleteRoom: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { roomId } = req.body;
+
+      const roomValidation = await validationUtils.validateRoom(roomId);
+      if (!roomValidation.isValid) {
+        return res
+          .status(roomValidation.status)
+          .json({ message: roomValidation.message });
+      }
+
+      const room = await Room.findById(roomId);
+      const towerId = room.tower;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      await room.remove();
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
 };
 
 module.exports = adminController;

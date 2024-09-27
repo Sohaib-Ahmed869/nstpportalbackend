@@ -54,29 +54,38 @@ const companyResourceCompositionSchema = new Schema({
   nustSchoolToCollab: { type: String },
 });
 
-const tenantSchema = new Schema({
-  registration: registrationSchema,
-  contactInfo: contactInformationSchema,
-  stakeholders: [individualProfileSchema],
-  companyProfile: companyProfileSchema,
-  industrySector: industrySectorSchema,
-  companyResourceComposition: companyResourceCompositionSchema,
+const complaint = new Schema({
+  subject: { type: String, required: true },
+  description: { type: String, required: true },
+});
 
-  username: { type: String, unique: true },
-  password: { type: String },
-  dateJoining: { type: Date },
-  dateLeaving: { type: Date },
-  statusTenancy: { type: Boolean, default: false },
-  logo: { type: String },
-  tower: { type: Schema.Types.ObjectId, ref: "Tower" },
-  offices: [
-    {
-      floor: { type: String },
-      wing: { type: String },
-      officeNumber: { type: String },
-    }
-  ]
-}, { timestamps: true });
+const tenantSchema = new Schema(
+  {
+    registration: registrationSchema,
+    contactInfo: contactInformationSchema,
+    stakeholders: [individualProfileSchema],
+    companyProfile: companyProfileSchema,
+    industrySector: industrySectorSchema,
+    companyResourceComposition: companyResourceCompositionSchema,
+    complaints: [complaint],
+
+    username: { type: String, unique: true },
+    password: { type: String },
+    dateJoining: { type: Date },
+    dateLeaving: { type: Date },
+    statusTenancy: { type: Boolean, default: false },
+    logo: { type: String },
+    tower: { type: Schema.Types.ObjectId, ref: "Tower" },
+    offices: [
+      {
+        floor: { type: String },
+        wing: { type: String },
+        officeNumber: { type: String },
+      },
+    ],
+  },
+  { timestamps: true }
+);
 
 tenantSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {

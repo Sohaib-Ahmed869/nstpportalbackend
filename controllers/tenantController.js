@@ -4,8 +4,14 @@ const {
   EtagAllocation,
   Tenant,
   Complaint,
-  MeetingRoom,
+  Room,
+  GatePass,
+  WorkPermit,
+  Clearance,
+  Inspection,
 } = require("../models");
+const { validationUtils } = require("../utils");
+const { getTenantComplaints } = require("./receptionistController");
 
 const tenantController = {
   getEmployees: async (req, res) => {
@@ -54,6 +60,98 @@ const tenantController = {
       return res.status(200).json({ etagAllocations });
     } catch (err) {
       console.log("🚀 ~ getEtagAllocations: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getGatePasses: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const gatePasses = await GatePass.find({ tenant_id });
+      return res.status(200).json({ gatePasses });
+    } catch (err) {
+      console.log("🚀 ~ getGatePasses: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getComplaints: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const complaints = await Complaint.find({ tenant_id });
+      return res.status(200).json({ complaints });
+    } catch (err) {
+      console.log("🚀 ~ getComplaints: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getRoomBookings: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      // tenant id is in room.bookings
+      const rooms = await Room.find({ "bookings.tenant_id": tenant_id });
+
+      return res.status(200).json({ rooms });
+    } catch (err) {
+      console.log("🚀 ~ getRoomBookings: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getWorkPermits: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+      const workPermits = await WorkPermit.find({ tenant: tenant_id });
+      return res.status(200).json({ workPermits });
+    } catch (err) {
+      console.log("🚀 ~ getWorkPermits: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  viewClearance: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const clearance = await Clearance.find({ tenant: tenant_id });
+
+      return res.status(200).json({ clearance });
+    } catch (err) {
+      console.log("🚀 ~ viewClearance: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getTenantComplaints: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const complaints = await Tenant.findById(tenant_id).select("complaints");
+      return res.status(200).json({ complaints });
+    } catch (err) {
+      console.log("🚀 ~ getTenantComplaints: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getInspections: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const inspections = await Inspection.find({ tenant: tenant_id });
+      return res.status(200).json({ inspections });
+    } catch (err) {
+      console.log("🚀 ~ getInspections: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -219,12 +317,49 @@ const tenantController = {
     }
   },
 
+  returnCard: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { employeeId } = req.body;
+
+      const validation = await validationUtils.validateTenantAndEmployee(
+        tenant_id,
+        employeeId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const cardAllocation = await CardAllocation.findOne({
+        tenant_id,
+        employee_id: employeeId,
+      });
+      if (!cardAllocation) {
+        return res.status(400).json({ message: "No card allocation found" });
+      }
+
+      cardAllocation.is_returned = true;
+      cardAllocation.date_returned = new Date();
+      await cardAllocation.save();
+
+      return res.status(200).json({ message: "Card returned successfully" });
+    } catch (err) {
+      console.log("🚀 ~ returnCard: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   requestEtag: async (req, res) => {
     try {
       const tenant_id = req.id;
       const { employeeId } = req.body; // images
 
-      const validation = await validateTenantAndEmployee(tenant_id, employeeId);
+      const validation = await validationUtils.validateTenantAndEmployee(
+        tenant_id,
+        employeeId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -250,20 +385,71 @@ const tenantController = {
     }
   },
 
-  requestGatePass: async (req, res) => {
+  returnEtag: async (req, res) => {
     try {
       const tenant_id = req.id;
       const { employeeId } = req.body;
 
-      const validation = await validateTenantAndEmployee(tenant_id, employeeId);
+      const validation = await validationUtils.validateTenantAndEmployee(
+        tenant_id,
+        employeeId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
           .json({ message: validation.message });
       }
 
-      // 
-      
+      const etagAllocation = await EtagAllocation.findOne({
+        tenant_id,
+        employee_id: employeeId,
+      });
+      if (!etagAllocation) {
+        return res.status(400).json({ message: "No etag allocation found" });
+      }
+
+      etagAllocation.is_returned = true;
+      etagAllocation.date_returned = new Date();
+      await etagAllocation.save();
+
+      return res.status(200).json({ message: "Etag returned successfully" });
+    } catch (err) {
+      console.log("🚀 ~ returnEtag: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  requestGatePass: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { guestName, guestCnic, guestContact, gateNumber } = req.body;
+
+      if (
+        !guestName ||
+        !guestCnic ||
+        !guestContact ||
+        gateNumber === undefined
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Please provide all required fields" });
+      }
+
+      const towerId = await Tenant.findById(tenant_id).select("tower").lean()
+        .tower;
+
+      const gatePass = new GatePass({
+        tower: towerId,
+        tenant_id,
+        guest_name: guestName,
+        guest_cnic: guestCnic,
+        guest_contact: guestContact,
+        gate_number: gateNumber,
+        date: new Date(),
+      });
+
+      await gatePass.save();
+      return res.status(200).json({ message: "Gate pass requested", gatePass });
     } catch (err) {
       console.log("🚀 ~ requestGatePass: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
@@ -309,6 +495,7 @@ const tenantController = {
         urgency,
       });
       await complaint.save();
+
       return res
         .status(200)
         .json({ message: "Complaint generated successfully" });
@@ -318,23 +505,23 @@ const tenantController = {
     }
   },
 
-  sendBookingRequest: async (req, res) => {
+  requestRoomBooking: async (req, res) => {
     try {
       const tenant_id = req.id;
-      const { meetingRoomId, timeStart, timeEnd } = req.body;
+      const { roomId, timeStart, timeEnd } = req.body;
 
-      const meetingRoomValidation = await validateMeetingRoom(meetingRoomId);
-      if (!meetingRoomValidation.isValid) {
+      const roomValidation = await validationUtils.validateRoom(roomId);
+      if (!roomValidation.isValid) {
         return res
-          .status(meetingRoomValidation.status)
-          .json({ message: meetingRoomValidation.message });
+          .status(roomValidation.status)
+          .json({ message: roomValidation.message });
       }
 
       if (!timeStart || !timeEnd) {
         return res.status(400).json({ message: "Please provide time slots" });
       }
 
-      const meetingRoom = await MeetingRoom.findById(meetingRoomId);
+      const room = await Room.findById(roomId);
 
       const booking = {
         tenant_id,
@@ -342,12 +529,157 @@ const tenantController = {
         time_end: timeEnd,
       };
 
-      meetingRoom.bookings.push(booking);
-      await meetingRoom.save();
+      room.bookings.push(booking);
+      await room.save();
 
       return res.status(200).json({ message: "Booking request sent", booking });
     } catch (err) {
-      console.log("🚀 ~ bookMeetingRoom: ~ err:", err);
+      console.log("🚀 ~ bookRoom: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  requestWorkPermit: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const towerId = req.towerId;
+      const { permitBody } = req.body;
+      const {
+        name,
+        department,
+        description,
+        validFrom,
+        validTo,
+        detailedInformation,
+        equipment,
+      } = permitBody;
+
+      if (
+        !name ||
+        !department ||
+        !description ||
+        !validFrom ||
+        !validTo ||
+        !detailedInformation ||
+        !equipment
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Please provide all required fields" });
+      }
+
+      const workPermit = new WorkPermit({
+        tower: towerId,
+        tenant: tenant_id,
+        name,
+        department,
+        description,
+        valid_from: validFrom,
+        valid_to: validTo,
+        detailed_information: detailedInformation,
+        equipment,
+      });
+
+      await workPermit.save();
+      return res
+        .status(200)
+        .json({ message: "Work permit requested successfully" });
+    } catch (err) {
+      console.log("🚀 ~ requestWorkPermit: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  initiateClearance: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const towerId = req.towerId;
+
+      const {
+        applicantName,
+        applicantDesignation,
+        applicantCnic,
+        dateVacate,
+        reason,
+      } = req.body;
+
+      if (
+        !applicantName ||
+        !applicantDesignation ||
+        !applicantCnic ||
+        !dateVacate ||
+        !reason
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Please provide all required fields" });
+      }
+
+      const tenant = await Tenant.findById(tenant_id);
+      if (!tenant) {
+        return res.status(400).json({ message: "Tenant not found" });
+      }
+
+      let tenantCardAllocations = await CardAllocation.find({ tenant_id });
+      const cardsIssued = tenantCardAllocations.filter(
+        (allocation) => allocation.is_issued
+      ).length;
+      const cardsReturned = tenantCardAllocations.filter(
+        (allocation) => allocation.is_returned
+      ).length;
+
+      let tenantEtagAllocations = await EtagAllocation.find({ tenant_id });
+      const etagsIssued = tenantEtagAllocations.filter(
+        (allocation) => allocation.is_issued
+      ).length;
+      const etagsReturned = tenantEtagAllocations.filter(
+        (allocation) => allocation.is_returned
+      ).length;
+
+      const utilities = {
+        cards: {
+          issued: cardsIssued,
+          returned: cardsReturned,
+        },
+        etags: {
+          issued: etagsIssued,
+          returned: etagsReturned,
+        },
+      };
+
+      const offices = tenant.offices.map((office) => office.number).join(", ");
+      const clearanceForm = {
+        tenantName: tenant.registration.organizationName,
+        category: tenant.registration.category,
+        offices,
+        applicantName,
+        applicantDesignation,
+        applicantCnic,
+        constractStart: tenant.dateJoining,
+        contractEnd: tenant.dateLeaving,
+        dateVacate,
+        utilities,
+        reason,
+      };
+
+      const clearance = new Clearance({
+        tower: towerId,
+        tenant_id,
+        applicant_name: applicantName,
+        applicant_designation: applicantDesignation,
+        applicant_cnic: applicantCnic,
+        date_vacate: dateVacate,
+        reason,
+        utilities,
+      });
+
+      await clearance.save();
+
+      return res
+        .status(200)
+        .json({ message: "Clearance initiated", clearance, clearanceForm });
+    } catch (err) {
+      console.log("🚀 ~ initiateClearance: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -369,7 +701,10 @@ const tenantController = {
         internType,
       } = empBody;
 
-      const validation = await validateTenantAndEmployee(tenant_id, employeeId);
+      const validation = await validationUtils.validateTenantAndEmployee(
+        tenant_id,
+        employeeId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -423,7 +758,10 @@ const tenantController = {
       const tenant_id = req.id;
       const { employeeId } = req.body;
 
-      const validation = await validateTenantAndEmployee(tenant_id, employeeId);
+      const validation = await validationUtils.validateTenantAndEmployee(
+        tenant_id,
+        employeeId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -445,6 +783,38 @@ const tenantController = {
     }
   },
 
+  cancelRoomBooking: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { roomId, bookingId } = req.body;
+
+      const validation = await validationUtils.validateRoomBooking(
+        roomId,
+        bookingId,
+        tenant_id
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const room = await Room.findById(roomId);
+      const booking = room.bookings.id(bookingId);
+
+      booking.is_cancelled = true;
+      booking.cancelled_by = req.id;
+
+      await room.save();
+      return res
+        .status(200)
+        .json({ message: "Booking cancelled successfully", booking });
+    } catch (err) {
+      console.log("🚀 ~ cancelRoomBooking: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   cancelComplaint: async (req, res) => {
     try {
       const tenant_id = req.id;
@@ -454,7 +824,7 @@ const tenantController = {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
 
-      const validation = await validateComplaint(complaintId);
+      const validation = await validationUtils.validateComplaint(complaintId);
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -467,6 +837,32 @@ const tenantController = {
         .json({ message: "Complaint cancelled successfully", complaint });
     } catch (err) {
       console.log("🚀 ~ cancelComplaint: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  cancelWorkPermit: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { permitId } = req.body;
+
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+
+      const validation = await validationUtils.validateWorkPermit(permitId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+      const workPermit = await WorkPermit.findByIdAndDelete(permitId);
+
+      return res
+        .status(200)
+        .json({ message: "Work permit cancelled successfully", workPermit });
+    } catch (err) {
+      console.log("🚀 ~ cancelWorkPermit: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },

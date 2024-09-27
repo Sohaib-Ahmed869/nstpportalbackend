@@ -1,9 +1,11 @@
-const { SuperAdmin, Admin, Supervisor, Receptionist, Tenant } = require("../models");
-
 const {
-  validateRequiredFields,
-  validateRequiredFieldsArray,
-} = require("../utils/validationUtils");
+  SuperAdmin,
+  Admin,
+  Supervisor,
+  Receptionist,
+  Tenant,
+} = require("../models");
+const { validationUtils } = require("../utils");
 
 const signupController = {
   superAdminSignup: async (req, res) => {
@@ -170,12 +172,27 @@ const signupController = {
       ];
 
       if (
-        !validateRequiredFields(registration, registrationFields) ||
-        !validateRequiredFields(contactInfo, contactInformationFields) ||
-        !validateRequiredFieldsArray(stakeholders, stakeholderFields) ||
-        !validateRequiredFields(companyProfile, companyProfileFields) ||
-        !validateRequiredFields(industrySector, industrySectorFields) ||
-        !validateRequiredFields(
+        !validationUtils.validateRequiredFields(
+          registration,
+          registrationFields
+        ) ||
+        !validationUtils.validateRequiredFields(
+          contactInfo,
+          contactInformationFields
+        ) ||
+        !validationUtils.validateRequiredFieldsArray(
+          stakeholders,
+          stakeholderFields
+        ) ||
+        !validationUtils.validateRequiredFields(
+          companyProfile,
+          companyProfileFields
+        ) ||
+        !validationUtils.validateRequiredFields(
+          industrySector,
+          industrySectorFields
+        ) ||
+        !validationUtils.validateRequiredFields(
           companyResourceComposition,
           companyResourceCompositionFields
         )

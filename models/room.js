@@ -1,12 +1,21 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const meetingRoomBooking = new Schema(
+const roomBooking = new Schema(
   {
     tenant_id: {
       type: Schema.Types.ObjectId,
       ref: "Tenant",
       required: true,
+    },
+    handled_by: {
+      type: Schema.Types.ObjectId,
+      ref: "Receptionist",
+      index: true,
+    },
+    cancelled_by: {
+      type: Schema.Types.ObjectId,
+      ref: "Receptionist",
     },
     time_start: {
       type: Date,
@@ -16,7 +25,17 @@ const meetingRoomBooking = new Schema(
       type: Date,
       required: true,
     },
-    is_approved: {
+    status_booking: {
+      type: Boolean,
+    },
+    reason_booking: {
+      type: String,
+      required: true,
+    },
+    reason_decline: {
+      type: String,
+    },
+    is_cancelled: {
       type: Boolean,
       default: false,
     },
@@ -24,7 +43,7 @@ const meetingRoomBooking = new Schema(
   { timestamps: true }
 );
 
-const meetingRoomSchema = new Schema(
+const roomSchema = new Schema(
   {
     tower: {
       type: Schema.Types.ObjectId,
@@ -33,6 +52,10 @@ const meetingRoomSchema = new Schema(
       index: true,
     },
     name: {
+      type: String,
+      required: true,
+    },
+    type: {
       type: String,
       required: true,
     },
@@ -60,14 +83,14 @@ const meetingRoomSchema = new Schema(
     description: {
       type: String,
     },
-    bookings: [meetingRoomBooking],
+    bookings: [roomBooking],
   },
   { timestamps: true }
 );
 
 // unique tower+name
-meetingRoomSchema.index({ tower: 1, name: 1 }, { unique: true });
+roomSchema.index({ tower: 1, name: 1 }, { unique: true });
 
-const MeetingRoom = mongoose.model("MeetingRoom", meetingRoomSchema);
+const Room = mongoose.model("Room", roomSchema);
 
-module.exports = MeetingRoom;
+module.exports = Room;

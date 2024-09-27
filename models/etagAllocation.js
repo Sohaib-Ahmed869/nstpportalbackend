@@ -40,6 +40,13 @@ const etagAllocationSchema = new Schema(
     date_requested: {
       type: Date,
     },
+    is_returned: {
+      type: Boolean,
+      default: false,
+    },
+    date_returned: {
+      type: Date,
+    },
     validity: {
       type: Number,
     },
