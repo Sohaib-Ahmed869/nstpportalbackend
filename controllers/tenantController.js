@@ -21,7 +21,7 @@ const tenantController = {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
       const employees = await Employee.find({ tenant_id });
-      return res.status(200).json({ employees });
+      return res.status(200).json({ employees, message: "Employees found" });
     } catch (err) {
       console.log("🚀 ~ getEmployees: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });

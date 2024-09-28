@@ -5,6 +5,7 @@ const auth = require("../middlewares/auth");
 
 const routes = [
   { method: "get", path: "/towers/:towerId/tenants", handler: adminController.getTenants },
+  { method: "get", path: "/towers/:towerId/tenants/:tenantId", handler: adminController.getTenant },
   { method: "get", path: "/towers/:towerId/receptionists", handler: adminController.getReceptionists },
   { method: "get", path: "/towers/:towerId/employees", handler: adminController.getEmployees },
   { method: "get", path: "/towers/:towerId/complaints", handler: adminController.getComplaints },

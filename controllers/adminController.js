@@ -8,6 +8,8 @@ const {
   Service,
   Room,
   Clearance,
+  GatePass,
+  WorkPermit,
 } = require("../models");
 const { validationUtils } = require("../utils");
 
@@ -17,11 +19,10 @@ const adminController = {
       const towerId = req.params.towerId;
       const adminId = req.id;
 
-      const validation =
-        await validationUtils.validateAdminAndTower(
-          adminId,
-          towerId
-        );
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -32,6 +33,87 @@ const adminController = {
         tower: towerId,
       }).lean();
       return res.status(200).json({ tenants });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getTenant: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { towerId, tenantId } = req.params;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const validateTenant = await validationUtils.validateTenant(tenantId);
+      if (!validateTenant.isValid) {
+        return res
+          .status(validateTenant.status)
+          .json({ message: validateTenant.message });
+      }
+
+      var tenant = await Tenant.findById(tenantId).lean();
+      //etags, gatepasses, cards, workpermits, violations, employees
+
+      // get number of etags
+      const etags = await EtagAllocation.find({ tenant_id: tenantId }).lean();
+      tenant.etags = etags.length;
+
+      // get number of gatepasses
+      const gatepasses = await GatePass.find({ tenant_id: tenantId }).lean();
+      tenant.gatepasses = gatepasses.length;
+
+      // get number of cards
+      const cards = await CardAllocation.find({ tenant_id: tenantId }).lean();
+
+      const employees = await Employee.find({ tenant_id: tenantId }).lean();
+      tenant.employees = employees.length;
+
+      const activeEmployees = employees.filter(
+        (employee) => employee.status_employment
+      );
+      tenant.activeEmployees = activeEmployees.length;
+
+      const internedEmployees = activeEmployees.filter(
+        (employee) => employee.employee_type === "intern"
+      );
+      tenant.internedEmployees = internedEmployees.length;
+
+      // nustian internees
+      const nustianInterns = internedEmployees.filter(
+        (employee) => employee.is_nustian
+      );
+      tenant.nustianInterns = nustianInterns.length;
+      tenant.nonNustianInterns = tenant.internedEmployees - tenant.nustianInterns;
+
+      const activeEmployeesWithCards = activeEmployees.filter((employee) =>
+        cards.some(
+          (card) => card.employee_id.toString() === employee._id.toString()
+        )
+      );
+      tenant.cardsIssued = activeEmployeesWithCards.length;
+      tenant.cardsNotIssued = tenant.activeEmployees - tenant.cardsIssued;
+
+      // get number of workpermits
+      const workpermits = await WorkPermit.find({ tenant_id: tenantId }).lean();
+      // only approved work permits
+      tenant.workpermits = workpermits.filter(
+        (workpermit) => workpermit.status === "approved"
+      ).length;
+
+      // get number of violations
+      tenant.violations = tenant.complaints.length;
+      
+      return res.status(200).json({ tenant });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
