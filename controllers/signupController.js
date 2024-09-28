@@ -27,30 +27,30 @@ const signupController = {
     }
   },
 
-  adminSignup: async (req, res) => {
-    try {
-      const { username, email, password, name, cnic, jobStart } = req.body;
-      if (!username || !email || !password || !name || !cnic || !jobStart) {
-        return res
-          .status(400)
-          .json({ message: "Please provide all required fields" });
-      }
+  // adminSignup: async (req, res) => {
+  //   try {
+  //     const { username, email, password, name, cnic, jobStart } = req.body;
+  //     if (!username || !email || !password || !name || !cnic || !jobStart) {
+  //       return res
+  //         .status(400)
+  //         .json({ message: "Please provide all required fields" });
+  //     }
 
-      const admin = new Admin({
-        username,
-        email,
-        password,
-        name,
-        cnic,
-        job_start: jobStart,
-      });
-      await admin.save();
-      return res.status(200).json({ message: "Signup successful" });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
+  //     const admin = new Admin({
+  //       username,
+  //       email,
+  //       password,
+  //       name,
+  //       cnic,
+  //       job_start: jobStart,
+  //     });
+  //     await admin.save();
+  //     return res.status(200).json({ message: "Signup successful" });
+  //   } catch (err) {
+  //     console.error(err);
+  //     return res.status(500).json({ message: "Internal server error" });
+  //   }
+  // },
 
   supervisorSignup: async (req, res) => {
     try {
@@ -104,129 +104,129 @@ const signupController = {
     }
   },
 
-  tenantSignup: async (req, res) => {
-    try {
-      console.log("🚀 ~ tenantSignup: ~ req.body", req.body);
-      const {
-        registration,
-        contactInfo,
-        stakeholders,
-        companyProfile,
-        industrySector,
-        companyResourceComposition,
-      } = req.body;
+  // tenantSignup: async (req, res) => {
+  //   try {
+  //     console.log("🚀 ~ tenantSignup: ~ req.body", req.body);
+  //     const {
+  //       registration,
+  //       contactInfo,
+  //       stakeholders,
+  //       companyProfile,
+  //       industrySector,
+  //       companyResourceComposition,
+  //     } = req.body;
 
-      console.log(
-        "🚀 ~ tenantSignup: ~ ",
-        registration,
-        contactInfo,
-        stakeholders,
-        companyProfile,
-        industrySector,
-        companyResourceComposition
-      );
+  //     console.log(
+  //       "🚀 ~ tenantSignup: ~ ",
+  //       registration,
+  //       contactInfo,
+  //       stakeholders,
+  //       companyProfile,
+  //       industrySector,
+  //       companyResourceComposition
+  //     );
 
-      const registrationFields = [
-        "category",
-        "organizationName",
-        "presentAddress",
-        "website",
-        "companyEmail",
-      ];
+  //     const registrationFields = [
+  //       "category",
+  //       "organizationName",
+  //       "presentAddress",
+  //       "website",
+  //       "companyEmail",
+  //     ];
 
-      const contactInformationFields = [
-        "applicantName",
-        "applicantPhone",
-        "applicantEmail",
-        "applicantLandline",
-      ];
+  //     const contactInformationFields = [
+  //       "applicantName",
+  //       "applicantPhone",
+  //       "applicantEmail",
+  //       "applicantLandline",
+  //     ];
 
-      const stakeholderFields = [
-        "name",
-        "designation",
-        "email",
-        "presentAddress",
-        "nationality",
-        "dualNationality",
-        "profile",
-        "isNustAlumni",
-        "isNustEmployee",
-      ];
+  //     const stakeholderFields = [
+  //       "name",
+  //       "designation",
+  //       "email",
+  //       "presentAddress",
+  //       "nationality",
+  //       "dualNationality",
+  //       "profile",
+  //       "isNustAlumni",
+  //       "isNustEmployee",
+  //     ];
 
-      const companyProfileFields = [
-        "companyHeadquarters",
-        "yearsInBusiness",
-        "numberOfEmployees",
-        "registrationNumber",
-      ];
+  //     const companyProfileFields = [
+  //       "companyHeadquarters",
+  //       "yearsInBusiness",
+  //       "numberOfEmployees",
+  //       "registrationNumber",
+  //     ];
 
-      const industrySectorFields = ["category", "rentalSpaceSqFt", "timeFrame"];
+  //     const industrySectorFields = ["category", "rentalSpaceSqFt", "timeFrame"];
 
-      const companyResourceCompositionFields = [
-        "management",
-        "engineering",
-        "marketingAndSales",
-        "remainingPredominantArea",
-        "areasOfResearch",
-        "nustSchoolToCollab",
-      ];
+  //     const companyResourceCompositionFields = [
+  //       "management",
+  //       "engineering",
+  //       "marketingAndSales",
+  //       "remainingPredominantArea",
+  //       "areasOfResearch",
+  //       "nustSchoolToCollab",
+  //     ];
 
-      if (
-        !validationUtils.validateRequiredFields(
-          registration,
-          registrationFields
-        ) ||
-        !validationUtils.validateRequiredFields(
-          contactInfo,
-          contactInformationFields
-        ) ||
-        !validationUtils.validateRequiredFieldsArray(
-          stakeholders,
-          stakeholderFields
-        ) ||
-        !validationUtils.validateRequiredFields(
-          companyProfile,
-          companyProfileFields
-        ) ||
-        !validationUtils.validateRequiredFields(
-          industrySector,
-          industrySectorFields
-        ) ||
-        !validationUtils.validateRequiredFields(
-          companyResourceComposition,
-          companyResourceCompositionFields
-        )
-      ) {
-        return res
-          .status(400)
-          .json({ message: "Please provide all required fields" });
-      }
+  //     if (
+  //       !validationUtils.validateRequiredFields(
+  //         registration,
+  //         registrationFields
+  //       ) ||
+  //       !validationUtils.validateRequiredFields(
+  //         contactInfo,
+  //         contactInformationFields
+  //       ) ||
+  //       !validationUtils.validateRequiredFieldsArray(
+  //         stakeholders,
+  //         stakeholderFields
+  //       ) ||
+  //       !validationUtils.validateRequiredFields(
+  //         companyProfile,
+  //         companyProfileFields
+  //       ) ||
+  //       !validationUtils.validateRequiredFields(
+  //         industrySector,
+  //         industrySectorFields
+  //       ) ||
+  //       !validationUtils.validateRequiredFields(
+  //         companyResourceComposition,
+  //         companyResourceCompositionFields
+  //       )
+  //     ) {
+  //       return res
+  //         .status(400)
+  //         .json({ message: "Please provide all required fields" });
+  //     }
 
-      const username = registration.organizationName
-        .replace(/\s+/g, "") // Remove spaces
-        .replace(/[^a-zA-Z0-9]/g, "") // Remove special characters
-        .toLowerCase(); // Convert to lowercase
+  //     const username = registration.organizationName
+  //       .replace(/\s+/g, "") // Remove spaces
+  //       .replace(/[^a-zA-Z0-9]/g, "") // Remove special characters
+  //       .toLowerCase(); // Convert to lowercase
 
-      const password = process.env.TENANT_PASSWORD;
+  //     const password = process.env.TENANT_PASSWORD;
 
-      const tenant = new Tenant({
-        registration,
-        contactInfo,
-        stakeholders,
-        companyProfile,
-        industrySector,
-        companyResourceComposition,
-        username,
-        password,
-      });
-      await tenant.save();
+  //     const tenant = new Tenant({
+  //       registration,
+  //       contactInfo,
+  //       stakeholders,
+  //       companyProfile,
+  //       industrySector,
+  //       companyResourceComposition,
+  //       username,
+  //       password,
+  //     });
+  //     await tenant.save();
 
-      res.status(200).json({ message: "Signup successful", username });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  },
+  //     res.status(200).json({ message: "Signup successful", username });
+  //   } catch (err) {
+  //     console.error(err);
+  //     res.status(500).json({ message: "Internal server error" });
+  //   }
+  // },
 
   employeeSignup: async (req, res) => {
     try {

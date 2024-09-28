@@ -1,5 +1,3 @@
-console.log("Hello tenant");
-
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 

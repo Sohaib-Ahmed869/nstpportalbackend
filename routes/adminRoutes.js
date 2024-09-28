@@ -15,6 +15,7 @@ const routes = [
   { method: "get", path: "/towers/:towerId/services", handler: adminController.getServices },
   { method: "get", path: "/towers/:towerId/receptionists/performance", handler: adminController.getReceptionistsPerformance },
 
+  { method: "post", path: "/tenant/add", handler: adminController.addTenant },
   { method: "post", path: "/card/generate", handler: adminController.generateCard },
   { method: "post", path: "/etag/generate", handler: adminController.generateEtag },
   { method: "post", path: "/service/add", handler: adminController.addService },
@@ -23,8 +24,6 @@ const routes = [
   
   { method: "put", path: "/complaint/resolve", handler: adminController.resolveComplaint },
   { method: "put", path: "/employee/layoff", handler: adminController.layOffEmployee },
-  { method: "put", path: "/tenant/tenure/start", handler: adminController.startCompanyTenure },
-  { method: "put", path: "/tenant/tenure/end", handler: adminController.endCompanyTenure },
   { method: "put", path: "/room/update", handler: adminController.updateRoom },
   { method: "put", path: "/clearance/resolve", handler: adminController.resolveClearance },
   { method: "put", path: "/workpermit/resolve", handler: adminController.resolveWorkPermit },

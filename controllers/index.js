@@ -1,4 +1,3 @@
-console.log("Hello indexC");
 const adminController = require("./adminController");
 const authController = require("./authController");
 const commonController = require("./commonController");

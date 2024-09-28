@@ -17,12 +17,12 @@ const {
 const validationUtils = {
   async validateTenantAndEmployee(tenantId, employeeId) {
     try {
-      const tenantValidation = await validateTenant(tenantId);
+      const tenantValidation = await this.validateTenant(tenantId);
       if (!tenantValidation.isValid) {
         return tenantValidation;
       }
 
-      const employeeValidation = await validateEmployee(employeeId);
+      const employeeValidation = await this.validateEmployee(employeeId);
       if (!employeeValidation.isValid) {
         return employeeValidation;
       }
@@ -46,12 +46,12 @@ const validationUtils = {
 
   async validateAdminAndTower(adminId, towerId) {
     try {
-      const adminValidation = await validateAdmin(adminId);
+      const adminValidation = await this.validateAdmin(adminId);
       if (!adminValidation.isValid) {
         return adminValidation;
       }
 
-      const towerValidation = await validateTower(towerId);
+      const towerValidation = await this.validateTower(towerId);
       if (!towerValidation.isValid) {
         return towerValidation;
       }
@@ -76,12 +76,12 @@ const validationUtils = {
 
   async validateReceptionistAndTower(receptionistId, towerId) {
     try {
-      const receptionistValidation = await validateReceptionist(receptionistId);
+      const receptionistValidation = await this.validateReceptionist(receptionistId);
       if (!receptionistValidation.isValid) {
         return receptionistValidation;
       }
 
-      const towerValidation = await validateTower(towerId);
+      const towerValidation = await this.validateTower(towerId);
       if (!towerValidation.isValid) {
         return towerValidation;
       }
@@ -139,56 +139,56 @@ const validationUtils = {
   },
 
   async validateTower(towerId) {
-    return validateEntity(Tower, towerId, "Tower");
+    return this.validateEntity(Tower, towerId, "Tower");
   },
 
   async validateAdmin(adminId) {
-    return validateEntity(Admin, adminId, "Admin");
+    return this.validateEntity(Admin, adminId, "Admin");
   },
 
   async validateTenant(tenantId) {
-    return validateEntity(Tenant, tenantId, "Tenant");
+    return this.validateEntity(Tenant, tenantId, "Tenant");
   },
 
   async validateReceptionist(receptionistId) {
-    return validateEntity(Receptionist, receptionistId, "Receptionist");
+    return this.validateEntity(Receptionist, receptionistId, "Receptionist");
   },
 
   async validateEmployee(employeeId) {
-    return validateEntity(Employee, employeeId, "Employee");
+    return this.validateEntity(Employee, employeeId, "Employee");
   },
 
   async validateComplaint(complaintId) {
-    return validateEntity(Complaint, complaintId, "Complaint");
+    return this.validateEntity(Complaint, complaintId, "Complaint");
   },
 
   async validateService(serviceId) {
-    return validateEntity(Service, serviceId, "Service");
+    return this.validateEntity(Service, serviceId, "Service");
   },
 
   async validateRoom(roomId) {
-    return validateEntity(Room, roomId, "Room");
+    return this.validateEntity(Room, roomId, "Room");
   },
 
   async validateGatePass(gatePassId) {
-    return validateEntity(GatePass, gatePassId, "GatePass");
+    return this.validateEntity(GatePass, gatePassId, "GatePass");
   },
 
   async validateWorkPermit(workPermitId) {
-    return validateEntity(WorkPermit, workPermitId, "Work Permit");
+    return this.validateEntity(WorkPermit, workPermitId, "Work Permit");
   },
 
   async validateClearance(clearanceId) {
-    return validateEntity(Clearance, clearanceId, "Clearance");
+    return this.validateEntity(Clearance, clearanceId, "Clearance");
   },
 
   async validateLostAndFound(lostAndFoundId) {
-    return validateEntity(LostAndFound, lostAndFoundId, "Lost and Found");
+    return this.validateEntity(LostAndFound, lostAndFoundId, "Lost and Found");
   },
 
   async validateRoomBooking(roomId, bookingId) {
     try {
-      const validation = await validateRoom(roomId);
+      const validation = await this.validateRoom(roomId);
       if (!validation.isValid) {
         return validation;
       }
@@ -250,7 +250,7 @@ const validationUtils = {
     console.log("🚀 ~ validateRequiredFieldsArray ~ objs:", objs);
 
     for (let obj of objs) {
-      if (!validateRequiredFields(obj, requiredFields)) {
+      if (!this.validateRequiredFields(obj, requiredFields)) {
         return false;
       }
     }

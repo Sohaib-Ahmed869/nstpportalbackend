@@ -16,23 +16,30 @@ const PORT = process.env.PORT || 3001;
 
 // Connect to MongoDB
 
-// mongoose
-//   .connect("mongodb+srv://hexlertech:vQEmfMxnymZ510vo@cluster0.gyfkxge.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-//   .then(() => console.log("MongoDB connected"))
-//   .catch((err) => console.log(err));
-
 mongoose
-  .connect("mongodb://127.0.0.1:27017/nstp", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(
+    "mongodb+srv://developer:devhexler123@nstp.cgzom.mongodb.net/?retryWrites=true&w=majority&appName=NSTP"
+  )
   .then(() => {
     console.log("MongoDB connected");
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
   })
-  .catch((err) => console.log("Error: ", err));
+  .catch((err) => console.log(err));
+
+// mongoose
+//   .connect("mongodb://127.0.0.1:27017/nstp", {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+//   })
+//   .then(() => {
+//     console.log("MongoDB connected");
+//     app.listen(PORT, () => {
+//       console.log(`Server is running on port ${PORT}`);
+//     });
+//   })
+//   .catch((err) => console.log("Error: ", err));
 
 app.use(express.json({ limit: "50mb" }));
 app.use(
@@ -45,12 +52,9 @@ app.use(
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 console.log("timezone: ", timezone);
 
-
 app.get("/", (req, res) => {
   res.send("Welcome to the NSTP Portal");
 });
-
-console.log("Hello server");
 
 // const {
 //   routes: {
@@ -76,8 +80,6 @@ app.use("/signup", signupRoutes);
 app.use("/admin", adminRoutes);
 app.use("/tenant", tenantRoutes);
 app.use("/common", commonRoutes);
-
-
 
 // // SSL options
 // const options = {

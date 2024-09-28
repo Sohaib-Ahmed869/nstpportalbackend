@@ -1,4 +1,3 @@
-console.log("Hello adminC");
 const {
   Tenant,
   Receptionist,
@@ -19,7 +18,7 @@ const adminController = {
       const adminId = req.id;
 
       const validation =
-        await validationUtils.validationUtils.validateAdminAndTower(
+        await validationUtils.validateAdminAndTower(
           adminId,
           towerId
         );
@@ -283,6 +282,131 @@ const adminController = {
     }
   },
 
+  addTenant: async (req, res) => {
+    try {
+      console.log("🚀 ~ tenantSignup: ~ req.body", req.body);
+      const {
+        registration,
+        contactInfo,
+        stakeholders,
+        companyProfile,
+        industrySector,
+        companyResourceComposition,
+      } = req.body;
+
+      console.log(
+        "🚀 ~ tenantSignup: ~ ",
+        registration,
+        contactInfo,
+        stakeholders,
+        companyProfile,
+        industrySector,
+        companyResourceComposition
+      );
+
+      const registrationFields = [
+        "category",
+        "organizationName",
+        "presentAddress",
+        "website",
+        "companyEmail",
+      ];
+
+      const contactInformationFields = [
+        "applicantName",
+        "applicantPhone",
+        "applicantEmail",
+        // "applicantLandline",
+      ];
+
+      const stakeholderFields = [
+        "name",
+        "designation",
+        "email",
+        "presentAddress",
+        "nationality",
+        // "dualNationality",
+        "profile",
+        "isNustAlumni",
+        "isNustEmployee",
+      ];
+
+      const companyProfileFields = [
+        "companyHeadquarters",
+        "yearsInBusiness",
+        "numberOfEmployees",
+        "registrationNumber",
+      ];
+
+      const industrySectorFields = ["category", "rentalSpaceSqFt", "timeFrame"];
+
+      const companyResourceCompositionFields = [
+        "management",
+        "engineering",
+        "marketingAndSales",
+        // "remainingPredominantArea",
+        "areasOfResearch",
+        // "nustSchoolToCollab",
+      ];
+
+      if (
+        !validationUtils.validateRequiredFields(
+          registration,
+          registrationFields
+        ) ||
+        !validationUtils.validateRequiredFields(
+          contactInfo,
+          contactInformationFields
+        ) ||
+        !validationUtils.validateRequiredFieldsArray(
+          stakeholders,
+          stakeholderFields
+        ) ||
+        !validationUtils.validateRequiredFields(
+          companyProfile,
+          companyProfileFields
+        ) ||
+        !validationUtils.validateRequiredFields(
+          industrySector,
+          industrySectorFields
+        ) ||
+        !validationUtils.validateRequiredFields(
+          companyResourceComposition,
+          companyResourceCompositionFields
+        )
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Please provide all required fields" });
+      }
+
+      const username = registration.organizationName
+        .replace(/\s+/g, "") // Remove spaces
+        .replace(/[^a-zA-Z0-9]/g, "") // Remove special characters
+        .toLowerCase(); // Convert to lowercase
+
+      const password = process.env.TENANT_PASSWORD;
+
+      const tenant = new Tenant({
+        registration,
+        contactInfo,
+        stakeholders,
+        companyProfile,
+        industrySector,
+        companyResourceComposition,
+
+        username,
+        password,
+      });
+      await tenant.save();
+
+      res.status(200).json({ message: "Registeration successful", username });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   generateCard: async (req, res) => {
     try {
       const adminId = req.id;
@@ -478,16 +602,35 @@ const adminController = {
   assignOffice: async (req, res) => {
     // CONFIRM office service
     try {
-      const { tenantId, office } = req.body;
+      const adminId = req.id;
+      const { tenantId, towerId, office } = req.body;
 
-      // validationUtils.validate tenant
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const validateTenant = await validationUtils.validateTenant(tenantId);
+      if (!validateTenant.isValid) {
+        return res
+          .status(validateTenant.status)
+          .json({ message: validateTenant.message });
+      }
+
       const tenant = await Tenant.findById(tenantId);
       if (!tenant) {
         return res.status(404).json({ message: "Tenant not found" });
       }
 
+      tenant.tower = towerId;
       tenant.offices.push(office);
       tenant.dateJoining = new Date();
+      tenant.statusTenancy = true;
 
       // Save the updated tenant document
       await tenant.save();
@@ -578,82 +721,6 @@ const adminController = {
       return res
         .status(200)
         .json({ message: "Employee laid off successfully", employee });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
-  startCompanyTenure: async (req, res) => {
-    try {
-      const adminId = req.id;
-      const { tenantId } = req.body;
-      const tenant = await Tenant.findById(tenantId);
-      if (!tenant) {
-        return res.status(400).json({ message: "Tenant not found" });
-      }
-
-      const towerId = tenant.tower;
-
-      const validation = await validationUtils.validateAdminAndTower(
-        adminId,
-        towerId
-      );
-      if (!validation.isValid) {
-        return res
-          .status(validation.status)
-          .json({ message: validation.message });
-      }
-
-      if (tenant.statusTenancy) {
-        return res.status(400).json({ message: "Tenancy already started" });
-      }
-
-      tenant.statusTenancy = true;
-      tenant.dateJoining = new Date();
-      await tenant.save();
-
-      return res
-        .status(200)
-        .json({ message: "Tenancy started successfully", tenant });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
-  endCompanyTenure: async (req, res) => {
-    try {
-      const adminId = req.id;
-      const { tenantId } = req.body;
-      const tenant = await Tenant.findById(tenantId);
-      if (!tenant) {
-        return res.status(400).json({ message: "Tenant not found" });
-      }
-
-      const towerId = tenant.tower;
-
-      const validation = await validationUtils.validateAdminAndTower(
-        adminId,
-        towerId
-      );
-      if (!validation.isValid) {
-        return res
-          .status(validation.status)
-          .json({ message: validation.message });
-      }
-
-      if (!tenant.statusTenancy) {
-        return res.status(400).json({ message: "Tenancy already ended" });
-      }
-
-      tenant.statusTenancy = false;
-      tenant.dateLeaving = new Date();
-      await tenant.save();
-
-      return res
-        .status(200)
-        .json({ message: "Tenancy ended successfully", tenant });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });

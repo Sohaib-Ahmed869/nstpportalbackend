@@ -1,4 +1,3 @@
-console.log("Hello superController");
 const { Tower, Admin, Task } = require("../models");
 const { validationUtils } = require("../utils/validationUtils");
 
@@ -41,25 +40,30 @@ const superController = {
     }
   },
 
-  // addAdmin: async (req, res) => {
-  //   try {
-  //     const { username, email, password, name, cnic, jobStart, image } =
-  //       req.body;
-  //     const admin = new Admin({
-  //       username,
-  //       email,
-  //       password,
-  //       name,
-  //       cnic,
-  //       job_start: jobStart,
-  //       image,
-  //     });
-  //     await admin.save();
-  //     res.status(201).json({ message: "Admin added successfully" });
-  //   } catch (error) {
-  //     res.status(400).json({ message: error.message });
-  //   }
-  // },
+  addAdmin: async (req, res) => {
+    try {
+      const { username, email, password, name, cnic, jobStart } = req.body;
+      if (!username || !email || !password || !name || !cnic || !jobStart) {
+        return res
+          .status(400)
+          .json({ message: "Please provide all required fields" });
+      }
+
+      const admin = new Admin({
+        username,
+        email,
+        password,
+        name,
+        cnic,
+        job_start: jobStart,
+      });
+      await admin.save();
+      return res.status(200).json({ message: "Signup successful" });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
 
   addTasks: async (req, res) => {
     try {
@@ -76,11 +80,9 @@ const superController = {
 
       if (existingTasks.length > 0) {
         const existingTaskNames = existingTasks.map((task) => task.name);
-        return res
-          .status(400)
-          .json({
-            message: `Tasks already exist: ${existingTaskNames.join(", ")}`,
-          });
+        return res.status(400).json({
+          message: `Tasks already exist: ${existingTaskNames.join(", ")}`,
+        });
       }
 
       const newTasks = tasks.map(

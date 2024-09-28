@@ -29,13 +29,13 @@ const authMiddlewares = {
   },
 
   verifySuperAdmin: (req, res, next) => {
-    if (req.role !== "Superadmin")
+    if (req.role !== "superadmin")
       return res.status(403).send({ message: "Require Super Admin Role!" });
     next();
   },
 
   verifyAdmin: async (req, res, next) => {
-    if (req.role !== "Admin")
+    if (req.role !== "admin")
       return res.status(403).send({ message: "Require Admin Role!" });
 
     const adminId = req.id;
@@ -44,24 +44,24 @@ const authMiddlewares = {
     const admin = await Admin.findById(adminId).lean();
     if (!admin) return res.status(404).send({ message: "Admin not found" });
 
-    const permissions = admin.towers.map((tower) => ({
-      towerId: tower.tower,
-      tasks: tower.tasks,
-    }));
+    // const permissions = admin.towers.map((tower) => ({
+    //   towerId: tower.tower,
+    //   tasks: tower.tasks,
+    // }));
 
-    req.permissions = permissions;
+    // req.permissions = permissions;
 
     next();
   },
 
   verifySupervisor: (req, res, next) => {
-    if (req.role !== "Supervisor")
+    if (req.role !== "supervisor")
       return res.status(403).send({ message: "Require Supervisor Role!" });
     next();
   },
 
   verifyReceptionist: async (req, res, next) => {
-    if (req.role !== "Receptionist")
+    if (req.role !== "receptionist")
       return res.status(403).send({ message: "Require Receptionist Role!" });
 
     const receptionistId = req.id;
@@ -80,7 +80,7 @@ const authMiddlewares = {
   },
 
   verifyTenant: async (req, res, next) => {
-    if (req.role !== "Tenant")
+    if (req.role !== "tenant")
       return res.status(403).send({ message: "Require Tenant Role!" });
 
     const tenantId = req.id;

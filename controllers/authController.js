@@ -1,11 +1,17 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const { SuperAdmin, Admin, Supervisor, Receptionist, Tenant } = require("../models");
+const {
+  SuperAdmin,
+  Admin,
+  Supervisor,
+  Receptionist,
+  Tenant,
+} = require("../models");
 
 const authController = {
   superAdminLogin: async (req, res) => {
     try {
-      const role = "Superadmin";
+      const role = "superadmin";
       const { username, password } = req.body;
       if (!username || !password) {
         return res
@@ -56,7 +62,7 @@ const authController = {
 
   adminLogin: async (req, res) => {
     try {
-      const role = "Admin";
+      const role = "admin";
       const { username, password } = req.body;
       if (!username || !password) {
         return res
@@ -64,41 +70,52 @@ const authController = {
           .json({ message: "Please provide username and password" });
       }
 
-      Admin.findOne({ username })
-        .then(async (user) => {
-          if (!user) {
-            return res
-              .status(400)
-              .json({ message: "Invalid username or password" });
-          }
+      let towers = [];
 
-          if (!(await user.comparePassword(password))) {
-            return res
-              .status(400)
-              .json({ message: "Invalid username or password" });
-          }
-
-          const token = jwt.sign(
-            { id: user._id, role: role },
-            process.env.JWT_SECRET,
-            {
-              expiresIn: "12h",
-            }
-          );
-
-          return res
-            .status(200)
-            .cookie("token", token, {
-              httpOnly: true,
-              sameSite: "none",
-              secure: true,
-            })
-            .json({ message: "Login successful", role: role });
+      const admin = await Admin.findOne({ username })
+        .populate({
+          path: "towers.tower",
+          model: "Tower",
         })
-        .catch((err) => {
-          console.error(err);
-          return res.status(500).json({ message: "User not found" });
+        .populate({
+          path: "towers.tasks",
+          model: "Task",
         });
+      if (!admin) {
+        return res
+          .status(400)
+          .json({ message: "Invalid username or password" });
+      }
+
+      if (!(await admin.comparePassword(password))) {
+        return res
+          .status(400)
+          .json({ message: "Invalid username or password" });
+      }
+
+      admin.towers.forEach((tower) => {
+        towers.push({
+          tower: tower.tower,
+          tasks: tower.tasks,
+        });
+      });
+
+      const token = jwt.sign(
+        { id: admin._id, role: role, towers },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: "12h",
+        }
+      );
+
+      res
+        .status(200)
+        .cookie("token", token, {
+          httpOnly: true,
+          sameSite: "none",
+          secure: true,
+        })
+        .json({ message: "Login successful", role: role, towers });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
@@ -107,7 +124,7 @@ const authController = {
 
   supervisorLogin: async (req, res) => {
     try {
-      const role = "Supervisor";
+      const role = "supervisor";
       const { username, password } = req.body;
       if (!username || !password) {
         return res
@@ -158,7 +175,7 @@ const authController = {
 
   receptionistLogin: async (req, res) => {
     try {
-      const role = "Receptionist";
+      const role = "seceptionist";
       const { username, password } = req.body;
       if (!username || !password) {
         return res
