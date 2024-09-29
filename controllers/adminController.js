@@ -329,13 +329,17 @@ const adminController = {
     }
   },
 
-   getCardAllocations: async (req, res) => {
+  getCardAllocations: async (req, res) => {
     try {
       const towerId = req.params.towerId;
       const adminId = req.id;
       const { is_requested, is_issued } = req.query;
-      console.log("🚀 ~ getCardAllocations: ~ is_requested, is_issued:", is_requested, is_issued)
-      
+      console.log(
+        "🚀 ~ getCardAllocations: ~ is_requested, is_issued:",
+        is_requested,
+        is_issued
+      );
+
       const validation = await validationUtils.validateAdminAndTower(
         adminId,
         towerId
@@ -345,17 +349,19 @@ const adminController = {
           .status(validation.status)
           .json({ message: validation.message });
       }
-  
+
       // Build the query object
       const query = { tower: towerId };
       if (is_requested !== undefined) {
-        query.is_requested = is_requested === 'true';
+        query.is_requested = is_requested === "true";
       }
       if (is_issued !== undefined) {
-        query.is_issued = is_issued === 'true';
+        query.is_issued = is_issued === "true";
       }
-  
-      const cardAllocations = await CardAllocation.find(query).populate('employee_id').lean();
+
+      const cardAllocations = await CardAllocation.find(query)
+        .populate("employee_id")
+        .lean();
       return res.status(200).json({ cardAllocations });
     } catch (err) {
       console.error(err);
@@ -367,6 +373,12 @@ const adminController = {
     try {
       const towerId = req.params.towerId;
       const adminId = req.id;
+      const { is_requested, is_issued } = req.query;
+      console.log(
+        "🚀 ~ getEtagAllocations: ~ is_requested, is_issued:",
+        is_requested,
+        is_issued
+      );
 
       const validation = await validationUtils.validateAdminAndTower(
         adminId,
@@ -378,9 +390,18 @@ const adminController = {
           .json({ message: validation.message });
       }
 
-      const etagAllocations = await EtagAllocation.find({
-        tower: towerId,
-      }).lean();
+      // Build the query object
+      const query = { tower: towerId };
+      if (is_requested !== undefined) {
+        query.is_requested = is_requested === "true";
+      }
+      if (is_issued !== undefined) {
+        query.is_issued = is_issued === "true";
+      }
+
+      const etagAllocations = await EtagAllocation.find(query)
+        .populate("employee_id")
+        .lean();
       return res.status(200).json({ etagAllocations });
     } catch (err) {
       console.error(err);
