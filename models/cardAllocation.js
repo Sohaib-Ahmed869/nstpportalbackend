@@ -40,6 +40,7 @@ const cardAllocationSchema = new Schema(
     },
     validity: {
       type: Number,
+
     },
     is_returned: {
       type: Boolean,

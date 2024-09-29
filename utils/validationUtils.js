@@ -58,7 +58,7 @@ const validationUtils = {
 
       const admin = await Admin.findById(adminId).lean();
 
-      const hasTower = admin.towers.some((t) => t.tower.toString() === towerId);
+      const hasTower = admin.towers.some((t) => t.tower.toString() == towerId);
       if (!hasTower) {
         return {
           isValid: false,

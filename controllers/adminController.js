@@ -15,6 +15,46 @@ const { validationUtils } = require("../utils");
 
 const COMPANY_CATEGORIES = ["Company", "Cube 8", "Hatch 8", "Startup"];
 
+const getNumberOfCards = async (adminId) => {
+  try {
+    const validateAdmin = await validationUtils.validateAdmin(adminId);
+    if (!validateAdmin.isValid) {
+      return res
+        .status(validateAdmin.status)
+        .json({ message: validateAdmin.message });
+    }
+
+    const numberOfCards = await CardAllocation.countDocuments({
+      is_issued: true,
+    });
+
+    return numberOfCards;
+  } catch (err) {
+    console.error(err);
+    return -1;
+  }
+};
+
+const getNumberOfEtags = async (adminId) => {
+  try {
+    const validateAdmin = await validationUtils.validateAdmin(adminId);
+    if (!validateAdmin.isValid) {
+      return res
+        .status(validateAdmin.status)
+        .json({ message: validateAdmin.message });
+    }
+
+    const numberOfEtags = await EtagAllocation.countDocuments({
+      is_issued: true,
+    });
+
+    return numberOfEtags;
+  } catch (err) {
+    console.error(err);
+    return -1;
+  }
+};
+
 const adminController = {
   getDashboard: async (req, res) => {
     try {
@@ -521,9 +561,8 @@ const adminController = {
       }
 
       const tenants = await Tenant.find({
-        tower: towerId,
+        $or: [{ tower: { $exists: false } }, { tower: null }],
         statusTenancy: false,
-        offices: { $size: 0 }
       });
 
       return res.status(200).json({ tenants });
@@ -535,7 +574,6 @@ const adminController = {
 
   addTenant: async (req, res) => {
     try {
-      const adminId = req.id;
       console.log("🚀 ~ tenantSignup: ~ req.body", req.body);
       const {
         registration,
@@ -544,7 +582,6 @@ const adminController = {
         companyProfile,
         industrySector,
         companyResourceComposition,
-        towerId,
       } = req.body;
 
       console.log(
@@ -554,19 +591,8 @@ const adminController = {
         stakeholders,
         companyProfile,
         industrySector,
-        companyResourceComposition,
-        towerId
+        companyResourceComposition
       );
-
-      const validation = await validationUtils.validateAdminAndTower(
-        adminId,
-        towerId
-      );
-      if (!validation.isValid) {
-        return res
-          .status(validation.status)
-          .json({ message: validation.message });
-      }
 
       const registrationFields = [
         "category",
@@ -661,8 +687,6 @@ const adminController = {
 
         username,
         password,
-
-        tower: towerId,
       });
       await tenant.save();
 
@@ -676,9 +700,12 @@ const adminController = {
   generateCard: async (req, res) => {
     try {
       const adminId = req.id;
-      const { employeeId, cardNumber, validity } = req.body;
-      if (!employeeId || cardNumber == undefined || !validity) {
-        return res.status(400).json({ message: "Please provide all fields" });
+      const { employeeId } = req.body;
+
+      console.log("🚀 ~ generateCard: ~ req.body", req.body);
+
+      if (!employeeId) {
+        return res.status(400).json({ message: "Please provide employee ID" });
       }
 
       const employee = await Employee.findById(employeeId)
@@ -690,6 +717,8 @@ const adminController = {
 
       const towerId = employee.tower._id;
       const sponsor = employee.tower.name;
+
+      console.log("🚀 ~ generateCard: ~ towerId adminId", towerId, adminId);
 
       const validation = await validationUtils.validateAdminAndTower(
         adminId,
@@ -705,8 +734,19 @@ const adminController = {
         employee_id: employeeId,
       });
 
+      const validity = 6;
+      const cardNumber = await getNumberOfCards(adminId);
+      console.log("🚀 ~ generateCard: ~ cardNumber", cardNumber);
+      if (cardNumber === -1) {
+        return res
+          .status(500)
+          .json({ message: "Error in getting card number" });
+      }
+
       cardAllocation.card_number = cardNumber;
+      cardAllocation.is_requested = false;
       cardAllocation.is_issued = true;
+      cardAllocation.validity = validity;
       cardAllocation.date_issued = new Date();
 
       await cardAllocation.save();
@@ -735,9 +775,9 @@ const adminController = {
   generateEtag: async (req, res) => {
     try {
       const adminId = req.id;
-      const { employeeId, validity, etagNumber } = req.body;
+      const { employeeId } = req.body;
 
-      if (!employeeId || !validity || !etagNumber) {
+      if (!employeeId) {
         return res.status(400).json({ message: "Please provide all fields" });
       }
 
@@ -764,10 +804,20 @@ const adminController = {
         employee_id: employeeId,
       });
 
+      const validity = 6;
+      const etagNumber = await getNumberOfEtags(adminId);
+      if (etagNumber === -1) {
+        return res
+          .status(500)
+          .json({ message: "Error in getting etag number" });
+      }
+
       etagAllocation.etag_number = etagNumber;
+      etagAllocation.is_requested = false;
       etagAllocation.is_issued = true;
       etagAllocation.is_active = true;
       etagAllocation.date_issued = new Date();
+      etagAllocation.validity = validity;
 
       await etagAllocation.save();
 
