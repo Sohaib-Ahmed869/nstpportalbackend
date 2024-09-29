@@ -13,7 +13,107 @@ const {
 } = require("../models");
 const { validationUtils } = require("../utils");
 
+const COMPANY_CATEGORIES = ["Company", "Cube 8", "Hatch 8", "Startup"];
+
 const adminController = {
+  getDashboard: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const towerId = req.params.towerId;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      // get all tenants
+      const tenants = await Tenant.find({ tower: towerId, statusTenancy: true })
+        .select(
+          "registeration.organizationName registration.category industrySector.category"
+        )
+        .lean();
+      // get number of employees for each tenant
+      const tenantsWithEmployees = await Promise.all(
+        tenants.map(async (tenant) => {
+          const employees = await Employee.find({
+            tenant_id: tenant._id,
+          }).lean();
+          tenant.employees = employees.length;
+          return tenant;
+        })
+      );
+
+      // get company categories
+      const companyCategories = COMPANY_CATEGORIES;
+      const companyCategoriesCount = {};
+      companyCategories.forEach((category) => {
+        companyCategoriesCount[category] = tenants.filter(
+          (tenant) => tenant.registration.category === category
+        ).length;
+      });
+
+      // get number of cards issued
+      let cards = await CardAllocation.find({ tower: towerId }).lean();
+      const cardsIssued = cards.filter((card) => card.is_issued).length;
+      const cardsReturned = cards.filter((card) => card.is_returned).length;
+      const cardRequested = cards.filter((card) => card.is_requested).length;
+      cards = {
+        issued: cardsIssued,
+        returned: cardsReturned,
+        requested: cardRequested,
+      };
+
+      // get number of etags issued
+      let etags = await EtagAllocation.find({ tower: towerId }).lean();
+      const etagsIssued = etags.filter((etag) => etag.is_issued).length;
+      const etagsRequested = etags.filter((etag) => etag.is_requested).length;
+      etags = {
+        issued: etagsIssued,
+        requested: etagsRequested,
+      };
+
+      // get complaints with type "General"
+      let complaints = await Complaint.find({
+        tower: towerId,
+        type: "General",
+      }).lean();
+      const complaintsResolved = complaints.filter((complaint) => {
+        return (
+          complaint.status == "Resolved" &&
+          complaint.general_handled_by == adminId
+        );
+      }).length;
+
+      const complaintsPending = complaints.filter((complaint) => {
+        return complaint.status == "Pending";
+      }).length;
+
+      complaints = {
+        total: complaints.length,
+        resolved: complaintsResolved,
+        pending: complaintsPending,
+      };
+
+      const dashboard = {
+        cards,
+        complaints,
+        tenants: tenantsWithEmployees,
+        companyCategories: companyCategoriesCount,
+        etags,
+      };
+
+      return res.status(200).json({ dashboard });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   getTenants: async (req, res) => {
     try {
       const towerId = req.params.towerId;
@@ -76,7 +176,7 @@ const adminController = {
       const cards = await CardAllocation.find({ tenant_id: tenantId }).lean();
 
       const employees = await Employee.find({ tenant_id: tenantId }).lean();
-      tenant.employees = employees.length;
+      tenant.employees = employees;
 
       const activeEmployees = employees.filter(
         (employee) => employee.status_employment
@@ -93,7 +193,8 @@ const adminController = {
         (employee) => employee.is_nustian
       );
       tenant.nustianInterns = nustianInterns.length;
-      tenant.nonNustianInterns = tenant.internedEmployees - tenant.nustianInterns;
+      tenant.nonNustianInterns =
+        tenant.internedEmployees - tenant.nustianInterns;
 
       const activeEmployeesWithCards = activeEmployees.filter((employee) =>
         cards.some(
@@ -112,7 +213,7 @@ const adminController = {
 
       // get number of violations
       tenant.violations = tenant.complaints.length;
-      
+
       return res.status(200).json({ tenant });
     } catch (err) {
       console.error(err);

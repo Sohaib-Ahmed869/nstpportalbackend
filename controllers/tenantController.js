@@ -341,6 +341,7 @@ const tenantController = {
       }
 
       cardAllocation.is_returned = true;
+      cardAllocation.is_issued = false;
       cardAllocation.date_returned = new Date();
       await cardAllocation.save();
 
@@ -354,7 +355,11 @@ const tenantController = {
   requestEtag: async (req, res) => {
     try {
       const tenant_id = req.id;
-      const { employeeId } = req.body; // images
+      const { employeeId, plateNum } = req.body; // images
+
+      if (!plateNum) {
+        return res.status(400).json({ message: "Please provide plate number" });
+      }
 
       const validation = await validationUtils.validateTenantAndEmployee(
         tenant_id,
@@ -374,6 +379,7 @@ const tenantController = {
         return res.status(400).json({ message: "No etag allocation found" });
       }
 
+      etagAllocation.vehicle_number = plateNum;
       etagAllocation.is_requested = true;
       etagAllocation.date_requested = new Date();
       await etagAllocation.save();
@@ -694,6 +700,7 @@ const tenantController = {
       const {
         name,
         email,
+        phone,
         designation,
         address,
         empType,
@@ -728,6 +735,7 @@ const tenantController = {
 
       name ? (employee.name = name) : null;
       employee.email = email;
+      employee.phone = phone;
       employee.designation = designation;
       employee.address = address;
       employee.employee_type = empType;

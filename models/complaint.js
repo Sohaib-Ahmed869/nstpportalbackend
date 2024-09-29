@@ -32,15 +32,22 @@ const complaintSchema = new Schema(
     service_type: {
       type: String,
     },
-    is_: {
-      type: Boolean,
-      default: false,
+    is_resolved: {
+      type: String,
+      default: "false",
     },
     initiated_on: {
       type: Date,
       default: Date.now,
     },
-
+    general_resolved_by: {
+      type: Schema.Types.ObjectId,
+      ref: "Admin",
+    },
+    service_resolved_by: {
+      type: Schema.Types.ObjectId,
+      ref: "Receptionist",
+    },
   },
   { timestamps: true }
 );
