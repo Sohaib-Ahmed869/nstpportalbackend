@@ -34,7 +34,7 @@ const adminController = {
       // get all tenants
       const tenants = await Tenant.find({ tower: towerId, statusTenancy: true })
         .select(
-          "registeration.organizationName registration.category industrySector.category"
+          "registration.organizationName registration.companyEmail registration.category industrySector.category"
         )
         .lean();
       // get number of employees for each tenant
