@@ -16,6 +16,7 @@ const routes = [
   { method: "get", path: "/towers/:towerId/rooms", handler: adminController.getRooms },
   { method: "get", path: "/towers/:towerId/services", handler: adminController.getServices },
   { method: "get", path: "/towers/:towerId/receptionists/performance", handler: adminController.getReceptionistsPerformance },
+  { method: "get", path: "/towers/:towerId/office/requests", handler: adminController.getOfficeRequests },
 
   { method: "post", path: "/tenant/add", handler: adminController.addTenant },
   { method: "post", path: "/card/generate", handler: adminController.generateCard },

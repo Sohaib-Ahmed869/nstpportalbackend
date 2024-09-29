@@ -505,8 +505,37 @@ const adminController = {
     }
   },
 
+  getOfficeRequests: async (req, res) => {
+    try {
+      const towerId = req.params.towerId;
+      const adminId = req.id;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const tenants = await Tenant.find({
+        tower: towerId,
+        statusTenancy: false,
+        offices: { $size: 0 }
+      });
+
+      return res.status(200).json({ tenants });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   addTenant: async (req, res) => {
     try {
+      const adminId = req.id;
       console.log("🚀 ~ tenantSignup: ~ req.body", req.body);
       const {
         registration,
@@ -515,6 +544,7 @@ const adminController = {
         companyProfile,
         industrySector,
         companyResourceComposition,
+        towerId,
       } = req.body;
 
       console.log(
@@ -524,8 +554,19 @@ const adminController = {
         stakeholders,
         companyProfile,
         industrySector,
-        companyResourceComposition
+        companyResourceComposition,
+        towerId
       );
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
 
       const registrationFields = [
         "category",
@@ -620,6 +661,8 @@ const adminController = {
 
         username,
         password,
+
+        tower: towerId,
       });
       await tenant.save();
 
