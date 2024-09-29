@@ -14,6 +14,18 @@ const towerSchema = new Schema({
   description: {
     type: String,
   },
+  floors: {
+    type: [Number],
+    // required: true,
+  },
+  wings: {
+    type: [Number],
+    // required: true,
+  },
+  offices: {
+    type: [String],
+    // required: true,
+  },
 }, { timestamps: true });
 
 const Tower = mongoose.model("Tower", towerSchema);

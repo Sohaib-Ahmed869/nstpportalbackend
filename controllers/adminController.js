@@ -132,6 +132,16 @@ const adminController = {
       const tenants = await Tenant.find({
         tower: towerId,
       }).lean();
+
+      for (const tenant of tenants) {
+        const employeesCount = await Employee.countDocuments({
+          tenant_id: tenant._id,
+          status_employment: true,
+        });
+        tenant.numEmployees = employeesCount;
+      }
+      console.log("🚀 ~ getTenants: ~ tenants", tenants);
+
       return res.status(200).json({ tenants });
     } catch (err) {
       console.error(err);
