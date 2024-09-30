@@ -25,3 +25,5 @@ const routes = [
 routes.forEach((route) => {
   router[route.method](route.path, auth.verifyToken, auth.verifyReceptionist, route.handler);
 })
+
+module.exports = router;

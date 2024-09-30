@@ -22,6 +22,7 @@ const lostAndFoundSchema = new Schema(
     },
     date_found: {
       type: Date,
+      default: Date.now,
       required: true,
     },
     reported_by: {

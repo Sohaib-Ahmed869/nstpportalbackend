@@ -229,16 +229,17 @@ const receptionistController = {
     }
   },
 
-  addLostAndFound: (req, res) => {
+  addLostAndFound: async (req, res) => {
     try {
       const receptionistId = req.id;
       const towerId = req.towerId;
       const { item, description, image } = req.body;
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
+      console.log(validation);
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -253,7 +254,8 @@ const receptionistController = {
         reported_by: receptionistId,
       });
 
-      lostAndFound.save();
+      await lostAndFound.save();
+      
       return res
         .status(200)
         .send({ message: "Lost and found item added successfully" });

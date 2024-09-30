@@ -8,7 +8,7 @@ const receptionistSchema = new Schema(
     tower: {
       type: Schema.Types.ObjectId,
       ref: "Tower",
-      // required: true,
+      required: true,
     },
     email: {
       type: String,

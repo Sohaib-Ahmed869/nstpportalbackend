@@ -12,7 +12,9 @@ const commonController = {
 
   getLostAndFound: async (req, res) => {
     try {
+      const role = req.params.role;
       const lostAndFound = await LostAndFound.find();
+      res.status(200).json({ lostAndFound });
     } catch (error) {
       console.log(error);
       res.status(500).send({ message: error.message });

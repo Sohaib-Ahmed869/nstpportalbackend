@@ -72,6 +72,7 @@ const authRoutes = require("./routes/authRoutes");
 const signupRoutes = require("./routes/signupRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const tenantRoutes = require("./routes/tenantRoutes");
+const receptionistRoutes = require("./routes/receptionisteRoutes");
 const commonRoutes = require("./routes/commonRoutes");
 
 app.use("/super", superRoutes);
@@ -79,6 +80,7 @@ app.use("/auth", authRoutes);
 app.use("/signup", signupRoutes);
 app.use("/admin", adminRoutes);
 app.use("/tenant", tenantRoutes);
+app.use("/receptionist", receptionistRoutes);
 app.use("/common", commonRoutes);
 
 // // SSL options

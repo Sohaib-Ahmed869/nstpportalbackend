@@ -76,19 +76,34 @@ const validationUtils = {
 
   async validateReceptionistAndTower(receptionistId, towerId) {
     try {
-      const receptionistValidation = await this.validateReceptionist(receptionistId);
+      console.log(
+        "🚀 ~ validateReceptionistAndTower ~ receptionistId",
+        receptionistId
+      );
+      const receptionistValidation = await this.validateReceptionist(
+        receptionistId
+      );
       if (!receptionistValidation.isValid) {
         return receptionistValidation;
       }
 
+      console.log("🚀 ~ validateReceptionistAndTower ~ towerId", towerId);
       const towerValidation = await this.validateTower(towerId);
       if (!towerValidation.isValid) {
         return towerValidation;
       }
 
       const receptionist = await Receptionist.findById(receptionistId).lean();
+      console.log(
+        "🚀 ~ validateReceptionistAndTower ~ receptionist",
+        receptionist
+      );
 
-      const towerExists = receptionist.tower == towerId;
+      const towerExists = receptionist.tower.toString() == towerId;
+      console.log(
+        "🚀 ~ validateReceptionistAndTower ~ towerExists",
+        towerExists
+      );
       if (!towerExists) {
         return {
           isValid: false,
@@ -114,6 +129,8 @@ const validationUtils = {
         };
       }
 
+      console.log("🚀 ~ validateEntity ~ entityId", entityId);
+
       if (!mongoose.Types.ObjectId.isValid(entityId)) {
         return {
           isValid: false,
@@ -122,7 +139,14 @@ const validationUtils = {
         };
       }
 
-      const entityExists = await entityModel.exists({ _id: entityId });
+      console.log("🚀 ~ validateEntity ~ Valid Mongoose ID");
+      
+      // console.log("🚀 ~ validateEntity ~ entityModel", entityModel);
+      // const entity = await Admin.findById(entityId);
+      // console.log("🚀 ~ validateEntity ~ entity", entity);
+
+      const entityExists = await entityModel.findById(entityId);
+      console.log("🚀 ~ validateEntity ~ Entity exists", entityExists);
       if (!entityExists) {
         return {
           isValid: false,
@@ -151,7 +175,9 @@ const validationUtils = {
   },
 
   async validateReceptionist(receptionistId) {
-    return this.validateEntity(Receptionist, receptionistId, "Receptionist");
+    const response = await this.validateEntity(Receptionist, receptionistId, "Receptionist");
+    console.log("🚀 ~ validateReceptionist ~ response", response);
+    return response;
   },
 
   async validateEmployee(employeeId) {

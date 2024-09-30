@@ -80,20 +80,23 @@ const signupController = {
 
   receptionistSignup: async (req, res) => {
     try {
-      const { username, email, password, name, cnic, jobStart } = req.body;
-      if (!username || !email || !password || !name || !cnic || !jobStart) {
+      const { towerId, username, email, password, name, cnic, image, jobStart } = req.body;
+      
+      if (!username || !email || !password || !name || !cnic ) {
         return res
           .status(400)
           .json({ message: "Please provide all required fields" });
       }
 
       const receptionist = new Receptionist({
+        tower: towerId,
         username,
         email,
         password,
         name,
         cnic,
         job_start: jobStart,
+        image,
       });
       await receptionist.save();
 

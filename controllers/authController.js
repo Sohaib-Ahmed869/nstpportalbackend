@@ -175,7 +175,7 @@ const authController = {
 
   receptionistLogin: async (req, res) => {
     try {
-      const role = "seceptionist";
+      const role = "receptionist";
       const { username, password } = req.body;
       if (!username || !password) {
         return res

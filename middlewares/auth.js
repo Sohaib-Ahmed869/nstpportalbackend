@@ -6,6 +6,7 @@ const authMiddlewares = {
   verifyToken: (req, res, next) => {
     try {
       const token = req.cookies.token;
+      console.log("🚀 ~ jwt.verify ~ token:", token);
       if (!token) return res.status(403).send({ message: "No token provided" });
 
       jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
