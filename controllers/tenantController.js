@@ -427,6 +427,7 @@ const tenantController = {
 
   requestGatePass: async (req, res) => {
     try {
+      console.log("🚀 ~ requestGatePass: ~ req.bod  y:", req.body);
       const tenant_id = req.id;
       const { guestName, guestCnic, guestContact, gateNumber } = req.body;
 
@@ -441,8 +442,11 @@ const tenantController = {
           .json({ message: "Please provide all required fields" });
       }
 
-      const towerId = await Tenant.findById(tenant_id).select("tower").lean()
-        .tower;
+      let towerId = await Tenant.findById(tenant_id).select("tower").lean();
+      console.log("🚀 ~ requestGatePass: ~ towerId:", towerId);
+
+      towerId = towerId.tower;
+      console.log("🚀 ~ requestGatePass: ~ towerId:", towerId)
 
       const gatePass = new GatePass({
         tower: towerId,

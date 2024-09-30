@@ -20,7 +20,7 @@ const routes = [
   { method: "post", path: "/card/return", handler: tenantController.returnCard },
   { method: "post", path: "/etag/request", handler: tenantController.requestEtag },
   { method: "post", path: "/etag/return", handler: tenantController.returnEtag },
-  { method: "post", path: "/getepass/request", handler: tenantController.requestGatePass },
+  { method: "post", path: "/gatepass/request", handler: tenantController.requestGatePass },
   { method: "post", path: "/complaint/generate", handler: tenantController.generateComplaint },
   { method: "post", path: "/booking/room", handler: tenantController.requestRoomBooking },
   { method: "post", path: "/booking/room/cancel", handler: tenantController.cancelRoomBooking },
