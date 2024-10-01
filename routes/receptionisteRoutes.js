@@ -7,11 +7,11 @@ const routes = [
   { method: "get", path: "/gatepasses", handler: receptionistController.getGatePasses },
   { method: "get", path: "/gatepasses/unhandled", handler: receptionistController.getUnhandledGatePasses },
   { method: "get", path: "/gatepasses/handled-unhandled", handler: receptionistController.getUnhandledHandledGatePasses },
-  { method: "get", path: "/workpermit", handler: receptionistController.getWorkPermits },
+  { method: "get", path: "/workpermits", handler: receptionistController.getWorkPermits },
   { method: "get", path: "/booking/room", handler: receptionistController.getRoomBookings }, 
   { method: "get", path: "/clearances", handler: receptionistController.getClearances },
   { method: "get", path: "/complaints", handler: receptionistController.getComplaints },
-  { method: "get", path: "/tenant/:tenantId/complaints", handler: receptionistController.getTenantComplaints },
+  { method: "get", path: "/tenants/:tenantId/complaints", handler: receptionistController.getTenantComplaints },
 
   { method: "post", path: "/lostAndFound/add", handler: receptionistController.addLostAndFound },
   { method: "post", path: "/tenant/complaint/file", handler: receptionistController.fileComplaint },

@@ -558,10 +558,10 @@ const tenantController = {
         name,
         department,
         description,
-        validFrom,
-        validTo,
-        detailedInformation,
-        equipment,
+        startDate: validFrom,
+        endDate: validTo,
+        detailedInfo,
+        ppe: equipment,
       } = permitBody;
 
       if (
@@ -570,7 +570,7 @@ const tenantController = {
         !description ||
         !validFrom ||
         !validTo ||
-        !detailedInformation ||
+        !detailedInfo ||
         !equipment
       ) {
         return res
@@ -580,13 +580,13 @@ const tenantController = {
 
       const workPermit = new WorkPermit({
         tower: towerId,
-        tenant: tenant_id,
+        tenant: tenant_id,  
         name,
         department,
         description,
         valid_from: validFrom,
         valid_to: validTo,
-        detailed_information: detailedInformation,
+        detailed_information: detailedInfo,
         equipment,
       });
 

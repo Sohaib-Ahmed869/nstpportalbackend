@@ -35,10 +35,10 @@ const workPermitSchema = new Schema(
     },
     detailed_information: {
       type: String,
-      required: true,
+      // required: true,
     },
     equipment: {
-      type: [String],
+      type: String,
       required: true,
     },
     supervisor: {
@@ -47,6 +47,14 @@ const workPermitSchema = new Schema(
       // required: true,
     },
     supervisor_date: {
+      type: Date,
+    },
+    admin: {
+      type: Schema.Types.ObjectId,
+      ref: "Admin",
+      // required: true,
+    },
+    admin_date: {
       type: Date,
     },
     is_resolved: {

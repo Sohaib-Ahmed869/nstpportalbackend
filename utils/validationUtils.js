@@ -76,34 +76,19 @@ const validationUtils = {
 
   async validateReceptionistAndTower(receptionistId, towerId) {
     try {
-      // console.log(
-      // "🚀 ~ validateReceptionistAndTower ~ receptionistId",
-      // receptionistId
-      // );
       const receptionistValidation = await this.validateReceptionist(
         receptionistId
       );
       if (!receptionistValidation.isValid) {
         return receptionistValidation;
       }
-
-      // console.log("🚀 ~ validateReceptionistAndTower ~ towerId", towerId);
       const towerValidation = await this.validateTower(towerId);
       if (!towerValidation.isValid) {
         return towerValidation;
       }
 
       const receptionist = await Receptionist.findById(receptionistId).lean();
-      // console.log(
-      // "🚀 ~ validateReceptionistAndTower ~ receptionist",
-      // receptionist
-      // );
-
       const towerExists = receptionist.tower.toString() == towerId;
-      // console.log(
-      // "🚀 ~ validateReceptionistAndTower ~ towerExists",
-      // towerExists
-      // );
       if (!towerExists) {
         return {
           isValid: false,
@@ -128,9 +113,6 @@ const validationUtils = {
           message: `Please provide ${entityName} ID`,
         };
       }
-
-      // console.log("🚀 ~ validateEntity ~ entityId", entityId);
-
       if (!mongoose.Types.ObjectId.isValid(entityId)) {
         return {
           isValid: false,
@@ -139,14 +121,8 @@ const validationUtils = {
         };
       }
 
-      // console.log("🚀 ~ validateEntity ~ Valid Mongoose ID");
-      
-      // console.log("🚀 ~ validateEntity ~ entityModel", entityModel);
       // const entity = await Admin.findById(entityId);
-      // console.log("🚀 ~ validateEntity ~ entity", entity);
-
       const entityExists = await entityModel.findById(entityId);
-      // console.log("🚀 ~ validateEntity ~ Entity exists", entityExists);
       if (!entityExists) {
         return {
           isValid: false,
@@ -175,8 +151,11 @@ const validationUtils = {
   },
 
   async validateReceptionist(receptionistId) {
-    const response = await this.validateEntity(Receptionist, receptionistId, "Receptionist");
-    // console.log("🚀 ~ validateReceptionist ~ response", response);
+    const response = await this.validateEntity(
+      Receptionist,
+      receptionistId,
+      "Receptionist"
+    );
     return response;
   },
 
@@ -256,10 +235,7 @@ const validationUtils = {
   },
 
   validateRequiredFields(obj, requiredFields) {
-    // console.log("🚀 ~ validateRequiredFields ~ obj:", obj);
-
     for (let field of requiredFields) {
-      // console.log("🚀 ~ validateRequiredFields ~ field:", field);
       if (
         !obj.hasOwnProperty(field) ||
         obj[field] === undefined ||
@@ -273,8 +249,6 @@ const validationUtils = {
   },
 
   validateRequiredFieldsArray(objs, requiredFields) {
-    // console.log("🚀 ~ validateRequiredFieldsArray ~ objs:", objs);
-
     for (let obj of objs) {
       if (!this.validateRequiredFields(obj, requiredFields)) {
         return false;

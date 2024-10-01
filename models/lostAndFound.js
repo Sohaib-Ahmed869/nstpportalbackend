@@ -34,6 +34,10 @@ const lostAndFoundSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Receptionist",
     },
+    date_resolved: {
+      type: Date,
+    },
+    
     is_claimed: {
       type: Boolean,
       default: false,
