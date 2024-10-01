@@ -225,7 +225,7 @@ const adminController = {
       // get number of cards
       const cards = await CardAllocation.find({ tenant_id: tenantId }).lean();
 
-      const employees = await Employee.find({ tenant_id: tenantId }).lean();
+      const employees = await Employee.find({ tenant_id: tenantId, status_employment: true }).lean();
       tenant.employees = employees;
 
       const activeEmployees = employees.filter(
@@ -566,6 +566,31 @@ const adminController = {
       });
 
       return res.status(200).json({ tenants });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getWorkPermits: async (req, res) => {
+    try {
+      const towerId = req.params.towerId;
+      const adminId = req.id;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const workPermits = await WorkPermit.find({
+        tower: towerId,
+      }).lean();
+      return res.status(200).json({ workPermits });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
@@ -1182,8 +1207,8 @@ const adminController = {
       }
 
       workPermit.is_resolved = true;
-      workPermit.resolved_by = adminId;
-      workPermit.date_resolved = new Date();
+      workPermit.admin = adminId;
+      workPermit.admin_date = new Date();
 
       await workPermit.save();
     } catch (err) {
