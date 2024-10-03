@@ -17,6 +17,7 @@ const clearCookies = (req, res, next) => {
 
 app.use(clearCookies);
 
+
 app.get('/', (req, res) => {
   res.send('All cookies cleared');
 });

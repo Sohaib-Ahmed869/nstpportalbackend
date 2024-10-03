@@ -593,7 +593,7 @@ const tenantController = {
       await workPermit.save();
       return res
         .status(200)
-        .json({ message: "Work permit requested successfully" });
+        .json({ message: "Work permit requested successfully", id: workPermit._id });
     } catch (err) {
       console.log("🚀 ~ requestWorkPermit: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
