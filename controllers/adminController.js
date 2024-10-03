@@ -1211,6 +1211,8 @@ const adminController = {
       workPermit.admin_date = new Date();
 
       await workPermit.save();
+
+      return res.status(200).json({ message: "Work permit resolved" });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
