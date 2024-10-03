@@ -11,12 +11,12 @@ const {
 const { validationUtils } = require("../utils");
 
 const receptionistController = {
-  getGatePasses: (req, res) => {
+  getGatePasses: async (req, res) => {
     try {
       const receptionistId = req.id;
       const towerId = req.towerId;
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
@@ -26,7 +26,9 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const gatePasses = GatePass.find({ tower: towerId }).lean();
+      const gatePasses = await GatePass.find({ tower: towerId })
+        .populate("tenant_id")
+        .populate("tower");
 
       return res.status(200).send({ gatePasses });
     } catch (err) {
@@ -35,12 +37,12 @@ const receptionistController = {
     }
   },
 
-  getUnhandledGatePasses: (req, res) => {
+  getUnhandledGatePasses: async (req, res) => {
     try {
       const receptionistId = req.id;
       const towerId = req.towerId;
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
@@ -50,7 +52,7 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const gatePasses = GatePass.find({
+      const gatePasses = await GatePass.find({
         tower: towerId,
         handled_by: null || undefined,
       }).lean();
@@ -62,13 +64,13 @@ const receptionistController = {
     }
   },
 
-  getUnhandledHandledGatePasses: (req, res) => {
+  getUnhandledHandledGatePasses: async (req, res) => {
     // getting all gatepasses that are handled by this receptionist and the unhandled ones
     try {
       const receptionistId = req.id;
       const towerId = req.towerId;
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
@@ -78,13 +80,13 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      let gatePasses = GatePass.find({
+      let gatePasses = await GatePass.find({
         tower: towerId,
         handled_by: receptionistId,
       }).lean();
 
       // add the unhandled gatepasses to the list
-      const unhandledGatePasses = GatePass.find({
+      const unhandledGatePasses = await GatePass.find({
         tower: towerId,
         handled_by: null || undefined,
       }).lean();
@@ -122,12 +124,12 @@ const receptionistController = {
     }
   },
 
-  getRoomBookings: (req, res) => {
+  getRoomBookings: async (req, res) => {
     try {
       const receptionistId = req.id;
       const towerId = req.towerId;
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
@@ -137,7 +139,7 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const rooms = Room.find({ tower: towerId }).lean();
+      const rooms = await Room.find({ tower: towerId }).lean();
 
       return res.status(200).send({ rooms });
     } catch (err) {
@@ -146,12 +148,12 @@ const receptionistController = {
     }
   },
 
-  getClearances: (req, res) => {
+  getClearances: async (req, res) => {
     try {
       const receptionistId = req.id;
       const towerId = req.towerId;
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
@@ -161,7 +163,7 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const clearances = Clearance.find({ tower: towerId }).lean();
+      const clearances = await Clearance.find({ tower: towerId }).lean();
 
       return res.status(200).send({ clearances });
     } catch (err) {
@@ -170,12 +172,12 @@ const receptionistController = {
     }
   },
 
-  getComplaints: (req, res) => {
+  getComplaints: async (req, res) => {
     try {
       const receptionistId = req.id;
       const towerId = req.towerId;
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
@@ -185,7 +187,7 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const complaints = Complaint.find({ tower: towerId }).filter(
+      const complaints = await Complaint.find({ tower: towerId }).filter(
         (complaint) => complaint.complaint_type === "Service"
       );
 
@@ -196,13 +198,14 @@ const receptionistController = {
     }
   },
 
-  getTenantComplaints: (req, res) => {
+  getTenantComplaints: async (req, res) => {
+    // violations
     try {
       const receptionistId = req.id;
       const towerId = req.towerId;
       const { tenantId } = req.params;
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
@@ -212,14 +215,14 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const validateTenant = validationUtils.validateTenant(tenantId);
+      const validateTenant = await validationUtils.validateTenant(tenantId);
       if (!validateTenant.isValid) {
         return res
           .status(validateTenant.status)
           .send({ message: validateTenant.message });
       }
 
-      const tenant = Tenant.findById(tenantId);
+      const tenant = await Tenant.findById(tenantId);
       const complaints = tenant.complaints;
 
       return res.status(200).send({ complaints });
@@ -255,7 +258,7 @@ const receptionistController = {
       });
 
       await lostAndFound.save();
-      
+
       return res
         .status(200)
         .send({ message: "Lost and found item added successfully" });
@@ -265,7 +268,7 @@ const receptionistController = {
     }
   },
 
-  fileComplaint: (req, res) => {
+  fileComplaint: async (req, res) => {
     try {
       const receptionistId = req.id;
       const towerId = req.towerId;
@@ -278,14 +281,14 @@ const receptionistController = {
           .send({ message: "Please provide all required fields" });
       }
 
-      const validateTenant = validationUtils.validateTenant(tenantId);
+      const validateTenant = await validationUtils.validateTenant(tenantId);
       if (!validateTenant.isValid) {
         return res
           .status(validateTenant.status)
           .send({ message: validateTenant.message });
       }
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
@@ -300,10 +303,10 @@ const receptionistController = {
         description,
       };
 
-      const tenant = Tenant.findById(tenantId);
+      const tenant = await Tenant.findById(tenantId);
       tenant.complaints.push(complaint);
 
-      tenant.save();
+      await tenant.save();
 
       return res
         .status(200)
@@ -314,12 +317,19 @@ const receptionistController = {
     }
   },
 
-  handleGatePass: (req, res) => {
+  handleGatePass: async (req, res) => {
     try {
       const { gatepassId, approval, representative, reasonDecline } = req.body;
       const receptionistId = req.id;
 
-      const validateGatePass = validationUtils.validateGatePass(gatepassId);
+      console.log("🚀 ~ handleGatePass: ~ req.body:", req.body);
+
+      const validateGatePass = await validationUtils.validateGatePass(
+        gatepassId
+      );
+
+      console.log("🚀 ~ handleGatePass: ~ validateGatePass", validateGatePass)
+
       if (!validateGatePass.isValid) {
         return res
           .status(validateGatePass.status)
@@ -332,13 +342,18 @@ const receptionistController = {
           .send({ message: "Please provide approval status" });
       }
 
-      const gatePass = GatePass.findById(gatepassId).lean();
+      const gatePass = await GatePass.findById(gatepassId);
       const towerId = gatePass.tower;
+      
+      console.log("🚀 ~ handleGatePass: ~ gatePass:", gatePass)
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
+
+      console.log("🚀 ~ handleGatePass: ~ validation", validation)
+
       if (!validation.isValid) {
         return res
           .status(validation.status)
@@ -357,9 +372,9 @@ const receptionistController = {
         gatePass.reason_decline = reasonDecline;
       }
       gatePass.handled_by = receptionistId;
-      const receptionist = Receptionist.findById(receptionistId);
+      const receptionist = await Receptionist.findById(receptionistId);
 
-      gatePass.save();
+      await gatePass.save();
       receptionist.handled_gatepasses += 1;
       return res
         .status(200)
@@ -370,11 +385,11 @@ const receptionistController = {
     }
   },
 
-  handleRoomBooking: (req, res) => {
+  handleRoomBooking: async (req, res) => {
     try {
       const receptionistId = req.id;
       const { roomId, bookingId, approval, reasonDecline } = req.body;
-      const validateRoomBooking = validationUtils.validateRoomBooking(
+      const validateRoomBooking = await validationUtils.validateRoomBooking(
         roomId,
         bookingId
       );
@@ -390,10 +405,10 @@ const receptionistController = {
           .send({ message: "Please provide approval status" });
       }
 
-      const room = Room.findById(roomId);
+      const room = await Room.findById(roomId);
       const towerId = room.tower;
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
@@ -416,11 +431,11 @@ const receptionistController = {
       }
 
       booking.handled_by = receptionistId;
-      const receptionist = Receptionist.findById(receptionistId);
+      const receptionist = await Receptionist.findById(receptionistId);
       receptionist.handled_bookings += 1;
 
-      room.save();
-      receptionist.save();
+      await room.save();
+      await receptionist.save();
       return res.status(200).send({ message: "Booking updated successfully" });
     } catch (err) {
       console.log(err);
@@ -428,11 +443,11 @@ const receptionistController = {
     }
   },
 
-  cancelRoomBooking: (req, res) => {
+  cancelRoomBooking: async (req, res) => {
     try {
       const receptionistId = req.id;
       const { roomId, bookingId } = req.body;
-      const validateRoomBooking = validationUtils.validateRoomBooking(
+      const validateRoomBooking = await validationUtils.validateRoomBooking(
         roomId,
         bookingId
       );
@@ -442,10 +457,10 @@ const receptionistController = {
           .send({ message: validateRoomBooking.message });
       }
 
-      const room = Room.findById(roomId);
+      const room = await Room.findById(roomId);
       const towerId = room.tower;
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
@@ -460,7 +475,7 @@ const receptionistController = {
       booking.is_cancelled = true;
       booking.cancelled_by = req.id;
 
-      room.save();
+      await room.save();
       return res
         .status(200)
         .send({ message: "Booking cancelled successfully" });
@@ -470,23 +485,24 @@ const receptionistController = {
     }
   },
 
-  resolveLostAndFound: (req, res) => {
+  resolveLostAndFound: async (req, res) => {
     try {
       const receptionistId = req.id;
       const { lostAndFoundId } = req.body;
 
-      const validateLostAndFound =
-        validationUtils.validateLostAndFound(lostAndFoundId);
+      const validateLostAndFound = await validationUtils.validateLostAndFound(
+        lostAndFoundId
+      );
       if (!validateLostAndFound.isValid) {
         return res
           .status(validateLostAndFound.status)
           .send({ message: validateLostAndFound.message });
       }
 
-      const lostAndFound = LostAndFound.findById(lostAndFoundId);
+      const lostAndFound = await LostAndFound.findById(lostAndFoundId);
       const towerId = lostAndFound.tower;
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
@@ -504,7 +520,7 @@ const receptionistController = {
 
       lostAndFound.is_resolved = true;
       lostAndFound.resolved_by = receptionistId;
-      lostAndFound.save();
+      await lostAndFound.save();
       return res
         .status(200)
         .send({ message: "Lost and found item resolved successfully" });

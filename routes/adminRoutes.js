@@ -26,11 +26,11 @@ const routes = [
   { method: "post", path: "/office/assign", handler: adminController.assignOffice },
   { method: "post", path: "/room/add", handler: adminController.addRoom },
   
-  { method: "put", path: "/complaint/resolve", handler: adminController.resolveComplaint },
+  { method: "put", path: "/complaint/resolve", handler: adminController.handleComplaint },
   { method: "put", path: "/employee/layoff", handler: adminController.layOffEmployee },
   { method: "put", path: "/room/update", handler: adminController.updateRoom },
-  { method: "put", path: "/clearance/resolve", handler: adminController.resolveClearance },
-  { method: "put", path: "/workpermit/resolve", handler: adminController.resolveWorkPermit },
+  { method: "put", path: "/clearance/resolve", handler: adminController.handleClearance },
+  { method: "put", path: "/workpermit/resolve", handler: adminController.handleWorkPermit },
 
   { method: "delete", path: "/room/delete", handler: adminController.deleteRoom },
 ];
