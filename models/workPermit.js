@@ -67,6 +67,9 @@ const workPermitSchema = new Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
+    reason_decline: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

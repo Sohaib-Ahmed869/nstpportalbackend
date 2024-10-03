@@ -983,17 +983,17 @@ const adminController = {
     }
   },
 
-  resolveComplaint: async (req, res) => {
+  handleComplaint: async (req, res) => {
     try {
       const adminId = req.id;
       const { complaintId } = req.body;
       const complaintValidation = await validationUtils.validateComplaint(
         complaintId
       );
-      if (!validation.isValid) {
+      if (!complaintValidation.isValid) {
         return res
-          .status(validation.status)
-          .json({ message: validation.message });
+          .status(complaintValidation.status)
+          .json({ message: complaintValidation.message });
       }
 
       const complaint = await Complaint.findById(complaintId);
@@ -1115,7 +1115,7 @@ const adminController = {
     }
   },
 
-  resolveClearance: async (req, res) => {
+  handleClearance: async (req, res) => {
     try {
       const adminId = req.id;
       const { clearanceId } = req.body;
@@ -1161,10 +1161,10 @@ const adminController = {
     }
   },
 
-  resolveWorkPermit: async (req, res) => {
+  handleWorkPermit: async (req, res) => {
     try {
       const adminId = req.id;
-      const { workPermitId, approval } = req.body;
+      const { workPermitId, approval, reasonDecline } = req.body;
 
       if (approval == undefined) {
         return res
@@ -1204,6 +1204,7 @@ const adminController = {
         workPermit.status = "approved";
       } else {
         workPermit.status = "rejected";
+        workPermit.reason_decline = reasonDecline;
       }
 
       workPermit.is_resolved = true;
