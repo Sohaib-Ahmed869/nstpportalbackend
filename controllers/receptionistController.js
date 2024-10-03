@@ -98,12 +98,12 @@ const receptionistController = {
     }
   },
 
-  getWorkPermits: (req, res) => {
+  getWorkPermits: async (req, res) => {
     try {
       const receptionistId = req.id;
       const towerId = req.towerId;
 
-      const validation = validationUtils.validateReceptionistAndTower(
+      const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
@@ -113,7 +113,7 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const workPermits = WorkPermit.find({ tower: towerId }).lean();
+      const workPermits = await WorkPermit.find({ tower: towerId }).lean();
 
       return res.status(200).send({ workPermits });
     } catch (err) {

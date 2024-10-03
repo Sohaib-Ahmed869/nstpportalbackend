@@ -114,7 +114,7 @@ const tenantController = {
       if (!tenant_id) {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
-      const workPermits = await WorkPermit.find({ tenant: tenant_id });
+      const workPermits = await WorkPermit.find({ tenant: tenant_id })
       return res.status(200).json({ workPermits });
     } catch (err) {
       console.log("🚀 ~ getWorkPermits: ~ err:", err);
@@ -781,6 +781,10 @@ const tenantController = {
       }
 
       const employee = await Employee.findById(employeeId);
+
+      if(employee.status_employment === false) {
+        return res.status(400).json({ message: "Employee already laid off" });
+      }
 
       employee.status_employment = false;
       employee.layoff_date = new Date();
