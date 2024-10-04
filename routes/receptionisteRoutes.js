@@ -11,10 +11,12 @@ const routes = [
   { method: "get", path: "/booking/room", handler: receptionistController.getRoomBookings }, 
   { method: "get", path: "/clearances", handler: receptionistController.getClearances },
   { method: "get", path: "/complaints", handler: receptionistController.getComplaints },
-  { method: "get", path: "/tenants/:tenantId/complaints", handler: receptionistController.getTenantComplaints },
+  { method: "get", path: "/tenants", handler: receptionistController.getTenants },
+  { method: "get", path: "/tenants/:tenantId/occurences", handler: receptionistController.getTenantOccurences },
+  { method: "get", path: "/occurences", handler: receptionistController.getAllTenantsOccurences },
 
   { method: "post", path: "/lostAndFound/add", handler: receptionistController.addLostAndFound },
-  { method: "post", path: "/tenant/complaint/file", handler: receptionistController.fileComplaint },
+  { method: "post", path: "/occurence/add", handler: receptionistController.addOccurence },
 
   { method: "put", path: "/gatepass/approval", handler: receptionistController.handleGatePass },
   { method: "put", path: "/booking/room/approval", handler: receptionistController.handleRoomBooking },

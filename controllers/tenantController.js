@@ -11,7 +11,6 @@ const {
   Inspection,
 } = require("../models");
 const { validationUtils } = require("../utils");
-const { getTenantComplaints } = require("./receptionistController");
 
 const tenantController = {
   getEmployees: async (req, res) => {
@@ -134,13 +133,13 @@ const tenantController = {
     }
   },
 
-  getTenantComplaints: async (req, res) => {
+  getOccurences: async (req, res) => {
     try {
       const tenant_id = req.id;
       const complaints = await Tenant.findById(tenant_id).select("complaints");
       return res.status(200).json({ complaints });
     } catch (err) {
-      console.log("🚀 ~ getTenantComplaints: ~ err:", err);
+      console.log("🚀 ~ getOccurences: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -371,20 +370,17 @@ const tenantController = {
           .json({ message: validation.message });
       }
 
-      const etagAllocation = await EtagAllocation.findOne({
+      const etagAllocation = new EtagAllocation({
         tenant_id,
         employee_id: employeeId,
       });
-      if (!etagAllocation) {
-        return res.status(400).json({ message: "No etag allocation found" });
-      }
 
       etagAllocation.vehicle_number = plateNum;
       etagAllocation.is_requested = true;
       etagAllocation.date_requested = new Date();
       await etagAllocation.save();
 
-      return res.status(200).json({ message: "Etag requested successfully" });
+      return res.status(200).json({ message: "Etag requested successfully" }, etagAllocation);
     } catch (err) {
       console.log("🚀 ~ requestEtag: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });

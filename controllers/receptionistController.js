@@ -198,7 +198,35 @@ const receptionistController = {
     }
   },
 
-  getTenantComplaints: async (req, res) => {
+  getTenants: async (req, res) => {
+    try {
+      const receptionistId = req.id;
+      const towerId = req.towerId;
+
+      const validation = await validationUtils.validateReceptionistAndTower(
+        receptionistId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .send({ message: validation.message });
+      }
+
+      let tenants = await Tenant.find({ tower: towerId }).select(
+        "registration.organizationName"
+      );
+
+      tenants = tenants.map((tenant) => tenant.registration.organizationName);
+
+      return res.status(200).send({ tenants });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send({ message: err.message });
+    }
+  },
+
+  getTenantOccurences: async (req, res) => {
     // violations
     try {
       const receptionistId = req.id;
@@ -226,6 +254,38 @@ const receptionistController = {
       const complaints = tenant.complaints;
 
       return res.status(200).send({ complaints });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send({ message: err.message });
+    }
+  },
+
+  getAllTenantsOccurences: async (req, res) => {
+    try {
+      const receptionistId = req.id;
+      const towerId = req.towerId;
+
+      const validation = await validationUtils.validateReceptionistAndTower(
+        receptionistId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .send({ message: validation.message });
+      }
+
+      let tenants = await Tenant.find({ tower: towerId }).select(
+        "registration.organizationName complaints"
+      );
+
+      tenants = tenants.map((tenant) => ({
+        tenantId: tenant._id,
+        name: tenant.registration.organizationName,
+        complaints: tenant.complaints,
+      }));
+
+      return res.status(200).send({ tenants });
     } catch (err) {
       console.log(err);
       return res.status(500).send({ message: err.message });
@@ -268,7 +328,7 @@ const receptionistController = {
     }
   },
 
-  fileComplaint: async (req, res) => {
+  addOccurence: async (req, res) => {
     try {
       const receptionistId = req.id;
       const towerId = req.towerId;
@@ -298,7 +358,7 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const complaint = {
+      let complaint = {
         subject,
         description,
       };
@@ -307,6 +367,8 @@ const receptionistController = {
       tenant.complaints.push(complaint);
 
       await tenant.save();
+
+      complaint.date_filed = new Date();
 
       return res
         .status(200)
@@ -328,7 +390,7 @@ const receptionistController = {
         gatepassId
       );
 
-      console.log("🚀 ~ handleGatePass: ~ validateGatePass", validateGatePass)
+      console.log("🚀 ~ handleGatePass: ~ validateGatePass", validateGatePass);
 
       if (!validateGatePass.isValid) {
         return res
@@ -344,15 +406,15 @@ const receptionistController = {
 
       const gatePass = await GatePass.findById(gatepassId);
       const towerId = gatePass.tower;
-      
-      console.log("🚀 ~ handleGatePass: ~ gatePass:", gatePass)
+
+      console.log("🚀 ~ handleGatePass: ~ gatePass:", gatePass);
 
       const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
 
-      console.log("🚀 ~ handleGatePass: ~ validation", validation)
+      console.log("🚀 ~ handleGatePass: ~ validation", validation);
 
       if (!validation.isValid) {
         return res

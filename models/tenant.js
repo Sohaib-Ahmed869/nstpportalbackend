@@ -55,6 +55,7 @@ const companyResourceCompositionSchema = new Schema({
 const complaint = new Schema({
   subject: { type: String, required: true },
   description: { type: String, required: true },
+  date_filed: { type: Date, default: Date.now },
 });
 
 const tenantSchema = new Schema(

@@ -11,7 +11,7 @@ const routes = [
   { method: "get", path: "/workpermits", handler: tenantController.getWorkPermits },
   { method: "get", path: "/complaints", handler: tenantController.getComplaints },
   { method: "get", path: "/clearance", handler: tenantController.viewClearance },
-  { method: "get", path: "/complaints/tenant", handler: tenantController.getTenantComplaints },  
+  { method: "get", path: "/occurences", handler: tenantController.getOccurences },  
   { method: "get", path: "/booking/room", handler: tenantController.getRoomBookings },
   { method: "get", path: "/inspection", handler: tenantController.getInspections },
 

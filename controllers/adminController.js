@@ -800,9 +800,9 @@ const adminController = {
   generateEtag: async (req, res) => {
     try {
       const adminId = req.id;
-      const { employeeId } = req.body;
+      const { employeeId, etagId } = req.body;
 
-      if (!employeeId) {
+      if (!employeeId || !etagId) {
         return res.status(400).json({ message: "Please provide all fields" });
       }
 
@@ -825,9 +825,7 @@ const adminController = {
           .json({ message: validation.message });
       }
 
-      const etagAllocation = await EtagAllocation.findOne({
-        employee_id: employeeId,
-      });
+      const etagAllocation = await EtagAllocation.findById(etagId);
 
       const validity = 6;
       const etagNumber = await getNumberOfEtags(adminId);
@@ -846,13 +844,9 @@ const adminController = {
 
       await etagAllocation.save();
 
-      const etag = {
-        etagNumber,
-      }; // fill this object with the required fields
-
       return res
         .status(200)
-        .json({ message: "Etag issued successfully", etag });
+        .json({ message: "Etag issued successfully", etagAllocation });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
