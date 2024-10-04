@@ -36,9 +36,20 @@ const complaintSchema = new Schema(
       type: String,
       default: "false",
     },
-    initiated_on: {
+    date_initiated: {
       type: Date,
       default: Date.now,
+    },
+    date_resolved: {
+      type: Date,
+    },
+    status: {
+      type: String,
+      default: "pending", 
+      enum: ["pending", "approved", "rejected"],
+    },
+    reason_decline: {
+      type: String,
     },
     general_resolved_by: {
       type: Schema.Types.ObjectId,

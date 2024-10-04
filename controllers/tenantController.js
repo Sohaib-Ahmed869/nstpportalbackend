@@ -504,7 +504,7 @@ const tenantController = {
 
       return res
         .status(200)
-        .json({ message: "Complaint generated successfully" });
+        .json({ message: "Complaint generated successfully", complaint });
     } catch (err) {
       console.log("🚀 ~ generateComplaint: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });

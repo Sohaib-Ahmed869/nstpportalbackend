@@ -225,7 +225,10 @@ const adminController = {
       // get number of cards
       const cards = await CardAllocation.find({ tenant_id: tenantId }).lean();
 
-      const employees = await Employee.find({ tenant_id: tenantId, status_employment: true }).lean();
+      const employees = await Employee.find({
+        tenant_id: tenantId,
+        status_employment: true,
+      }).lean();
       tenant.employees = employees;
 
       const activeEmployees = employees.filter(
@@ -337,6 +340,7 @@ const adminController = {
 
       const complaints = await Complaint.find({
         tower: towerId,
+        complaint_type: "General",
       }).lean();
       return res.status(200).json({ complaints });
     } catch (err) {
@@ -980,7 +984,7 @@ const adminController = {
   handleComplaint: async (req, res) => {
     try {
       const adminId = req.id;
-      const { complaintId } = req.body;
+      const { complaintId, approval, reasonDecline } = req.body;
       const complaintValidation = await validationUtils.validateComplaint(
         complaintId
       );
@@ -991,6 +995,7 @@ const adminController = {
       }
 
       const complaint = await Complaint.findById(complaintId);
+      console.log("🚀 ~ handleComplaint: ~ complaint", complaint);
       const towerId = complaint.tower;
 
       const validation = await validationUtils.validateAdminAndTower(
@@ -1003,11 +1008,24 @@ const adminController = {
           .json({ message: validation.message });
       }
 
+      console.log("🚀 ~ handleComplaint: ~ is_resolved", complaint.is_resolved);
       if (complaint.is_resolved) {
+        console.log("🚀 ~ handleComplaint: ~ is_resolved", complaint.is_resolved) ;
         return res.status(400).json({ message: "Complaint already resolved" });
       }
 
+      console.log("🚀 ~ handleComplaint: ~ approval", approval);
+      if (approval) {
+        complaint.status = "approved";
+      } else {
+        complaint.status = "rejected";
+        complaint.reason_decline = reasonDecline;
+      }
+
       complaint.is_resolved = true;
+      complaint.date_resolved = new Date();
+      complaint.general_resolved_by = adminId;
+
       await complaint.save();
 
       return res
