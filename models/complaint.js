@@ -33,8 +33,8 @@ const complaintSchema = new Schema(
       type: String,
     },
     is_resolved: {
-      type: String,
-      default: "false",
+      type: Boolean,
+      default: false,
     },
     date_initiated: {
       type: Date,

@@ -1009,7 +1009,7 @@ const adminController = {
       }
 
       console.log("🚀 ~ handleComplaint: ~ is_resolved", complaint.is_resolved);
-      if (complaint.is_resolved) {
+      if (complaint.is_resolved == true) {
         console.log("🚀 ~ handleComplaint: ~ is_resolved", complaint.is_resolved) ;
         return res.status(400).json({ message: "Complaint already resolved" });
       }
@@ -1156,7 +1156,7 @@ const adminController = {
           .json({ message: validation.message });
       }
 
-      if (clearance.is_resolved) {
+      if (clearance.is_resolved == true) {
         return res.status(400).json({ message: "Clearance already resolved" });
       }
 
@@ -1206,7 +1206,7 @@ const adminController = {
           .json({ message: validation.message });
       }
 
-      if (workPermit.is_resolved) {
+      if (workPermit.is_resolved == true) {
         return res
           .status(400)
           .json({ message: "Work permit already resolved" });

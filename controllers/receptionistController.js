@@ -574,7 +574,7 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      if (lostAndFound.is_resolved) {
+      if (lostAndFound) {
         return res
           .status(400)
           .send({ message: "Lost and found item is already resolved" });
