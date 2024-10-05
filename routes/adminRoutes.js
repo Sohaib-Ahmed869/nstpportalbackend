@@ -20,12 +20,14 @@ const routes = [
   { method: "get", path: "/towers/:towerId/workpermits", handler: adminController.getWorkPermits },
 
   { method: "post", path: "/tenant/add", handler: adminController.addTenant },
-  { method: "post", path: "/card/generate", handler: adminController.generateCard },
-  { method: "post", path: "/etag/generate", handler: adminController.generateEtag },
   { method: "post", path: "/service/add", handler: adminController.addService },
   { method: "post", path: "/office/assign", handler: adminController.assignOffice },
   { method: "post", path: "/room/add", handler: adminController.addRoom },
   
+  { method: "put", path: "/card/accept", handler: adminController.acceptCardRequest },
+  { method: "put", path: "/card/reject", handler: adminController.rejectCardRequest },
+  { method: "put", path: "/etag/accept", handler: adminController.acceptEtagRequest },
+  { method: "put", path: "/etag/reject", handler: adminController.rejectEtagRequest },
   { method: "put", path: "/complaint/resolve", handler: adminController.handleComplaint },
   { method: "put", path: "/employee/layoff", handler: adminController.layOffEmployee },
   { method: "put", path: "/room/update", handler: adminController.updateRoom },

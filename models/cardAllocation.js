@@ -32,22 +32,31 @@ const cardAllocationSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    is_returned: {
+      type: Boolean,
+      default: false,
+    },
+    is_active: {
+      type: Boolean,
+      default: false,
+    },
     date_issued: {
       type: Date,
     },
     date_requested: {
       type: Date,
     },
-    validity: {
-      type: Number,
-
-    },
-    is_returned: {
-      type: Boolean,
-      default: false,
-    },
     date_returned: {
       type: Date,
+    },
+    date_invalid: {
+      type: Date,
+    },
+    validity: {
+      type: Number,
+    },
+    reason_decline: {
+      type: String,
     },
   },
   { timestamps: true }

@@ -34,17 +34,24 @@ const etagAllocationSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    is_returned: {
+      type: Boolean,
+      default: false,
+    },
+    is_active: {
+      type: Boolean,
+      default: false,
+    },
     date_issued: {
       type: Date,
     },
     date_requested: {
       type: Date,
     },
-    is_returned: {
-      type: Boolean,
-      default: false,
-    },
     date_returned: {
+      type: Date,
+    },
+    date_invalid: {
       type: Date,
     },
     validity: {
@@ -52,10 +59,6 @@ const etagAllocationSchema = new Schema(
     },
     vehicle_number: {
       type: String,
-    },
-    is_active: {
-      type: Boolean,
-      default: false,
     },
     image_car_book: {
       type: String,

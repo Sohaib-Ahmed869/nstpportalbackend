@@ -10,6 +10,8 @@ const {
   Service,
   GatePass,
   WorkPermit,
+  CardAllocation,
+  EtagAllocation,
   Clearance,
   LostAndFound,
 } = require("../models");
@@ -181,6 +183,22 @@ const validationUtils = {
 
   async validateWorkPermit(workPermitId) {
     return this.validateEntity(WorkPermit, workPermitId, "Work Permit");
+  },
+
+  async validateCardAllocation(cardAllocationId) {
+    return this.validateEntity(
+      CardAllocation,
+      cardAllocationId,
+      "Card Allocation"
+    );
+  },
+
+  async validateEtagAllocation(etagAllocationId) {
+    return this.validateEntity(
+      EtagAllocation,
+      etagAllocationId,
+      "Etag Allocation"
+    );
   },
 
   async validateClearance(clearanceId) {

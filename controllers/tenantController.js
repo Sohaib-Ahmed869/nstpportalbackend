@@ -34,9 +34,6 @@ const tenantController = {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
       const cardAllocations = await CardAllocation.find({ tenant_id });
-      // const activeAllocations = cardAllocations.filter(
-      //   (allocation) => allocation.is_issued
-      // );
       return res.status(200).json({ cardAllocations });
     } catch (err) {
       console.log("🚀 ~ getCardAllocations: ~ err:", err);
@@ -113,7 +110,7 @@ const tenantController = {
       if (!tenant_id) {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
-      const workPermits = await WorkPermit.find({ tenant: tenant_id })
+      const workPermits = await WorkPermit.find({ tenant: tenant_id });
       return res.status(200).json({ workPermits });
     } catch (err) {
       console.log("🚀 ~ getWorkPermits: ~ err:", err);
@@ -261,20 +258,6 @@ const tenantController = {
         is_nustian: isNustian,
       });
 
-      const cardAllocation = new CardAllocation({
-        tower: towerId,
-        tenant_id: tenantId,
-        employee_id: employee._id,
-      });
-
-      const etagAllocation = new EtagAllocation({
-        tower: towerId,
-        tenant_id: tenantId,
-        employee_id: employee._id,
-      });
-
-      await cardAllocation.save();
-      await etagAllocation.save();
       await employee.save();
       return res
         .status(200)
@@ -296,20 +279,35 @@ const tenantController = {
       if (!employee) {
         return res.status(400).json({ message: "No employee found" });
       }
+      const tower = employee.tower;
 
-      const cardAllocation = await CardAllocation.findOne({
+      const existingCard = await CardAllocation.findOne({
         tenant_id,
         employee_id: employeeId,
       });
-      if (!cardAllocation) {
-        return res.status(400).json({ message: "No card allocation found" });
+
+      if (existingCard) {
+        if (existingCard.is_requested) {
+          return res.status(400).json({ message: "Card already requested" });
+        }
+        if (existingCard.is_issued) {
+          return res.status(400).json({ message: "Card already issued" });
+        }
       }
+
+      let cardAllocation = new CardAllocation({
+        tower,
+        tenant_id,
+        employee_id: employeeId,
+      });
 
       cardAllocation.is_requested = true;
       cardAllocation.date_requested = new Date();
       await cardAllocation.save();
 
-      return res.status(200).json({ message: "Card requested successfully" });
+      return res
+        .status(200)
+        .json({ message: "Card requested successfully", cardAllocation });
     } catch (err) {
       console.log("🚀 ~ requestCard: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
@@ -354,11 +352,13 @@ const tenantController = {
   requestEtag: async (req, res) => {
     try {
       const tenant_id = req.id;
-      const { employeeId, plateNum } = req.body; // images
+      let { employeeId, plateNum } = req.body; // images
 
       if (!plateNum) {
         return res.status(400).json({ message: "Please provide plate number" });
       }
+
+      plateNum = plateNum.toUpperCase();
 
       const validation = await validationUtils.validateTenantAndEmployee(
         tenant_id,
@@ -370,7 +370,25 @@ const tenantController = {
           .json({ message: validation.message });
       }
 
+      // chnage based on rule of etags
+      const etagExists = await EtagAllocation.findOne({
+        employee_id: employeeId,
+        vehicle_number: plateNum,
+      });
+      if (etagExists) {
+        return res
+          .status(400)
+          .json({ message: "Etag for this car already requested by Employee" });
+      }
+
+      const employee = await Employee.findById(employeeId)
+        .select("tower")
+        .lean();
+      console.log("🚀 ~ requestEtag: ~ employee:", employee);
+      const tower = employee.tower;
+
       const etagAllocation = new EtagAllocation({
+        tower,
         tenant_id,
         employee_id: employeeId,
       });
@@ -380,7 +398,9 @@ const tenantController = {
       etagAllocation.date_requested = new Date();
       await etagAllocation.save();
 
-      return res.status(200).json({ message: "Etag requested successfully" }, etagAllocation);
+      return res
+        .status(200)
+        .json({ message: "Etag requested successfully", etagAllocation });
     } catch (err) {
       console.log("🚀 ~ requestEtag: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
@@ -442,7 +462,7 @@ const tenantController = {
       console.log("🚀 ~ requestGatePass: ~ towerId:", towerId);
 
       towerId = towerId.tower;
-      console.log("🚀 ~ requestGatePass: ~ towerId:", towerId)
+      console.log("🚀 ~ requestGatePass: ~ towerId:", towerId);
 
       const gatePass = new GatePass({
         tower: towerId,
@@ -576,7 +596,7 @@ const tenantController = {
 
       const workPermit = new WorkPermit({
         tower: towerId,
-        tenant: tenant_id,  
+        tenant: tenant_id,
         name,
         department,
         description,
@@ -587,9 +607,10 @@ const tenantController = {
       });
 
       await workPermit.save();
-      return res
-        .status(200)
-        .json({ message: "Work permit requested successfully", id: workPermit._id });
+      return res.status(200).json({
+        message: "Work permit requested successfully",
+        id: workPermit._id,
+      });
     } catch (err) {
       console.log("🚀 ~ requestWorkPermit: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
@@ -778,7 +799,7 @@ const tenantController = {
 
       const employee = await Employee.findById(employeeId);
 
-      if(employee.status_employment === false) {
+      if (employee.status_employment === false) {
         return res.status(400).json({ message: "Employee already laid off" });
       }
 

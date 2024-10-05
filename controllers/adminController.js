@@ -25,7 +25,7 @@ const getNumberOfCards = async (adminId) => {
     }
 
     const numberOfCards = await CardAllocation.countDocuments({
-      is_issued: true,
+      card_number: { $exists: true },
     });
 
     return numberOfCards;
@@ -45,7 +45,7 @@ const getNumberOfEtags = async (adminId) => {
     }
 
     const numberOfEtags = await EtagAllocation.countDocuments({
-      is_issued: true,
+      etag_number: { $exists: true },
     });
 
     return numberOfEtags;
@@ -180,8 +180,6 @@ const adminController = {
         });
         tenant.numEmployees = employeesCount;
       }
-      console.log("🚀 ~ getTenants: ~ tenants", tenants);
-
       return res.status(200).json({ tenants });
     } catch (err) {
       console.error(err);
@@ -388,12 +386,6 @@ const adminController = {
       const towerId = req.params.towerId;
       const adminId = req.id;
       const { is_requested, is_issued } = req.query;
-      console.log(
-        "🚀 ~ getCardAllocations: ~ is_requested, is_issued:",
-        is_requested,
-        is_issued
-      );
-
       const validation = await validationUtils.validateAdminAndTower(
         adminId,
         towerId
@@ -428,12 +420,6 @@ const adminController = {
       const towerId = req.params.towerId;
       const adminId = req.id;
       const { is_requested, is_issued } = req.query;
-      console.log(
-        "🚀 ~ getEtagAllocations: ~ is_requested, is_issued:",
-        is_requested,
-        is_issued
-      );
-
       const validation = await validationUtils.validateAdminAndTower(
         adminId,
         towerId
@@ -603,7 +589,6 @@ const adminController = {
 
   addTenant: async (req, res) => {
     try {
-      console.log("🚀 ~ tenantSignup: ~ req.body", req.body);
       const {
         registration,
         contactInfo,
@@ -612,17 +597,6 @@ const adminController = {
         industrySector,
         companyResourceComposition,
       } = req.body;
-
-      console.log(
-        "🚀 ~ tenantSignup: ~ ",
-        registration,
-        contactInfo,
-        stakeholders,
-        companyProfile,
-        industrySector,
-        companyResourceComposition
-      );
-
       const registrationFields = [
         "category",
         "organizationName",
@@ -726,137 +700,6 @@ const adminController = {
     }
   },
 
-  generateCard: async (req, res) => {
-    try {
-      const adminId = req.id;
-      const { employeeId } = req.body;
-
-      console.log("🚀 ~ generateCard: ~ req.body", req.body);
-
-      if (!employeeId) {
-        return res.status(400).json({ message: "Please provide employee ID" });
-      }
-
-      const employee = await Employee.findById(employeeId)
-        .populate("tower")
-        .lean();
-      if (!employee) {
-        return res.status(400).json({ message: "Employee not found" });
-      }
-
-      const towerId = employee.tower._id;
-      const sponsor = employee.tower.name;
-
-      console.log("🚀 ~ generateCard: ~ towerId adminId", towerId, adminId);
-
-      const validation = await validationUtils.validateAdminAndTower(
-        adminId,
-        towerId
-      );
-      if (!validation.isValid) {
-        return res
-          .status(validation.status)
-          .json({ message: validation.message });
-      }
-
-      const cardAllocation = await CardAllocation.findOne({
-        employee_id: employeeId,
-      });
-
-      const validity = 6;
-      const cardNumber = await getNumberOfCards(adminId);
-      console.log("🚀 ~ generateCard: ~ cardNumber", cardNumber);
-      if (cardNumber === -1) {
-        return res
-          .status(500)
-          .json({ message: "Error in getting card number" });
-      }
-
-      cardAllocation.card_number = cardNumber;
-      cardAllocation.is_requested = false;
-      cardAllocation.is_issued = true;
-      cardAllocation.validity = validity;
-      cardAllocation.date_issued = new Date();
-
-      await cardAllocation.save();
-
-      const card = {
-        cardNumber: cardNumber,
-        image: employee.image,
-        name: employee.name,
-        designation: employee.designation,
-        cnic: employee.cnic,
-        institute: employee.tenant_name,
-        sponsor: sponsor,
-        vehicleNumber: "N/A",
-        validity: validity,
-      };
-
-      return res
-        .status(200)
-        .json({ message: "Card issued successfully", card });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
-  generateEtag: async (req, res) => {
-    try {
-      const adminId = req.id;
-      const { employeeId, etagId } = req.body;
-
-      if (!employeeId || !etagId) {
-        return res.status(400).json({ message: "Please provide all fields" });
-      }
-
-      const employee = await Employee.findById(employeeId)
-        .populate("tower")
-        .lean();
-      if (!employee) {
-        return res.status(400).json({ message: "Employee not found" });
-      }
-
-      const towerId = employee.tower._id;
-
-      const validation = await validationUtils.validateAdminAndTower(
-        adminId,
-        towerId
-      );
-      if (!validation.isValid) {
-        return res
-          .status(validation.status)
-          .json({ message: validation.message });
-      }
-
-      const etagAllocation = await EtagAllocation.findById(etagId);
-
-      const validity = 6;
-      const etagNumber = await getNumberOfEtags(adminId);
-      if (etagNumber === -1) {
-        return res
-          .status(500)
-          .json({ message: "Error in getting etag number" });
-      }
-
-      etagAllocation.etag_number = etagNumber;
-      etagAllocation.is_requested = false;
-      etagAllocation.is_issued = true;
-      etagAllocation.is_active = true;
-      etagAllocation.date_issued = new Date();
-      etagAllocation.validity = validity;
-
-      await etagAllocation.save();
-
-      return res
-        .status(200)
-        .json({ message: "Etag issued successfully", etagAllocation });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
   addService: async (req, res) => {
     try {
       const adminId = req.id;
@@ -886,52 +729,6 @@ const adminController = {
       return res
         .status(200)
         .json({ message: "Service added successfully", service });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
-  addRoom: async (req, res) => {
-    try {
-      const adminId = req.id;
-      const {
-        towerId,
-        name,
-        floor,
-        timeStart,
-        timeEnd,
-        description,
-        capacity,
-      } = req.body;
-      if (!name || !floor || !timeStart || !timeEnd) {
-        return res.status(400).json({ message: "Please provide all fields" });
-      }
-
-      const validation = await validationUtils.validateAdminAndTower(
-        adminId,
-        towerId
-      );
-      if (!validation.isValid) {
-        return res
-          .status(validation.status)
-          .json({ message: validation.message });
-      }
-
-      // add room to tower
-      const room = new Room({
-        tower: towerId,
-        name,
-        floor,
-        time_start: timeStart,
-        time_end: timeEnd,
-        description,
-        capacity,
-      });
-
-      await room.save();
-
-      return res.status(200).json({ message: "Room added successfully", room });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
@@ -981,6 +778,263 @@ const adminController = {
     }
   },
 
+  addRoom: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const {
+        towerId,
+        name,
+        floor,
+        timeStart,
+        timeEnd,
+        description,
+        capacity,
+      } = req.body;
+      if (!name || !floor || !timeStart || !timeEnd) {
+        return res.status(400).json({ message: "Please provide all fields" });
+      }
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      // add room to tower
+      const room = new Room({
+        tower: towerId,
+        name,
+        floor,
+        time_start: timeStart,
+        time_end: timeEnd,
+        description,
+        capacity,
+      });
+
+      await room.save();
+
+      return res.status(200).json({ message: "Room added successfully", room });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  acceptCardRequest: async (req, res) => {
+    try {
+      const adminId = req.id;
+      let { allocationId, validity } = req.body;
+      if (!allocationId) {
+        // add validity to required fields
+        return res
+          .status(400)
+          .json({ message: "Please provide all required fields" });
+      }
+
+      const validateCardAllocation =
+        await validationUtils.validateCardAllocation(allocationId);
+      if (!validateCardAllocation.isValid) {
+        return res
+          .status(validateCardAllocation.status)
+          .json({ message: validateCardAllocation.message });
+      }
+      const cardAllocation = await CardAllocation.findById(allocationId);
+
+      const towerId = cardAllocation.tower;
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const cardNumber = await getNumberOfCards(adminId);
+      if (cardNumber === -1) {
+        return res
+          .status(500)
+          .json({ message: "Error in getting card number" });
+      }
+
+      validity = validity || 6;
+      cardAllocation.card_number = cardNumber;
+      cardAllocation.is_requested = false;
+      cardAllocation.is_issued = true;
+      cardAllocation.validity = validity;
+      cardAllocation.date_issued = new Date();
+      cardAllocation.date_invalid = new Date(
+        new Date().setMonth(new Date().getMonth() + validity)
+      );
+
+      await cardAllocation.save();
+
+      return res
+        .status(200)
+        .json({ message: "Card issued successfully", cardAllocation });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  rejectCardRequest: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { allocationId, reasonDecline } = req.body;
+      console.log("🚀 ~ rejectCardRequest: ~ allocationId, reasonDecline:", allocationId, reasonDecline)
+
+      if (!allocationId || !reasonDecline) {
+        return res.status(400).json({ message: "Please provide all fields" });
+      }
+
+      const validateCardAllocation =
+        await validationUtils.validateCardAllocation(allocationId);
+      if (!validateCardAllocation.isValid) {
+        return res
+          .status(validateCardAllocation.status)
+          .json({ message: validateCardAllocation.message });
+      }
+
+      const cardAllocation = await CardAllocation.findById(allocationId);
+      if (!allocationId) {
+        return res
+          .status(400)
+          .json({ message: "Please provide allocation ID" });
+      }
+
+      const towerId = cardAllocation.tower;
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      cardAllocation.is_requested = false;
+      cardAllocation.reason_decline = reasonDecline;
+
+      await cardAllocation.save();
+
+      return res
+        .status(200)
+        .json({ message: "Card request rejected", cardAllocation });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  acceptEtagRequest: async (req, res) => {
+    try {
+      const adminId = req.id;
+      let { allocationId, validity } = req.body;
+
+      if (!allocationId) {
+        return res.status(400).json({ message: "Please provide all fields" });
+      }
+
+      const validateEtagAllocation =
+        await validationUtils.validateEtagAllocation(allocationId);
+      if (!validateEtagAllocation.isValid) {
+        return res
+          .status(validateEtagAllocation.status)
+          .json({ message: validateEtagAllocation.message });
+      }
+      const etagAllocation = await EtagAllocation.findById(allocationId);
+      const towerId = etagAllocation.tower;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const etagNumber = await getNumberOfEtags(adminId);
+      if (etagNumber === -1) {
+        return res
+          .status(500)
+          .json({ message: "Error in getting etag number" });
+      }
+
+      validity = validity || 6;
+      etagAllocation.etag_number = etagNumber;
+      etagAllocation.is_requested = false;
+      etagAllocation.is_issued = true;
+      etagAllocation.is_active = true;
+      etagAllocation.validity = validity;
+      etagAllocation.date_issued = new Date();
+      etagAllocation.date_invalid = new Date(
+        new Date().setMonth(new Date().getMonth() + validity)
+      );
+
+      await etagAllocation.save();
+
+      return res
+        .status(200)
+        .json({ message: "Etag issued successfully", etagAllocation });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  rejectEtagRequest: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { allocationId, reasonDecline } = req.body;
+      
+      if (!allocationId || !reasonDecline) {
+        return res.status(400).json({ message: "Please provide all fields" });
+      }
+
+      const validateEtagAllocation =
+        await validationUtils.validateEtagAllocation(allocationId);
+      if (!validateEtagAllocation.isValid) {
+        return res
+          .status(validateEtagAllocation.status)
+          .json({ message: validateEtagAllocation.message });
+      }
+
+      const etagAllocation = await EtagAllocation.findById(allocationId);
+      const towerId = etagAllocation.tower;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      etagAllocation.is_requested = false;
+      etagAllocation.reason_decline = reasonDecline;
+
+      await etagAllocation.save();
+
+      return res
+        .status(200)
+        .json({ message: "Etag request rejected", etagAllocation });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   handleComplaint: async (req, res) => {
     try {
       const adminId = req.id;
@@ -995,7 +1049,6 @@ const adminController = {
       }
 
       const complaint = await Complaint.findById(complaintId);
-      console.log("🚀 ~ handleComplaint: ~ complaint", complaint);
       const towerId = complaint.tower;
 
       const validation = await validationUtils.validateAdminAndTower(
@@ -1007,14 +1060,9 @@ const adminController = {
           .status(validation.status)
           .json({ message: validation.message });
       }
-
-      console.log("🚀 ~ handleComplaint: ~ is_resolved", complaint.is_resolved);
       if (complaint.is_resolved == true) {
-        console.log("🚀 ~ handleComplaint: ~ is_resolved", complaint.is_resolved) ;
         return res.status(400).json({ message: "Complaint already resolved" });
       }
-
-      console.log("🚀 ~ handleComplaint: ~ approval", approval);
       if (approval) {
         complaint.status = "approved";
       } else {
