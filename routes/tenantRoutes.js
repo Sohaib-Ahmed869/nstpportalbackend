@@ -32,7 +32,7 @@ const routes = [
   { method: "put", path: "/employee/update", handler: tenantController.updateEmployee },
   { method: "put", path: "/employee/layoff", handler: tenantController.layoffEmployee },
   
-  { method: "delete", path: "/complaint/cancel", handler: tenantController.cancelComplaint },
+  { method: "delete", path: "/complaints/:complaintId/cancel", handler: tenantController.cancelComplaint },
   { method: "delete", path: "/workpermit/cancel", handler: tenantController.cancelWorkPermit },
 ];
 

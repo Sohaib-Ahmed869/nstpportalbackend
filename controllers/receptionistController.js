@@ -460,9 +460,10 @@ const receptionistController = {
       }
       gatePass.handled_by = receptionistId;
       const receptionist = await Receptionist.findById(receptionistId);
+      receptionist.handled_gatepasses += 1;
 
       await gatePass.save();
-      receptionist.handled_gatepasses += 1;
+      await receptionist.save();
       return res
         .status(200)
         .send({ message: "Gate pass updated successfully" });
@@ -611,6 +612,66 @@ const receptionistController = {
       return res
         .status(200)
         .send({ message: "Lost and found item resolved successfully" });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send({ message: err.message });
+    }
+  },
+
+  handleComplaint: async (req, res) => {
+    try {
+      const receptionistId = req.id;
+      const { complaintId, approval, reasonDecline } = req.body;
+
+      const validateComplaint = await validationUtils.validateComplaint(
+        complaintId
+      );
+      if (!validateComplaint.isValid) {
+        return res
+          .status(validateComplaint.status)
+          .send({ message: validateComplaint.message });
+      }
+
+      if (approval === undefined) {
+        return res
+          .status(400)
+          .send({ message: "Please provide approval status" });
+      }
+
+      const complaint = await Complaint.findById(complaintId);
+      const towerId = complaint.tower;
+
+      const validation = await validationUtils.validateReceptionistAndTower(
+        receptionistId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .send({ message: validation.message });
+      }
+
+      complaint.is_resolved = approval;
+      if (!approval) {
+        if (!reasonDecline) {
+          return res
+            .status(400)
+            .send({ message: "Please provide reason for decline" });
+        }
+        complaint.reason_decline = reasonDecline;
+      }
+
+      complaint.service_resolved_by = receptionistId;
+      complaint.date_resolved = new Date();
+      complaint.status = "approved";
+      const receptionist = await Receptionist.findById(receptionistId);
+      receptionist.handled_complaints += 1;
+
+      await complaint.save();
+      await receptionist.save();
+      return res
+        .status(200)
+        .send({ message: "Complaint updated successfully", complaint });
     } catch (err) {
       console.log(err);
       return res.status(500).send({ message: err.message });

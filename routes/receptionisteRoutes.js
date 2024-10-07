@@ -23,6 +23,7 @@ const routes = [
   { method: "put", path: "/booking/room/approval", handler: receptionistController.handleRoomBooking },
   { method: "put", path: "/booking/room/cancel", handler: receptionistController.cancelRoomBooking },
   { method: "put", path: "/lost-and-found/resolve", handler: receptionistController.resolveLostAndFound },
+  { method: "put", path: "/complaint/resolve", handler: receptionistController.handleComplaint },
 ]
 
 routes.forEach((route) => {

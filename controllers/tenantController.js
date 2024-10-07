@@ -520,6 +520,7 @@ const tenantController = {
           .json({ message: "Please provide Complaint Type" });
       }
 
+      let serviceName;
       if (complaintType === "General") {
         if (!subject || !description) {
           return res
@@ -534,12 +535,16 @@ const tenantController = {
             .status(400)
             .json({ message: "Please provide Service Type and Urgency" });
         }
+        serviceName = await Service.findById(serviceType).select("name");
+        serviceName = serviceName.name;
+        urgency = parseInt(urgency);
       }
 
       const tenant = await Tenant.findById(tenant_id)
         .select("registration.organizationName registration.companyEmail")
         .lean();
 
+      console.log("🚀 ~ generateComplaint: ~ serviceName", serviceName);
       const complaint = new Complaint({
         tower: towerId,
         tenant_id,
@@ -548,6 +553,7 @@ const tenantController = {
         subject,
         description,
         service_type: serviceType,
+        service_name: serviceName,
         urgency,
       });
       await complaint.save();
@@ -881,7 +887,7 @@ const tenantController = {
   cancelComplaint: async (req, res) => {
     try {
       const tenant_id = req.id;
-      const { complaintId } = req.body;
+      const { complaintId } = req.params;
 
       if (!tenant_id) {
         return res.status(400).json({ message: "Please provide tenant ID" });

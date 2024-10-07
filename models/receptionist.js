@@ -43,12 +43,15 @@ const receptionistSchema = new Schema(
     },
     handled_bookings: {
       type: Number,
+      default: 0,
     },
     handled_complaints: {
       type: Number,
+      default: 0,
     },
     handled_gatepasses: {
       type: Number,
+      default: 0,
     },
   },
   { timestamps: true }

@@ -36,6 +36,9 @@ const complaintSchema = new Schema(
     service_type: {
       type: String,
     },
+    service_name: {
+      type: String,
+    },
     is_resolved: {
       type: Boolean,
       default: false,
