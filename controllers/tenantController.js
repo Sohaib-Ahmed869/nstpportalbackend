@@ -9,6 +9,7 @@ const {
   WorkPermit,
   Clearance,
   Inspection,
+  Service,
 } = require("../models");
 const { validationUtils } = require("../utils");
 
@@ -146,6 +147,17 @@ const tenantController = {
       const tenant_id = req.id;
       const inspections = await Inspection.find({ tenant: tenant_id });
       return res.status(200).json({ inspections });
+    } catch (err) {
+      console.log("🚀 ~ getInspections: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getServices: async (req, res) => {
+    try {
+      const towerId = req.towerId;
+      const services = await Service.find({ tower: towerId });
+      return res.status(200).json({ services });
     } catch (err) {
       console.log("🚀 ~ getInspections: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });

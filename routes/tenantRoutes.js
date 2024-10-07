@@ -14,6 +14,7 @@ const routes = [
   { method: "get", path: "/occurences", handler: tenantController.getOccurences },  
   { method: "get", path: "/booking/room", handler: tenantController.getRoomBookings },
   { method: "get", path: "/inspection", handler: tenantController.getInspections },
+  { method: "get", path: "/services", handler: tenantController.getServices },
 
   { method: "post", path: "/employee/register", handler: tenantController.registerEmployee },
   { method: "post", path: "/card/request", handler: tenantController.requestCard },

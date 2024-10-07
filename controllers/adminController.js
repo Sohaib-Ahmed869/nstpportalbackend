@@ -703,7 +703,7 @@ const adminController = {
   addService: async (req, res) => {
     try {
       const adminId = req.id;
-      const { towerId, name, description } = req.body;
+      const { towerId, name, description, icon } = req.body;
       if (!name || !description) {
         return res.status(400).json({ message: "Please provide all fields" });
       }
@@ -722,6 +722,7 @@ const adminController = {
         tower: towerId,
         name,
         description,
+        icon,
       });
 
       await service.save();
