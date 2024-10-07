@@ -3,43 +3,40 @@ const router = express.Router();
 const adminController = require("../controllers/adminController");
 const auth = require("../middlewares/auth");
 
-const routes = [
-  { method: "get", path: "/towers/:towerId/dashboard", handler: adminController.getDashboard },
-  { method: "get", path: "/towers/:towerId/tenants", handler: adminController.getTenants },
-  { method: "get", path: "/towers/:towerId/tenants/:tenantId", handler: adminController.getTenant },
-  { method: "get", path: "/towers/:towerId/receptionists", handler: adminController.getReceptionists },
-  { method: "get", path: "/towers/:towerId/employees", handler: adminController.getEmployees },
-  { method: "get", path: "/towers/:towerId/complaints", handler: adminController.getComplaints },
-  { method: "get", path: "/towers/:towerId/tenants/:tenantId/employees", handler: adminController.getTenantEmployees },
-  { method: "get", path: "/towers/:towerId/card/allocations", handler: adminController.getCardAllocations },
-  { method: "get", path: "/towers/:towerId/etag/allocations", handler: adminController.getEtagAllocations },
-  { method: "get", path: "/towers/:towerId/rooms", handler: adminController.getRooms },
-  { method: "get", path: "/towers/:towerId/services", handler: adminController.getServices },
-  { method: "get", path: "/towers/:towerId/receptionists/performance", handler: adminController.getReceptionistsPerformance },
-  { method: "get", path: "/towers/:towerId/office/requests", handler: adminController.getOfficeRequests },
-  { method: "get", path: "/towers/:towerId/workpermits", handler: adminController.getWorkPermits },
-  { method: "get", path: "/towers/:towerId/lost-and-found", handler: adminController.getLostAndFound },
 
-  { method: "post", path: "/tenant/add", handler: adminController.addTenant },
-  { method: "post", path: "/service/add", handler: adminController.addService },
-  { method: "post", path: "/office/assign", handler: adminController.assignOffice },
-  { method: "post", path: "/room/add", handler: adminController.addRoom },
-  
-  { method: "put", path: "/card/accept", handler: adminController.acceptCardRequest },
-  { method: "put", path: "/card/reject", handler: adminController.rejectCardRequest },
-  { method: "put", path: "/etag/accept", handler: adminController.acceptEtagRequest },
-  { method: "put", path: "/etag/reject", handler: adminController.rejectEtagRequest },
-  { method: "put", path: "/complaint/resolve", handler: adminController.handleComplaint },
-  { method: "put", path: "/employee/layoff", handler: adminController.layOffEmployee },
-  { method: "put", path: "/room/update", handler: adminController.updateRoom },
-  { method: "put", path: "/clearance/resolve", handler: adminController.handleClearance },
-  { method: "put", path: "/workpermit/resolve", handler: adminController.handleWorkPermit },
+router.get("/towers/:towerId/dashboard", auth.verifyToken, auth.verifyAdmin, adminController.getDashboard);
+router.get("/towers/:towerId/tenants", auth.verifyToken, auth.verifyAdmin, adminController.getTenants);
+router.get("/towers/:towerId/tenants/:tenantId", auth.verifyToken, auth.verifyAdmin, adminController.getTenant);
+router.get("/towers/:towerId/receptionists", auth.verifyToken, auth.verifyAdmin, adminController.getReceptionists);
+router.get("/towers/:towerId/employees", auth.verifyToken, auth.verifyAdmin, adminController.getEmployees);
+router.get("/towers/:towerId/complaints", auth.verifyToken, auth.verifyAdmin, adminController.getComplaints);
+router.get("/towers/:towerId/tenants/:tenantId/employees", auth.verifyToken, auth.verifyAdmin, adminController.getTenantEmployees);
+router.get("/towers/:towerId/card/allocations", auth.verifyToken, auth.verifyAdmin, adminController.getCardAllocations);
+router.get("/towers/:towerId/etag/allocations", auth.verifyToken, auth.verifyAdmin, adminController.getEtagAllocations);
+router.get("/towers/:towerId/rooms", auth.verifyToken, auth.verifyAdmin, adminController.getRooms);
+router.get("/towers/:towerId/services", auth.verifyToken, auth.verifyAdmin, adminController.getServices);
+router.get("/towers/:towerId/receptionists/performance", auth.verifyToken, auth.verifyAdmin, adminController.getReceptionistsPerformance);
+router.get("/towers/:towerId/office/requests", auth.verifyToken, auth.verifyAdmin, adminController.getOfficeRequests);
+router.get("/towers/:towerId/workpermits", auth.verifyToken, auth.verifyAdmin, adminController.getWorkPermits);
+router.get("/towers/:towerId/lost-and-found", auth.verifyToken, auth.verifyAdmin, adminController.getLostAndFound);
 
-  { method: "delete", path: "/room/delete", handler: adminController.deleteRoom },
-];
+router.post("/tenant/add", auth.verifyToken, auth.verifyAdmin, adminController.addTenant);
+router.post("/service/add", auth.verifyToken, auth.verifyAdmin, adminController.addService);
+router.post("/office/assign", auth.verifyToken, auth.verifyAdmin, adminController.assignOffice);
+router.post("/room/add", auth.verifyToken, auth.verifyAdmin, adminController.addRoom);
 
-routes.forEach((route) => {
-  router[route.method](route.path, auth.verifyToken, auth.verifyAdmin, route.handler);
-})
+router.put("/card/accept", auth.verifyToken, auth.verifyAdmin, adminController.acceptCardRequest);
+router.put("/card/reject", auth.verifyToken, auth.verifyAdmin, adminController.rejectCardRequest);
+router.put("/etag/accept", auth.verifyToken, auth.verifyAdmin, adminController.acceptEtagRequest);
+router.put("/etag/reject", auth.verifyToken, auth.verifyAdmin, adminController.rejectEtagRequest);
+router.put("/complaint/resolve", auth.verifyToken, auth.verifyAdmin, adminController.handleComplaint);
+router.put("/employee/layoff", auth.verifyToken, auth.verifyAdmin, adminController.layOffEmployee);
+router.put("/room/update", auth.verifyToken, auth.verifyAdmin, adminController.updateRoom);
+router.put("/clearance/resolve", auth.verifyToken, auth.verifyAdmin, adminController.handleClearance);
+router.put("/workpermit/resolve", auth.verifyToken, auth.verifyAdmin, adminController.handleWorkPermit);
+router.put("/service/edit", auth.verifyToken, auth.verifyAdmin, adminController.editService);
+
+router.delete("/room/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteRoom);
+router.delete("/service/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteService);
 
 module.exports = router;

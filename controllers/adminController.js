@@ -340,7 +340,9 @@ const adminController = {
       const complaints = await Complaint.find({
         tower: towerId,
         complaint_type: "General",
-      }).populate("tenant_id").lean();
+      })
+        .populate("tenant_id")
+        .lean();
 
       return res.status(200).json({ complaints });
     } catch (err) {
@@ -915,7 +917,11 @@ const adminController = {
     try {
       const adminId = req.id;
       const { allocationId, reasonDecline } = req.body;
-      console.log("🚀 ~ rejectCardRequest: ~ allocationId, reasonDecline:", allocationId, reasonDecline)
+      console.log(
+        "🚀 ~ rejectCardRequest: ~ allocationId, reasonDecline:",
+        allocationId,
+        reasonDecline
+      );
 
       if (!allocationId || !reasonDecline) {
         return res.status(400).json({ message: "Please provide all fields" });
@@ -1023,7 +1029,7 @@ const adminController = {
     try {
       const adminId = req.id;
       const { allocationId, reasonDecline } = req.body;
-      
+
       if (!allocationId || !reasonDecline) {
         return res.status(400).json({ message: "Please provide all fields" });
       }
@@ -1308,6 +1314,52 @@ const adminController = {
     }
   },
 
+  editService: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { serviceId, name, description, icon } = req.body;
+
+      if (!name && !description && !icon) {
+        return res.status(400).json({ message: "Please provide some field" });
+      }
+
+      const serviceValidation = await validationUtils.validateService(
+        serviceId
+      );
+      if (!serviceValidation.isValid) {
+        return res
+          .status(serviceValidation.status)
+          .json({ message: serviceValidation.message });
+      }
+
+      const service = await Service.findById(serviceId);
+      const towerId = service.tower;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      service.name = name;
+      service.description = description;
+      service.icon = icon;
+
+      await service.save();
+
+      return res
+        .status(200)
+        .json({ message: "Service updated successfully", service });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   deleteRoom: async (req, res) => {
     try {
       const adminId = req.id;
@@ -1333,7 +1385,49 @@ const adminController = {
           .json({ message: validation.message });
       }
 
-      await room.remove();
+      await room.deleteOne();
+
+      return res
+        .status(200)
+        .json({ message: "Room deleted successfully", room });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  deleteService: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { serviceId } = req.body;
+
+      const serviceValidation = await validationUtils.validateService(
+        serviceId
+      );
+      if (!serviceValidation.isValid) {
+        return res
+          .status(serviceValidation.status)
+          .json({ message: serviceValidation.message });
+      }
+
+      const service = await Service.findById(serviceId);
+      const towerId = service.tower;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      await service.deleteOne();
+
+      return res
+        .status(200)
+        .json({ message: "Service deleted successfully", service });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
