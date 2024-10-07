@@ -187,9 +187,10 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const complaints = await Complaint.find({ tower: towerId }).filter(
-        (complaint) => complaint.complaint_type === "Service"
-      );
+      const complaints = await Complaint.find({
+        tower: towerId,
+        complaint_type: "Service",
+      });
 
       return res.status(200).send({ complaints });
     } catch (err) {

@@ -8,6 +8,7 @@ const routes = [
   { method: "post", path: "/login/supervisor", handler: authController.supervisorLogin },
   { method: "post", path: "/login/receptionist", handler: authController.receptionistLogin },
   { method: "post", path: "/login/tenant", handler: authController.tenantLogin },
+  { method: "post", path: "/logout", handler: authController.logout },
 ];
 
 routes.forEach((route) => {
