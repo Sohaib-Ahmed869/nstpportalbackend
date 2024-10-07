@@ -14,6 +14,10 @@ const complaintSchema = new Schema(
       required: true,
       index: true,
     },
+    tenant_name: {
+      type: String,
+      // required: true,      
+    },
     complaint_type: {
       type: String,
       required: true,

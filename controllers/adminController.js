@@ -10,6 +10,7 @@ const {
   Clearance,
   GatePass,
   WorkPermit,
+  LostAndFound,
 } = require("../models");
 const { validationUtils } = require("../utils");
 
@@ -339,7 +340,8 @@ const adminController = {
       const complaints = await Complaint.find({
         tower: towerId,
         complaint_type: "General",
-      }).lean();
+      }).populate("tenant_id").lean();
+
       return res.status(200).json({ complaints });
     } catch (err) {
       console.error(err);
@@ -581,6 +583,31 @@ const adminController = {
         tower: towerId,
       }).lean();
       return res.status(200).json({ workPermits });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getLostAndFound: async (req, res) => {
+    try {
+      const towerId = req.params.towerId;
+      const adminId = req.id;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const lostAndFound = await LostAndFound.find({
+        tower: towerId,
+      }).lean();
+      return res.status(200).json({ lostAndFound });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });

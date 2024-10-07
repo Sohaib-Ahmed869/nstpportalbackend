@@ -14,14 +14,15 @@ const routes = [
   { method: "get", path: "/tenants", handler: receptionistController.getTenants },
   { method: "get", path: "/tenants/:tenantId/occurences", handler: receptionistController.getTenantOccurences },
   { method: "get", path: "/occurences", handler: receptionistController.getAllTenantsOccurences },
+  { method: "get", path: "/lost-and-found", handler: receptionistController.getLostAndFound },
 
-  { method: "post", path: "/lostAndFound/add", handler: receptionistController.addLostAndFound },
+  { method: "post", path: "/lost-and-found/add", handler: receptionistController.addLostAndFound },
   { method: "post", path: "/occurence/add", handler: receptionistController.addOccurence },
 
   { method: "put", path: "/gatepass/approval", handler: receptionistController.handleGatePass },
   { method: "put", path: "/booking/room/approval", handler: receptionistController.handleRoomBooking },
   { method: "put", path: "/booking/room/cancel", handler: receptionistController.cancelRoomBooking },
-  { method: "put", path: "/lostAndFound/resolve", handler: receptionistController.resolveLostAndFound },
+  { method: "put", path: "/lost-and-found/resolve", handler: receptionistController.resolveLostAndFound },
 ]
 
 routes.forEach((route) => {

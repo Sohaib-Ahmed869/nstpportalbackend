@@ -293,6 +293,30 @@ const receptionistController = {
     }
   },
 
+  getLostAndFound: async (req, res) => {
+    try {
+      const receptionistId = req.id;
+      const towerId = req.towerId;
+
+      const validation = await validationUtils.validateReceptionistAndTower(
+        receptionistId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .send({ message: validation.message });
+      }
+
+      const lostAndFound = await LostAndFound.find({ tower: towerId });
+
+      return res.status(200).send({ lostAndFound });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send({ message: err.message });
+    }
+  },
+
   addLostAndFound: async (req, res) => {
     try {
       const receptionistId = req.id;

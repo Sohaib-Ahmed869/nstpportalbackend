@@ -10,6 +10,7 @@ const {
   Clearance,
   Inspection,
   Service,
+  LostAndFound,
 } = require("../models");
 const { validationUtils } = require("../utils");
 
@@ -160,6 +161,18 @@ const tenantController = {
       return res.status(200).json({ services });
     } catch (err) {
       console.log("🚀 ~ getInspections: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getLostAndFound: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const towerId = req.towerId;
+      const lostAndFound = await LostAndFound.find({ tower: towerId });
+      return res.status(200).json({ lostAndFound });
+    } catch (err) {
+      console.log("🚀 ~ getLostAndFound: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -523,9 +536,14 @@ const tenantController = {
         }
       }
 
+      const tenant = await Tenant.findById(tenant_id)
+        .select("registration.organizationName registration.companyEmail")
+        .lean();
+
       const complaint = new Complaint({
         tower: towerId,
         tenant_id,
+        tenant_name: tenant.registration.organizationName,
         complaint_type: complaintType,
         subject,
         description,
