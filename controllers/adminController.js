@@ -837,6 +837,7 @@ const adminController = {
   addRoom: async (req, res) => {
     try {
       const adminId = req.id;
+      console.log("🚀 ~ addRoom ~ req.body", req.body);
       const { towerId, name, typeId, floor, timeStart, timeEnd } = req.body;
       if (!name || !typeId || !floor || !timeStart || !timeEnd) {
         return res.status(400).json({ message: "Please provide all fields" });
@@ -870,8 +871,11 @@ const adminController = {
       });
 
       await room.save();
+      
+      const typeName = await RoomType.findById(typeId).select("name");
+      room.typeName = typeName.name
 
-      return res.status(200).json({ message: "Room added successfully" });
+      return res.status(200).json({ message: "Room added successfully", room });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });

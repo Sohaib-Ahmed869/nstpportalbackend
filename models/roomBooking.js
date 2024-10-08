@@ -7,25 +7,19 @@ const roomBookingSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Tower",
       required: true,
+      index: true,
     },
     tenant_id: {
       type: Schema.Types.ObjectId,
       ref: "Tenant",
       required: true,
+      index: true,
     },
     room_id: {
       type: Schema.Types.ObjectId,
       ref: "Room",
       required: true,
-    },
-    handled_by: {
-      type: Schema.Types.ObjectId,
-      ref: "Receptionist",
       index: true,
-    },
-    cancelled_by: {
-      type: Schema.Types.ObjectId,
-      ref: "Receptionist",
     },
     time_start: {
       type: Date,
@@ -35,19 +29,29 @@ const roomBookingSchema = new Schema(
       type: Date,
       required: true,
     },
-    status_booking: {
-      type: Boolean,
-    },
     reason_booking: {
       type: String,
-      required: true,
+      // required: true,
     },
-    reason_decline: {
+    status_booking: {
       type: String,
+      default: "pending",
+      enum: ["pending", "approved", "rejected"],
+    },
+    handled_by: {
+      type: Schema.Types.ObjectId,
+      ref: "Receptionist",
     },
     is_cancelled: {
       type: Boolean,
       default: false,
+    },
+    cancelled_by: {
+      type: Schema.Types.ObjectId,
+      ref: "Receptionist",
+    },
+    reason_decline: {
+      type: String,
     },
   },
   { timestamps: true }

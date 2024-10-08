@@ -5,6 +5,7 @@ const {
   Tenant,
   Complaint,
   Room,
+  RoomBooking,
   GatePass,
   WorkPermit,
   Clearance,
@@ -90,22 +91,6 @@ const tenantController = {
     }
   },
 
-  getRoomBookings: async (req, res) => {
-    try {
-      const tenant_id = req.id;
-      if (!tenant_id) {
-        return res.status(400).json({ message: "Please provide tenant ID" });
-      }
-      // tenant id is in room.bookings
-      const rooms = await Room.find({ "bookings.tenant_id": tenant_id });
-
-      return res.status(200).json({ rooms });
-    } catch (err) {
-      console.log("🚀 ~ getRoomBookings: ~ err:", err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
   getWorkPermits: async (req, res) => {
     try {
       const tenant_id = req.id;
@@ -167,12 +152,44 @@ const tenantController = {
 
   getLostAndFound: async (req, res) => {
     try {
-      const tenant_id = req.id;
       const towerId = req.towerId;
       const lostAndFound = await LostAndFound.find({ tower: towerId });
       return res.status(200).json({ lostAndFound });
     } catch (err) {
       console.log("🚀 ~ getLostAndFound: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getRooms: async (req, res) => {
+    try {
+      const towerId = req.towerId;
+      const rooms = await Room.find({ tower: towerId });
+      return res.status(200).json({ rooms });
+    } catch (err) {
+      console.log("🚀 ~ getRooms: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getRoomBooking: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const bookings = await RoomBooking.find({ tenant_id });
+      return res.status(200).json({ bookings });
+    } catch (err) {
+      console.log("🚀 ~ getRoomBooking: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getAllRoomBookings: async (req, res) => {
+    try {
+      const towerId = req.towerId;
+      const bookings = await RoomBooking.find({ tower: towerId });
+      return res.status(200).json({ bookings });
+    } catch (err) {
+      console.log("🚀 ~ getAllRoomBookings: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
