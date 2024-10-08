@@ -172,7 +172,7 @@ const tenantController = {
     }
   },
 
-  getRoomBooking: async (req, res) => {
+  getRoomBookings: async (req, res) => {
     try {
       const tenant_id = req.id;
       const bookings = await RoomBooking.find({ tenant_id });

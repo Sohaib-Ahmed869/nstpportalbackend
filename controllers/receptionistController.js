@@ -1,6 +1,7 @@
 const {
   Tenant,
   Room,
+  RoomBooking,
   GatePass,
   Receptionist,
   Clearance,
@@ -118,30 +119,6 @@ const receptionistController = {
       const workPermits = await WorkPermit.find({ tower: towerId }).lean();
 
       return res.status(200).send({ workPermits });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).send({ message: err.message });
-    }
-  },
-
-  getRoomBookings: async (req, res) => {
-    try {
-      const receptionistId = req.id;
-      const towerId = req.towerId;
-
-      const validation = await validationUtils.validateReceptionistAndTower(
-        receptionistId,
-        towerId
-      );
-      if (!validation.isValid) {
-        return res
-          .status(validation.status)
-          .send({ message: validation.message });
-      }
-
-      const rooms = await Room.find({ tower: towerId }).lean();
-
-      return res.status(200).send({ rooms });
     } catch (err) {
       console.log(err);
       return res.status(500).send({ message: err.message });
@@ -347,6 +324,54 @@ const receptionistController = {
       return res
         .status(200)
         .send({ message: "Lost and found item added successfully" });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send({ message: err.message });
+    }
+  },
+
+  getRooms: async (req, res) => {
+    try {
+      const receptionistId = req.id;
+      const towerId = req.towerId;
+
+      const validation = await validationUtils.validateReceptionistAndTower(
+        receptionistId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .send({ message: validation.message });
+      }
+
+      const rooms = await Room.find({ tower: towerId }).lean();
+
+      return res.status(200).send({ rooms });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send({ message: err.message });
+    }
+  },
+
+  getRoomBookings: async (req, res) => {
+    try {
+      const receptionistId = req.id;
+      const towerId = req.towerId;
+
+      const validation = await validationUtils.validateReceptionistAndTower(
+        receptionistId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .send({ message: validation.message });
+      }
+
+      const bookings = await RoomBooking.find({ tower: towerId }).lean();
+
+      return res.status(200).send({ bookings });
     } catch (err) {
       console.log(err);
       return res.status(500).send({ message: err.message });

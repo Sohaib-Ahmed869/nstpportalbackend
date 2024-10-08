@@ -20,6 +20,7 @@ router.get("/towers/:towerId/receptionists/performance", auth.verifyToken, auth.
 router.get("/towers/:towerId/office/requests", auth.verifyToken, auth.verifyAdmin, adminController.getOfficeRequests);
 router.get("/towers/:towerId/workpermits", auth.verifyToken, auth.verifyAdmin, adminController.getWorkPermits);
 router.get("/towers/:towerId/lost-and-found", auth.verifyToken, auth.verifyAdmin, adminController.getLostAndFound);
+router.get("/towers/:towerId/room/bookings", auth.verifyToken, auth.verifyAdmin, adminController.getRoomBookings);
 
 router.post("/tenant/add", auth.verifyToken, auth.verifyAdmin, adminController.addTenant);
 router.post("/service/add", auth.verifyToken, auth.verifyAdmin, adminController.addService);

@@ -16,8 +16,8 @@ const routes = [
   { method: "get", path: "/services", handler: tenantController.getServices },
   { method: "get", path: "/lost-and-found", handler: tenantController.getLostAndFound },
   { method: "get", path: "/rooms", handler: tenantController.getRooms },
-  { method: "get", path: "/rooms/booking", handler: tenantController.getRoomBooking },
-  { method: "get", path: "/rooms/booking/all", handler: tenantController.getAllRoomBookings },
+  { method: "get", path: "/room/bookings", handler: tenantController.getRoomBookings },
+  { method: "get", path: "/room/bookings/all", handler: tenantController.getAllRoomBookings },
 
   { method: "post", path: "/employee/register", handler: tenantController.registerEmployee },
   { method: "post", path: "/card/request", handler: tenantController.requestCard },

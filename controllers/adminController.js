@@ -8,13 +8,13 @@ const {
   Service,
   Room,
   RoomType,
+  RoomBooking,
   Clearance,
   GatePass,
   WorkPermit,
   LostAndFound,
 } = require("../models");
 const { validationUtils } = require("../utils");
-
 const COMPANY_CATEGORIES = ["Company", "Cube 8", "Hatch 8", "Startup"];
 
 const getNumberOfCards = async (adminId) => {
@@ -636,6 +636,31 @@ const adminController = {
         tower: towerId,
       }).lean();
       return res.status(200).json({ lostAndFound });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getRoomBookings: async (req, res) => {
+    try {
+      const towerId = req.params.towerId;
+      const adminId = req.id;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const bookings = await RoomBooking.find({
+        tower: towerId,
+      }).lean();
+      return res.status(200).json({ bookings });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
