@@ -569,13 +569,18 @@ const receptionistController = {
           bookingType = "under_4_hours";
         }
 
-        const tenantCategory = tenant.registration.category;
+        let tenantCategory = tenant.registration.category;
+        tenantCategory = tenantCategory.toLowerCase();
         const room = await Room.findById(booking.room_id).populate("type");
         const rateList = room.type.rate_list;
+        console.log("🚀 ~ handleRoomBooking: ~ tenantCategory", tenantCategory);
+        console.log("🚀 ~ handleRoomBooking: ~ rateList", rateList);
         const rate = rateList.find((rate) => rate.category === tenantCategory);
-        const cost = rate.rates.find(
+        let cost = rate.rates.find(
           (rate) => rate.rate_type === bookingType
         ).rate;
+
+        cost = cost * bookingDuration;
 
         const minutes = bookingDuration * 60;
 
@@ -589,7 +594,8 @@ const receptionistController = {
       }
 
       booking.handled_by = receptionistId;
-      const receptionist = await Receptionist.findById(receptionId);
+      booking.date_handled = new Date();
+      const receptionist = await Receptionist.findById(receptionistId);
       receptionist.handled_bookings += 1;
 
       await booking.save();
@@ -632,11 +638,19 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
+      booking.status_booking = "rejected";
       booking.is_cancelled = true;
       booking.cancelled_by = receptionistId;
       booking.reason_decline = reasonCancel;
 
+      // Find the tenant and remove the booking from their bookings array
+      const tenant = await Tenant.findById(booking.tenant_id);
+      tenant.bookings = tenant.bookings.filter(
+        (tenantBooking) => tenantBooking.booking.toString() != bookingId
+      );
+
       await booking.save();
+      await tenant.save();
 
       return res
         .status(200)

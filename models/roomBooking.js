@@ -46,6 +46,9 @@ const roomBookingSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Receptionist",
     },
+    date_handled: {
+      type: Date,
+    },
     reason_decline: {
       type: String,
     },
