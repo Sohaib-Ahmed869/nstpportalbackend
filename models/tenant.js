@@ -52,11 +52,18 @@ const companyResourceCompositionSchema = new Schema({
   nustSchoolToCollab: { type: String },
 });
 
-const complaint = new Schema({
+const complaintSchema = new Schema({
   subject: { type: String, required: true },
   description: { type: String, required: true },
   date_filed: { type: Date, default: Date.now },
 });
+
+const roomBookingSchema = new Schema({
+  booking: { type: Schema.Types.ObjectId, ref: "RoomBooking" },
+  minutes: { type: Number, required: true },
+  cost: { type: Number, required: true },
+});
+
 
 const tenantSchema = new Schema(
   {
@@ -66,7 +73,8 @@ const tenantSchema = new Schema(
     companyProfile: companyProfileSchema,
     industrySector: industrySectorSchema,
     companyResourceComposition: companyResourceCompositionSchema,
-    complaints: [complaint],
+    complaints: [complaintSchema],
+    bookings: [roomBookingSchema],
 
     username: { type: String, unique: true },
     password: { type: String },

@@ -20,8 +20,8 @@ router.post("/lost-and-found/add", auth.verifyToken, auth.verifyReceptionist, re
 router.post("/occurence/add", auth.verifyToken, auth.verifyReceptionist, receptionistController.addOccurence);
 
 router.put("/gatepass/approval", auth.verifyToken, auth.verifyReceptionist, receptionistController.handleGatePass);
-router.put("/booking/room/approval", auth.verifyToken, auth.verifyReceptionist, receptionistController.handleRoomBooking);
-router.put("/booking/room/cancel", auth.verifyToken, auth.verifyReceptionist, receptionistController.cancelRoomBooking);
+router.put("/room/bookings/approval", auth.verifyToken, auth.verifyReceptionist, receptionistController.handleRoomBooking);
+router.put("/room/bookings/cancel", auth.verifyToken, auth.verifyReceptionist, receptionistController.cancelRoomBooking);
 router.put("/lost-and-found/resolve", auth.verifyToken, auth.verifyReceptionist, receptionistController.resolveLostAndFound);
 router.put("/complaint/resolve", auth.verifyToken, auth.verifyReceptionist, receptionistController.handleComplaint);
 

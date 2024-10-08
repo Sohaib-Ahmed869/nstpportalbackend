@@ -46,6 +46,9 @@ const roomBookingSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Receptionist",
     },
+    reason_decline: {
+      type: String,
+    },
     is_cancelled: {
       type: Boolean,
       default: false,
@@ -53,9 +56,6 @@ const roomBookingSchema = new Schema(
     cancelled_by: {
       type: Schema.Types.ObjectId,
       ref: "Receptionist",
-    },
-    reason_decline: {
-      type: String,
     },
   },
   { timestamps: true }

@@ -369,7 +369,21 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const bookings = await RoomBooking.find({ tower: towerId }).lean();
+      let bookings = await RoomBooking.find({ tower: towerId }).lean();
+      // get the tenant name and room name
+      bookings = await Promise.all(
+        bookings.map(async (booking) => {
+          const tenant = await Tenant.findById(booking.tenant_id).select(
+            "registration.organizationName"
+          );
+          const room = await Room.findById(booking.room_id).select("name");
+
+          booking.tenant_name = tenant.registration.organizationName;
+          booking.room_name = room.name;
+
+          return booking;
+        })
+      );
 
       return res.status(200).send({ bookings });
     } catch (err) {
@@ -501,9 +515,9 @@ const receptionistController = {
   handleRoomBooking: async (req, res) => {
     try {
       const receptionistId = req.id;
-      const { roomId, bookingId, approval, reasonDecline } = req.body;
+      const { bookingId, approval, reasonDecline } = req.body;
+
       const validateRoomBooking = await validationUtils.validateRoomBooking(
-        roomId,
         bookingId
       );
       if (!validateRoomBooking.isValid) {
@@ -518,8 +532,8 @@ const receptionistController = {
           .send({ message: "Please provide approval status" });
       }
 
-      const room = await Room.findById(roomId);
-      const towerId = room.tower;
+      const booking = await RoomBooking.findById(bookingId);
+      const towerId = booking.tower;
 
       const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
@@ -531,9 +545,8 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const booking = room.bookings.id(bookingId);
-
-      booking.status_booking = approval;
+      const tenant = await Tenant.findById(booking.tenant_id);
+      booking.status_booking = approval ? "approved" : "rejected";
       if (!approval) {
         if (!reasonDecline) {
           return res
@@ -541,15 +554,51 @@ const receptionistController = {
             .send({ message: "Please provide reason for decline" });
         }
         booking.reason_decline = reasonDecline;
+      } else {
+        let bookingDuration =
+          (new Date(booking.time_end) - new Date(booking.time_start)) /
+          (1000 * 60 * 60);
+        console.log(
+          "🚀 ~ handleRoomBooking: ~ bookingDuration",
+          bookingDuration
+        );
+        let bookingType;
+        if (bookingDuration > 4) {
+          bookingType = "per_hour";
+        } else if (bookingDuration <= 4) {
+          bookingType = "under_4_hours";
+        }
+
+        const tenantCategory = tenant.registration.category;
+        const room = await Room.findById(booking.room_id).populate("type");
+        const rateList = room.type.rate_list;
+        const rate = rateList.find((rate) => rate.category === tenantCategory);
+        const cost = rate.rates.find(
+          (rate) => rate.rate_type === bookingType
+        ).rate;
+
+        const minutes = bookingDuration * 60;
+
+        const newBooking = {
+          booking: booking._id,
+          minutes,
+          cost,
+        };
+
+        tenant.bookings.push(newBooking);
       }
 
       booking.handled_by = receptionistId;
-      const receptionist = await Receptionist.findById(receptionistId);
+      const receptionist = await Receptionist.findById(receptionId);
       receptionist.handled_bookings += 1;
 
-      await room.save();
+      await booking.save();
+      await tenant.save();
       await receptionist.save();
-      return res.status(200).send({ message: "Booking updated successfully" });
+
+      return res
+        .status(200)
+        .send({ message: "Room booking updated successfully", booking });
     } catch (err) {
       console.log(err);
       return res.status(500).send({ message: err.message });
@@ -559,9 +608,9 @@ const receptionistController = {
   cancelRoomBooking: async (req, res) => {
     try {
       const receptionistId = req.id;
-      const { roomId, bookingId } = req.body;
+      const { bookingId, reasonCancel } = req.body;
+
       const validateRoomBooking = await validationUtils.validateRoomBooking(
-        roomId,
         bookingId
       );
       if (!validateRoomBooking.isValid) {
@@ -570,8 +619,8 @@ const receptionistController = {
           .send({ message: validateRoomBooking.message });
       }
 
-      const room = await Room.findById(roomId);
-      const towerId = room.tower;
+      const booking = await RoomBooking.findById(bookingId);
+      const towerId = booking.tower;
 
       const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
@@ -583,15 +632,15 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const booking = room.bookings.id(bookingId);
-
       booking.is_cancelled = true;
-      booking.cancelled_by = req.id;
+      booking.cancelled_by = receptionistId;
+      booking.reason_decline = reasonCancel;
 
-      await room.save();
+      await booking.save();
+
       return res
         .status(200)
-        .send({ message: "Booking cancelled successfully" });
+        .send({ message: "Room booking cancelled", booking });
     } catch (err) {
       console.log(err);
       return res.status(500).send({ message: err.message });

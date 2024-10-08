@@ -215,6 +215,10 @@ const validationUtils = {
     return this.validateEntity(RoomType, roomTypeId, "Room Type");
   },
 
+  async validateRoomBooking(roomBookingId) {
+    return this.validateEntity(RoomBooking, roomBookingId, "Room Booking");
+  },
+
   async validateTenantRoomBooking(tenantId, bookingId) {
     try {
       const tenantValidation = await this.validateTenant(tenantId);
@@ -241,49 +245,6 @@ const validationUtils = {
       const booking = await RoomBooking.findById(bookingId).lean();
       const bookingExists = booking.tenant_id.toString() == tenantId;
       if (!bookingExists) {
-        return {
-          isValid: false,
-          status: 404,
-          message: "Booking not found",
-        };
-      }
-
-      return { isValid: true, status: 200, message: "Validation successful" };
-    } catch (error) {
-      console.error(error);
-      return { isValid: false, status: 500, message: "Internal server error" };
-    }
-  },
-
-  async validateRoomBooking(roomId, bookingId) {
-    try {
-      const validation = await this.validateRoom(roomId);
-      if (!validation.isValid) {
-        return validation;
-      }
-
-      if (!bookingId) {
-        return {
-          isValid: false,
-          status: 400,
-          message: "Please provide booking ID",
-        };
-      }
-
-      if (!mongoose.Types.ObjectId.isValid(bookingId)) {
-        return {
-          isValid: false,
-          status: 400,
-          message: "Invalid booking ID format",
-        };
-      }
-
-      const room = await Room.findById(roomId).lean();
-      const bookinfExists = room.bookings.some(
-        (booking) => booking._id.toString() == bookingId
-      );
-
-      if (!bookinfExists) {
         return {
           isValid: false,
           status: 404,
