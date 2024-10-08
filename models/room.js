@@ -19,7 +19,7 @@ const roomSchema = new Schema(
       index: true,
     },
     floor: {
-      type: String,
+      type: Number,
       required: true,
     },
     time_start: {

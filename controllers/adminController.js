@@ -886,6 +886,8 @@ const adminController = {
         return res.status(400).json({ message: "Please provide all fields" });
       }
 
+      console.log("🚀 ~ addRoomType ~ rateList", rateList)
+
       const validation = await validationUtils.validateAdminAndTower(
         adminId,
         towerId
