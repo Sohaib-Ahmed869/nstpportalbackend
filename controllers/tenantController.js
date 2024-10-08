@@ -587,7 +587,8 @@ const tenantController = {
   requestRoomBooking: async (req, res) => {
     try {
       const tenant_id = req.id;
-      const { roomId, timeStart, timeEnd } = req.body;
+      const towerId = req.towerId;
+      const { roomId, timeStart, timeEnd, reasonBooking } = req.body;
 
       const roomValidation = await validationUtils.validateRoom(roomId);
       if (!roomValidation.isValid) {
@@ -600,16 +601,16 @@ const tenantController = {
         return res.status(400).json({ message: "Please provide time slots" });
       }
 
-      const room = await Room.findById(roomId);
-
-      const booking = {
+      const booking = new RoomBooking({
+        tower: towerId,
         tenant_id,
+        room_id: roomId,
         time_start: timeStart,
         time_end: timeEnd,
-      };
+        reason_booking: reasonBooking,
+      });
 
-      room.bookings.push(booking);
-      await room.save();
+      await booking.save();
 
       return res.status(200).json({ message: "Booking request sent", booking });
     } catch (err) {
@@ -869,38 +870,6 @@ const tenantController = {
     }
   },
 
-  cancelRoomBooking: async (req, res) => {
-    try {
-      const tenant_id = req.id;
-      const { roomId, bookingId } = req.body;
-
-      const validation = await validationUtils.validateRoomBooking(
-        roomId,
-        bookingId,
-        tenant_id
-      );
-      if (!validation.isValid) {
-        return res
-          .status(validation.status)
-          .json({ message: validation.message });
-      }
-
-      const room = await Room.findById(roomId);
-      const booking = room.bookings.id(bookingId);
-
-      booking.is_cancelled = true;
-      booking.cancelled_by = req.id;
-
-      await room.save();
-      return res
-        .status(200)
-        .json({ message: "Booking cancelled successfully", booking });
-    } catch (err) {
-      console.log("🚀 ~ cancelRoomBooking: ~ err:", err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
   cancelComplaint: async (req, res) => {
     try {
       const tenant_id = req.id;
@@ -949,6 +918,27 @@ const tenantController = {
         .json({ message: "Work permit cancelled successfully", workPermit });
     } catch (err) {
       console.log("🚀 ~ cancelWorkPermit: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  cancelRoomBooking: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { bookingId } = req.params;
+      const response = await validationUtils.validateTenantRoomBooking(
+        tenant_id,
+        bookingId
+      );
+      if (!response.isValid) {
+        return res.status(response.status).json({ message: response.message });
+      }
+
+      const booking = await RoomBooking.findByIdAndDelete(bookingId);
+
+      return res.status(200).json({ message: "Booking cancelled", booking });
+    } catch (err) {
+      console.log("🚀 ~ cancelRoomBooking: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },

@@ -8,6 +8,7 @@ const {
   Tower,
   Room,
   RoomType,
+  RoomBooking,
   Service,
   GatePass,
   WorkPermit,
@@ -212,6 +213,46 @@ const validationUtils = {
 
   async validateRoomType(roomTypeId) {
     return this.validateEntity(RoomType, roomTypeId, "Room Type");
+  },
+
+  async validateTenantRoomBooking(tenantId, bookingId) {
+    try {
+      const tenantValidation = await this.validateTenant(tenantId);
+      if (!tenantValidation.isValid) {
+        return tenantValidation;
+      }
+
+      if (!bookingId) {
+        return {
+          isValid: false,
+          status: 400,
+          message: "Please provide booking ID",
+        };
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+        return {
+          isValid: false,
+          status: 400,
+          message: "Invalid booking ID format",
+        };
+      }
+
+      const booking = await RoomBooking.findById(bookingId).lean();
+      const bookingExists = booking.tenant_id.toString() == tenantId;
+      if (!bookingExists) {
+        return {
+          isValid: false,
+          status: 404,
+          message: "Booking not found",
+        };
+      }
+
+      return { isValid: true, status: 200, message: "Validation successful" };
+    } catch (error) {
+      console.error(error);
+      return { isValid: false, status: 500, message: "Internal server error" };
+    }
   },
 
   async validateRoomBooking(roomId, bookingId) {

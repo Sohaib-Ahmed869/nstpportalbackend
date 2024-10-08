@@ -33,6 +33,10 @@ const roomBookingSchema = new Schema(
       type: String,
       // required: true,
     },
+    date_initiated: {
+      type: Date,
+      default: Date.now,
+    },
     status_booking: {
       type: String,
       default: "pending",

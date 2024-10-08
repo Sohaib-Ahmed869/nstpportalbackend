@@ -26,16 +26,16 @@ const routes = [
   { method: "post", path: "/etag/return", handler: tenantController.returnEtag },
   { method: "post", path: "/gatepass/request", handler: tenantController.requestGatePass },
   { method: "post", path: "/complaint/generate", handler: tenantController.generateComplaint },
-  { method: "post", path: "/room/request", handler: tenantController.requestRoomBooking },
-  { method: "post", path: "/room/cancel", handler: tenantController.cancelRoomBooking },
+  { method: "post", path: "/room/bookings/request", handler: tenantController.requestRoomBooking },
   { method: "post", path: "/workpermit/request", handler: tenantController.requestWorkPermit },
   { method: "post", path: "/clearance/initiate", handler: tenantController.initiateClearance },
-
+  
   { method: "put", path: "/employee/update", handler: tenantController.updateEmployee },
   { method: "put", path: "/employee/layoff", handler: tenantController.layoffEmployee },
   
   { method: "delete", path: "/complaints/:complaintId/cancel", handler: tenantController.cancelComplaint },
   { method: "delete", path: "/workpermit/cancel", handler: tenantController.cancelWorkPermit },
+  { method: "delete", path: "/room/bookings/:bookingId/cancel", handler: tenantController.cancelRoomBooking },
 ];
 
 routes.forEach((route) => {
