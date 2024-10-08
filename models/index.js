@@ -10,12 +10,14 @@ const Supervisor = require("./supervisor");
 const Task = require("./task");
 const Tenant = require("./tenant");
 const Tower = require("./tower");
-const Room = require("./room");
 const GatePass = require("./gatePass");
 const WorkPermit = require("./workPermit");
 const Clearance = require("./clearance");
 const LostAndFound = require("./lostAndFound");
 const Inspection = require("./inspection");
+const Room = require("./room");
+const RoomType = require("./roomType");
+const RoomBooking = require("./roomBooking");
 
 module.exports = {
   Admin,
@@ -36,4 +38,7 @@ module.exports = {
   Clearance,
   LostAndFound,
   Inspection,
+  Room,
+  RoomType,
+  RoomBooking,
 };

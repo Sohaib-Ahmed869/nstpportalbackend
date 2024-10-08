@@ -3,31 +3,25 @@ const router = express.Router();
 const receptionistController = require("../controllers/receptionistController");
 const auth = require("../middlewares/auth");
 
-const routes = [
-  { method: "get", path: "/gatepasses", handler: receptionistController.getGatePasses },
-  { method: "get", path: "/gatepasses/unhandled", handler: receptionistController.getUnhandledGatePasses },
-  { method: "get", path: "/gatepasses/handled-unhandled", handler: receptionistController.getUnhandledHandledGatePasses },
-  { method: "get", path: "/workpermits", handler: receptionistController.getWorkPermits },
-  { method: "get", path: "/booking/room", handler: receptionistController.getRoomBookings }, 
-  { method: "get", path: "/clearances", handler: receptionistController.getClearances },
-  { method: "get", path: "/complaints", handler: receptionistController.getComplaints },
-  { method: "get", path: "/tenants", handler: receptionistController.getTenants },
-  { method: "get", path: "/tenants/:tenantId/occurences", handler: receptionistController.getTenantOccurences },
-  { method: "get", path: "/occurences", handler: receptionistController.getAllTenantsOccurences },
-  { method: "get", path: "/lost-and-found", handler: receptionistController.getLostAndFound },
+router.get("/gatepasses", auth.verifyToken, auth.verifyReceptionist, receptionistController.getGatePasses);
+router.get("/gatepasses/unhandled", auth.verifyToken, auth.verifyReceptionist, receptionistController.getUnhandledGatePasses);
+router.get("/gatepasses/handled-unhandled", auth.verifyToken, auth.verifyReceptionist, receptionistController.getUnhandledHandledGatePasses);
+router.get("/workpermits", auth.verifyToken, auth.verifyReceptionist, receptionistController.getWorkPermits);
+router.get("/booking/room", auth.verifyToken, auth.verifyReceptionist, receptionistController.getRoomBookings);
+router.get("/clearances", auth.verifyToken, auth.verifyReceptionist, receptionistController.getClearances);
+router.get("/complaints", auth.verifyToken, auth.verifyReceptionist, receptionistController.getComplaints);
+router.get("/tenants", auth.verifyToken, auth.verifyReceptionist, receptionistController.getTenants);
+router.get("/tenants/:tenantId/occurences", auth.verifyToken, auth.verifyReceptionist, receptionistController.getTenantOccurences);
+router.get("/occurences", auth.verifyToken, auth.verifyReceptionist, receptionistController.getAllTenantsOccurences);
+router.get("/lost-and-found", auth.verifyToken, auth.verifyReceptionist, receptionistController.getLostAndFound);
 
-  { method: "post", path: "/lost-and-found/add", handler: receptionistController.addLostAndFound },
-  { method: "post", path: "/occurence/add", handler: receptionistController.addOccurence },
+router.post("/lost-and-found/add", auth.verifyToken, auth.verifyReceptionist, receptionistController.addLostAndFound);
+router.post("/occurence/add", auth.verifyToken, auth.verifyReceptionist, receptionistController.addOccurence);
 
-  { method: "put", path: "/gatepass/approval", handler: receptionistController.handleGatePass },
-  { method: "put", path: "/booking/room/approval", handler: receptionistController.handleRoomBooking },
-  { method: "put", path: "/booking/room/cancel", handler: receptionistController.cancelRoomBooking },
-  { method: "put", path: "/lost-and-found/resolve", handler: receptionistController.resolveLostAndFound },
-  { method: "put", path: "/complaint/resolve", handler: receptionistController.handleComplaint },
-]
-
-routes.forEach((route) => {
-  router[route.method](route.path, auth.verifyToken, auth.verifyReceptionist, route.handler);
-})
+router.put("/gatepass/approval", auth.verifyToken, auth.verifyReceptionist, receptionistController.handleGatePass);
+router.put("/booking/room/approval", auth.verifyToken, auth.verifyReceptionist, receptionistController.handleRoomBooking);
+router.put("/booking/room/cancel", auth.verifyToken, auth.verifyReceptionist, receptionistController.cancelRoomBooking);
+router.put("/lost-and-found/resolve", auth.verifyToken, auth.verifyReceptionist, receptionistController.resolveLostAndFound);
+router.put("/complaint/resolve", auth.verifyToken, auth.verifyReceptionist, receptionistController.handleComplaint);
 
 module.exports = router;

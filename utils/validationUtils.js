@@ -7,6 +7,7 @@ const {
   Complaint,
   Tower,
   Room,
+  RoomType,
   Service,
   GatePass,
   WorkPermit,
@@ -207,6 +208,10 @@ const validationUtils = {
 
   async validateLostAndFound(lostAndFoundId) {
     return this.validateEntity(LostAndFound, lostAndFoundId, "Lost and Found");
+  },
+
+  async validateRoomType(roomTypeId) {
+    return this.validateEntity(RoomType, roomTypeId, "Room Type");
   },
 
   async validateRoomBooking(roomId, bookingId) {

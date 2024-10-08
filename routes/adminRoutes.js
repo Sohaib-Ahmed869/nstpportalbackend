@@ -14,6 +14,7 @@ router.get("/towers/:towerId/tenants/:tenantId/employees", auth.verifyToken, aut
 router.get("/towers/:towerId/card/allocations", auth.verifyToken, auth.verifyAdmin, adminController.getCardAllocations);
 router.get("/towers/:towerId/etag/allocations", auth.verifyToken, auth.verifyAdmin, adminController.getEtagAllocations);
 router.get("/towers/:towerId/rooms", auth.verifyToken, auth.verifyAdmin, adminController.getRooms);
+router.get("/towers/:towerId/room-types", auth.verifyToken, auth.verifyAdmin, adminController.getRoomTypes);
 router.get("/towers/:towerId/services", auth.verifyToken, auth.verifyAdmin, adminController.getServices);
 router.get("/towers/:towerId/receptionists/performance", auth.verifyToken, auth.verifyAdmin, adminController.getReceptionistsPerformance);
 router.get("/towers/:towerId/office/requests", auth.verifyToken, auth.verifyAdmin, adminController.getOfficeRequests);
@@ -24,6 +25,7 @@ router.post("/tenant/add", auth.verifyToken, auth.verifyAdmin, adminController.a
 router.post("/service/add", auth.verifyToken, auth.verifyAdmin, adminController.addService);
 router.post("/office/assign", auth.verifyToken, auth.verifyAdmin, adminController.assignOffice);
 router.post("/room/add", auth.verifyToken, auth.verifyAdmin, adminController.addRoom);
+router.post("/room-type/add", auth.verifyToken, auth.verifyAdmin, adminController.addRoomType);
 
 router.put("/card/accept", auth.verifyToken, auth.verifyAdmin, adminController.acceptCardRequest);
 router.put("/card/reject", auth.verifyToken, auth.verifyAdmin, adminController.rejectCardRequest);

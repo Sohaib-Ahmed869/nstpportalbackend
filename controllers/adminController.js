@@ -7,6 +7,7 @@ const {
   EtagAllocation,
   Service,
   Room,
+  RoomType,
   Clearance,
   GatePass,
   WorkPermit,
@@ -478,6 +479,31 @@ const adminController = {
     }
   },
 
+  getRoomTypes: async (req, res) => {
+    try {
+      const towerId = req.params.towerId;
+      const adminId = req.id;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const roomTypes = await RoomType.find({
+        tower: towerId,
+      }).lean();
+      return res.status(200).json({ roomTypes });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   getServices: async (req, res) => {
     try {
       const towerId = req.params.towerId;
@@ -811,16 +837,8 @@ const adminController = {
   addRoom: async (req, res) => {
     try {
       const adminId = req.id;
-      const {
-        towerId,
-        name,
-        floor,
-        timeStart,
-        timeEnd,
-        description,
-        capacity,
-      } = req.body;
-      if (!name || !floor || !timeStart || !timeEnd) {
+      const { towerId, name, typeId, floor, timeStart, timeEnd } = req.body;
+      if (!name || !typeId || !floor || !timeStart || !timeEnd) {
         return res.status(400).json({ message: "Please provide all fields" });
       }
 
@@ -834,20 +852,62 @@ const adminController = {
           .json({ message: validation.message });
       }
 
+      const validateRoomType = await validationUtils.validateRoomType(typeId);
+      if (!validateRoomType.isValid) {
+        return res
+          .status(validateRoomType.status)
+          .json({ message: validateRoomType.message });
+      }
+
       // add room to tower
       const room = new Room({
         tower: towerId,
         name,
+        type: typeId,
         floor,
         time_start: timeStart,
         time_end: timeEnd,
-        description,
-        capacity,
       });
 
       await room.save();
 
-      return res.status(200).json({ message: "Room added successfully", room });
+      return res.status(200).json({ message: "Room added successfully" });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  addRoomType: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { towerId, name, capacity, rateList } = req.body;
+      if (!name || !capacity) {
+        return res.status(400).json({ message: "Please provide all fields" });
+      }
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const roomType = new RoomType({
+        tower: towerId,
+        name,
+        capacity,
+        rate_list: rateList,
+      });
+
+      await roomType.save();
+
+      return res
+        .status(200)
+        .json({ message: "Room type added successfully", roomType });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
@@ -1447,5 +1507,48 @@ req body for assignOffice
     "wing":"1",
     "officeNumber":"1103"
   }
+}
+
+req body for add room-type
+{
+  "towerId": "66f7b5ee7c51cd5775306b61", 
+  "name": "Conference Room",
+  "capacity": 50,
+  "rateList": [
+    {
+      "category": "Company",
+      "rates": [
+        {
+          "rate_type": "per_hour",
+          "rate": 100
+        },
+        {
+          "rate_type": "under_4_hours",
+          "rate": 350
+        },
+        {
+          "rate_type": "per_day",
+          "rate": 800
+        }
+      ]
+    },
+    {
+      "category": "Startup",
+      "rates": [
+        {
+          "rate_type": "per_hour",
+          "rate": 80
+        },
+        {
+          "rate_type": "under_4_hours",
+          "rate": 300
+        },
+        {
+          "rate_type": "per_day",
+          "rate": 700
+        }
+      ]
+    }
+  ]
 }
 */
