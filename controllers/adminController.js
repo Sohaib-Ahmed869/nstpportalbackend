@@ -615,6 +615,14 @@ const adminController = {
       const workPermits = await WorkPermit.find({
         tower: towerId,
       }).lean();
+
+      // add tenant name
+      await Promise.all(
+        workPermits.map(async (workPermit) => {
+          const tenant = await Tenant.findById(workPermit.tenant).lean();
+          workPermit.tenant_name = tenant.registration.organizationName;
+        })
+      );
       return res.status(200).json({ workPermits });
     } catch (err) {
       console.error(err);

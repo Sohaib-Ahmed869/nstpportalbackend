@@ -199,13 +199,10 @@ const receptionistController = {
 
       const workPermits = await WorkPermit.find({ tower: towerId }).lean();
       // populate the tenant name
-      workPermits = await Promise.all(
+      await Promise.all(
         workPermits.map(async (workPermit) => {
-          let tenant = await Tenant.findById(workPermit.tenant).select(
-            "registration.organizationName"
-          );
-          workPermit.tenant = tenant.registration.organizationName;
-          return workPermit;
+          const tenant = await Tenant.findById(workPermit.tenant).lean();
+          workPermit.tenant_name = tenant.registration.organizationName;
         })
       );
 
@@ -512,7 +509,7 @@ const receptionistController = {
           .status(validation.status)
           .send({ message: validation.message });
       }
-      
+
 
       let complaint = {
         subject,
