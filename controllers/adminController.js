@@ -267,6 +267,11 @@ const adminController = {
       // get number of violations
       tenant.violations = tenant.complaints.length;
 
+      tenant.meetingMinutes = tenant.bookings.reduce(
+        (acc, booking) => acc + booking.minutes,
+        0
+      );
+
       return res.status(200).json({ tenant });
     } catch (err) {
       console.error(err);
@@ -695,10 +700,9 @@ const adminController = {
             cardAllocations.filter((card) => card.is_returned).length | 0;
 
           console.log(tenant.bookings);
-          const roomBookingCost = tenant.bookings?.reduce(
-            (acc, booking) => acc + booking.cost,
-            0
-          ) | 0;
+          const roomBookingCost =
+            tenant.bookings?.reduce((acc, booking) => acc + booking.cost, 0) |
+            0;
 
           clearance.etags = etags;
           clearance.cards = cards;

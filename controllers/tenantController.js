@@ -93,6 +93,87 @@ const tenantController = {
       return res.status(500).json({ message: "Internal server error" });
     }
   },
+
+  getProfile: async (req, res) => {
+    try {
+      const tenantId = req.id; // Assuming the tenant's ID is stored in req.id
+
+      // Validate tenant
+      const validateTenant = await validationUtils.validateTenant(tenantId);
+      if (!validateTenant.isValid) {
+        return res
+          .status(validateTenant.status)
+          .json({ message: validateTenant.message });
+      }
+
+      var tenant = await Tenant.findById(tenantId).lean();
+      // etags, gatepasses, cards, workpermits, violations, employees
+
+      // Get number of etags
+      const etags = await EtagAllocation.find({ tenant_id: tenantId }).lean();
+      tenant.etags = etags.length;
+
+      // Get number of gatepasses
+      const gatepasses = await GatePass.find({ tenant_id: tenantId }).lean();
+      tenant.gatepasses = gatepasses.length;
+
+      // Get number of cards
+      const cards = await CardAllocation.find({ tenant_id: tenantId }).lean();
+
+      const employees = await Employee.find({
+        tenant_id: tenantId,
+        status_employment: true,
+      }).lean();
+      tenant.employees = employees;
+
+      const activeEmployees = employees.filter(
+        (employee) => employee.status_employment
+      );
+      tenant.activeEmployees = activeEmployees.length;
+
+      const internedEmployees = activeEmployees.filter(
+        (employee) => employee.employee_type === "intern"
+      );
+      tenant.internedEmployees = internedEmployees.length;
+
+      // Nustian internees
+      const nustianInterns = internedEmployees.filter(
+        (employee) => employee.is_nustian
+      );
+      tenant.nustianInterns = nustianInterns.length;
+      tenant.nonNustianInterns =
+        tenant.internedEmployees - tenant.nustianInterns;
+
+      const activeEmployeesWithCards = activeEmployees.filter((employee) =>
+        cards.some(
+          (card) => card.employee_id.toString() === employee._id.toString()
+        )
+      );
+      tenant.cardsIssued = activeEmployeesWithCards.length;
+      tenant.cardsNotIssued = tenant.activeEmployees - tenant.cardsIssued;
+
+      // Get number of workpermits
+      const workpermits = await WorkPermit.find({ tenant_id: tenantId }).lean();
+      // Only approved work permits
+      tenant.workpermits = workpermits.filter(
+        (workpermit) => workpermit.status === "approved"
+      ).length;
+
+      // Get number of violations
+      tenant.violations = tenant.complaints.length;
+
+      tenant.meetingMinutes = tenant.bookings.reduce(
+        (acc, booking) => acc + booking.minutes,
+        0
+      );
+
+      return res.status(200).json({ tenant });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   getEmployees: async (req, res) => {
     try {
       const tenant_id = req.id;

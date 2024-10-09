@@ -3,6 +3,7 @@ const router = express.Router();
 const receptionistController = require("../controllers/receptionistController");
 const auth = require("../middlewares/auth");
 
+router.get("/dashboard", auth.verifyToken, auth.verifyReceptionist, receptionistController.getDashboard);
 router.get("/gatepasses", auth.verifyToken, auth.verifyReceptionist, receptionistController.getGatePasses);
 router.get("/gatepasses/unhandled", auth.verifyToken, auth.verifyReceptionist, receptionistController.getUnhandledGatePasses);
 router.get("/gatepasses/handled-unhandled", auth.verifyToken, auth.verifyReceptionist, receptionistController.getUnhandledHandledGatePasses);

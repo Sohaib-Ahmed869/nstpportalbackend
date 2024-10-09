@@ -12,6 +12,83 @@ const {
 const { validationUtils } = require("../utils");
 
 const receptionistController = {
+  getDashboard: async (req, res) => {
+    try {
+      const receptionistId = req.id;
+      const towerId = req.towerId;
+
+      const validation = await validationUtils.validateReceptionistAndTower(
+        receptionistId,
+        towerId
+      );
+
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .send({ message: validation.message });
+      }
+
+      const receptionist = await Receptionist.findById(receptionistId);
+      const allGatePasses = await GatePass.find({
+        tower: towerId,
+      }).lean();
+
+      const gatePasses = {};
+      gatePasses.completed = allGatePasses.filter(
+        (gatePass) => gatePass.handled_by == receptionistId
+      ).length;
+      gatePasses.unhandled = allGatePasses.filter(
+        (gatePass) => gatePass.handled_by == null || undefined
+      ).length;
+
+      const allRoomBookings = await RoomBooking.find({
+        tower: towerId,
+      }).lean();
+
+      allRoomBookings.forEach( async (booking) => {
+        let tenant = await Tenant.findById(booking.tenant_id).select(
+          "registration.organizationName"
+        );
+        booking.tenant_name = tenant.registration.organizationName;
+      });
+
+      const bookings = {};
+      bookings.completed = allRoomBookings.filter(
+        (booking) => booking.handled_by == receptionistId
+      ).length;
+      bookings.pending = allRoomBookings.filter(
+        (booking) => booking.handled_by == null || undefined
+      ).length;
+
+      const allComplaints = await Complaint.find({
+        tower: towerId,
+        complaint_type: "Service",
+      }).lean();
+
+      const complaints = {};
+      complaints.recieved = allComplaints.filter(
+        (complaint) => complaint.complaint_type === "Service"
+      ).length;
+      complaints.resolved = allComplaints.filter(
+        (complaint) => complaint.service_resolved_by == receptionistId
+      ).length;
+      complaints.unresolved = allComplaints.filter(
+        (complaint) => complaint.service_resolved_by == null || undefined
+      ).length;
+
+      const dashboard = {
+        gatePasses,
+        allBookings: allRoomBookings,
+        bookings,
+        complaints,
+      };
+
+      return res.status(200).send({ dashboard });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send({ message: err.message });
+    }
+  },
   getGatePasses: async (req, res) => {
     try {
       const receptionistId = req.id;
@@ -117,6 +194,16 @@ const receptionistController = {
       }
 
       const workPermits = await WorkPermit.find({ tower: towerId }).lean();
+      // populate the tenant name
+      workPermits = await Promise.all(
+        workPermits.map(async (workPermit) => {
+          let tenant = await Tenant.findById(workPermit.tenant).select(
+            "registration.organizationName"
+          );
+          workPermit.tenant = tenant.registration.organizationName;
+          return workPermit;
+        })
+      );
 
       return res.status(200).send({ workPermits });
     } catch (err) {
