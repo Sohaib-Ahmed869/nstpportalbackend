@@ -703,6 +703,7 @@ const adminController = {
           clearance.etags = etags;
           clearance.cards = cards;
           clearance.bookings = roomBookingCost;
+          clearance.tenant_name = tenant.registration.organizationName;
 
           return clearance;
         })

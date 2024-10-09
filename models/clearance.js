@@ -25,6 +25,10 @@ const clearanceSchema = new Schema(
       type: String,
       required: true,
     },
+    office_no: {
+      type: String,
+      required: true,
+    },
     date_vacate: {
       type: Date,
       required: true,
