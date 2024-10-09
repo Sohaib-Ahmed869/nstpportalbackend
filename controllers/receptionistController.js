@@ -28,7 +28,6 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const receptionist = await Receptionist.findById(receptionistId);
       const allGatePasses = await GatePass.find({
         tower: towerId,
       }).lean();
@@ -45,12 +44,17 @@ const receptionistController = {
         tower: towerId,
       }).lean();
 
-      allRoomBookings.forEach( async (booking) => {
-        let tenant = await Tenant.findById(booking.tenant_id).select(
-          "registration.organizationName"
-        );
-        booking.tenant_name = tenant.registration.organizationName;
-      });
+      const updatedRoomBookings = await Promise.all(
+        allRoomBookings.map(async (booking) => {
+          const room = await Room.findById(booking.room_id).select("name");
+          booking.room_name = room.name;
+          const tenant = await Tenant.findById(booking.tenant_id).select(
+            "registration.organizationName"
+          );
+          booking.tenant_name = tenant.registration.organizationName;
+          return booking;
+        })
+      );
 
       const bookings = {};
       bookings.completed = allRoomBookings.filter(
@@ -78,7 +82,7 @@ const receptionistController = {
 
       const dashboard = {
         gatePasses,
-        allBookings: allRoomBookings,
+        allBookings: updatedRoomBookings,
         bookings,
         complaints,
       };
