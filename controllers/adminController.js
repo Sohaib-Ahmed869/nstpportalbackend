@@ -1400,6 +1400,7 @@ const adminController = {
     try {
       const adminId = req.id;
       const { clearanceId } = req.body;
+      console.log(req.body)
 
       const clearanceValidation = await validationUtils.validateClearance(
         clearanceId
@@ -1434,6 +1435,8 @@ const adminController = {
       // clearance.tenant.statusTenancy = false;
 
       await clearance.save();
+
+      return res.status(200).json({ message: "Clearance resolved", clearance });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
