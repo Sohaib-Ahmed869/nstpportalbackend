@@ -4,6 +4,7 @@ const tenantController = require("../controllers/tenantController");
 const auth = require("../middlewares/auth");
 
 const routes = [
+  { method: "get", path: "/dashboard", handler: tenantController.getDashboard },
   { method: "get", path: "/employees", handler: tenantController.getEmployees },
   { method: "get", path: "/card/allocations", handler: tenantController.getCardAllocations },
   { method: "get", path: "/etag/allocations", handler: tenantController.getEtagAllocations },

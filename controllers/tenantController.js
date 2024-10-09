@@ -16,6 +16,83 @@ const {
 const { validationUtils } = require("../utils");
 
 const tenantController = {
+  getDashboard: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const towerId = req.towerId;
+
+      const complaints = await Complaint.find({ tenant_id });
+      complaintsData = {};
+      complaintsData.sent = complaints.length;
+      complaintsData.resolved = complaints.filter(
+        (complaint) => complaint.is_resolved
+      ).length;
+      complaintsData.unresolved = complaintsData.sent - complaintsData.resolved;
+
+      const employees = await Employee.find({ tenant_id });
+      const employeeData = {};
+      employeeData.total = employees.length;
+      employeeData.active = employees.filter(
+        (employee) => employee.status_employment
+      ).length;
+
+      const bookings = await RoomBooking.find({ tenant_id });
+
+      const etagAllocations = await EtagAllocation.find({ tenant_id });
+      const etags = {};
+      etags.issued = etagAllocations.filter(
+        (allocation) => allocation.is_issued
+      ).length;
+      etags.pending = etagAllocations.filter(
+        (allocation) => allocation.is_requested
+      ).length;
+      etags.total = etags.issued + etags.pending;
+
+      const gatePassesAllocations = await GatePass.find({ tenant_id });
+      const gatePasses = {};
+      gatePasses.total = gatePassesAllocations.length;
+      // pending gate passes are those with is_approved = false and no receptionist id in handled_by
+      gatePasses.issued = gatePassesAllocations.filter(
+        (gatePass) => gatePass.is_approved
+      ).length;
+      gatePasses.pending = gatePassesAllocations.filter(
+        (gatePass) => gatePass.is_approved == false && !gatePass.handled_by
+      ).length;
+
+      const cardAllocations = await CardAllocation.find({ tenant_id });
+      const cards = {};
+      cards.issued = cardAllocations.filter(
+        (allocation) => allocation.is_active
+      ).length;
+      cards.notIssued = cardAllocations.length - cards.issued;
+
+      const interns = {};
+      interns.total = employees.filter(
+        (employee) => employee.employee_type === "Intern"
+      ).length;
+      interns.nustian = employees.filter(
+        (employee) => employee.is_nustian
+      ).length;
+      interns.nonNustian = interns.total - interns.nustian;
+
+      const dashboard = {
+        complaintsData,
+        employees,
+        employeeData,
+        bookings,
+        etags,
+        gatePasses,
+        cards,
+        interns,
+      };
+
+      console.log("🚀 ~ getDashboard: ~ dashboard:", dashboard);
+      return res.status(200).json({ dashboard });
+    } catch (err) {
+      console.log("🚀 ~ getDashboard: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
   getEmployees: async (req, res) => {
     try {
       const tenant_id = req.id;

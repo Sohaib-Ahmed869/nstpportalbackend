@@ -28,6 +28,11 @@ const employeeSchema = new Schema(
       type: String,
       required: true,
     },
+    father_name: {
+      //
+      type: String,
+      // required: true,
+    },
     name: {
       type: String,
       required: true,
