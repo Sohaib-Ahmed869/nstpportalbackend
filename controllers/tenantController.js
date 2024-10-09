@@ -773,69 +773,76 @@ const tenantController = {
           .json({ message: "Please provide all required fields" });
       }
 
+      const exists = await Clearance.findOne({ tenant: tenant_id });
+      if (exists) {
+        return res.status(400).json({ message: "Clearance already initiated" });
+      }
+
       const tenant = await Tenant.findById(tenant_id);
       if (!tenant) {
         return res.status(400).json({ message: "Tenant not found" });
       }
 
-      let tenantCardAllocations = await CardAllocation.find({ tenant_id });
-      const cardsIssued = tenantCardAllocations.filter(
-        (allocation) => allocation.is_issued
-      ).length;
-      const cardsReturned = tenantCardAllocations.filter(
-        (allocation) => allocation.is_returned
-      ).length;
+      // let tenantCardAllocations = await CardAllocation.find({ tenant_id });
+      // const cardsIssued = tenantCardAllocations.filter(
+      //   (allocation) => allocation.is_issued
+      // ).length;
+      // const cardsReturned = tenantCardAllocations.filter(
+      //   (allocation) => allocation.is_returned
+      // ).length;
 
-      let tenantEtagAllocations = await EtagAllocation.find({ tenant_id });
-      const etagsIssued = tenantEtagAllocations.filter(
-        (allocation) => allocation.is_issued
-      ).length;
-      const etagsReturned = tenantEtagAllocations.filter(
-        (allocation) => allocation.is_returned
-      ).length;
+      // let tenantEtagAllocations = await EtagAllocation.find({ tenant_id });
+      // const etagsIssued = tenantEtagAllocations.filter(
+      //   (allocation) => allocation.is_issued
+      // ).length;
+      // const etagsReturned = tenantEtagAllocations.filter(
+      //   (allocation) => allocation.is_returned
+      // ).length;
 
-      const utilities = {
-        cards: {
-          issued: cardsIssued,
-          returned: cardsReturned,
-        },
-        etags: {
-          issued: etagsIssued,
-          returned: etagsReturned,
-        },
-      };
+      // const utilities = {
+      //   cards: {
+      //     issued: cardsIssued,
+      //     returned: cardsReturned,
+      //   },
+      //   etags: {
+      //     issued: etagsIssued,
+      //     returned: etagsReturned,
+      //   },
+      // };
 
-      const offices = tenant.offices.map((office) => office.number).join(", ");
-      const clearanceForm = {
-        tenantName: tenant.registration.organizationName,
-        category: tenant.registration.category,
-        offices,
-        applicantName,
-        applicantDesignation,
-        applicantCnic,
-        constractStart: tenant.dateJoining,
-        contractEnd: tenant.dateLeaving,
-        dateVacate,
-        utilities,
-        reason,
-      };
+      // const dateJoining = new Date(tenant.dateJoining);
+
+      // const offices = tenant.offices.map((office) => office.number).join(", ");
+      // const clearanceForm = {
+      //   tenantName: tenant.registration.organizationName,
+      //   category: tenant.registration.category,
+      //   offices,
+      //   applicantName,
+      //   applicantDesignation,
+      //   applicantCnic,
+      //   constractStart: dateJoining,
+      //   contractEnd: new Date(dateJoining.setMonth(dateJoining.getMonth() + 6)),
+      //   dateVacate,
+      //   // utilities,
+      //   reason,
+      // };
 
       const clearance = new Clearance({
         tower: towerId,
-        tenant_id,
+        tenant: tenant_id,
         applicant_name: applicantName,
         applicant_designation: applicantDesignation,
         applicant_cnic: applicantCnic,
         date_vacate: dateVacate,
         reason,
-        utilities,
+        // utilities,
       });
 
       await clearance.save();
 
       return res
         .status(200)
-        .json({ message: "Clearance initiated", clearance, clearanceForm });
+        .json({ message: "Clearance initiated", clearance });
     } catch (err) {
       console.log("🚀 ~ initiateClearance: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });

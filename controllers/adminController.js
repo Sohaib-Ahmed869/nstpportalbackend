@@ -667,6 +667,97 @@ const adminController = {
     }
   },
 
+  getClearances: async (req, res) => {
+    try {
+      const towerId = req.params.towerId;
+      const clearances = await Clearance.find({ tower: towerId }).lean();
+
+      const detailedClearances = await Promise.all(
+        clearances.map(async (clearance) => {
+          const tenant = await Tenant.findById(clearance.tenant).lean();
+
+          const etagAllocations = await EtagAllocation.find({
+            tenant_id: clearance.tenant,
+          }).lean();
+          const etags = {};
+          etags.issued =
+            etagAllocations.filter((etag) => etag.is_issued).length | 0;
+          etags.returned =
+            etagAllocations.filter((etag) => etag.is_returned).length | 0;
+
+          const cardAllocations = await CardAllocation.find({
+            tenant_id: clearance.tenant,
+          }).lean();
+          const cards = {};
+          cards.issued =
+            cardAllocations.filter((card) => card.is_issued).length | 0;
+          cards.returned =
+            cardAllocations.filter((card) => card.is_returned).length | 0;
+
+          console.log(tenant.bookings);
+          const roomBookingCost = tenant.bookings?.reduce(
+            (acc, booking) => acc + booking.cost,
+            0
+          ) | 0;
+
+          clearance.etags = etags;
+          clearance.cards = cards;
+          clearance.bookings = roomBookingCost;
+
+          return clearance;
+        })
+      );
+
+      return res.status(200).json({ clearances: detailedClearances });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getClearance: async (req, res) => {
+    try {
+      const clearanceId = req.params.clearanceId;
+      const clearance = await Clearance.findById(clearanceId).lean();
+
+      const tenant = await Tenant.findById(clearance.tenant).lean();
+
+      const etagAllocations = await EtagAllocation.find({
+        tenant_id: clearance.tenant,
+      }).lean();
+
+      const etags = {};
+      etags.issued = etagAllocations.filter((etag) => etag.is_issued).length;
+      etags.returned = etagAllocations.filter(
+        (etag) => etag.is_returned
+      ).length;
+
+      const cardAllocations = await CardAllocation.find({
+        tenant_id: clearance.tenant,
+      }).lean();
+
+      const cards = {};
+      cards.issued = cardAllocations.filter((card) => card.is_issued).length;
+      cards.returned = cardAllocations.filter(
+        (card) => card.is_returned
+      ).length;
+
+      const roomBookingCost = tenant.bookings.reduce(
+        (acc, booking) => acc + booking.cost,
+        0
+      );
+
+      clearance.etags = etags;
+      clearance.cards = cards;
+      clearance.bookings = roomBookingCost;
+
+      return res.status(200).json({ clearance });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   addTenant: async (req, res) => {
     try {
       const {
@@ -896,9 +987,9 @@ const adminController = {
       });
 
       await room.save();
-      
+
       const typeName = await RoomType.findById(typeId).select("name");
-      room.typeName = typeName.name
+      room.typeName = typeName.name;
 
       return res.status(200).json({ message: "Room added successfully", room });
     } catch (err) {
@@ -915,7 +1006,7 @@ const adminController = {
         return res.status(400).json({ message: "Please provide all fields" });
       }
 
-      console.log("🚀 ~ addRoomType ~ rateList", rateList)
+      console.log("🚀 ~ addRoomType ~ rateList", rateList);
 
       const validation = await validationUtils.validateAdminAndTower(
         adminId,
@@ -1314,9 +1405,7 @@ const adminController = {
           .json({ message: clearanceValidation.message });
       }
 
-      const clearance = await Clearance.findById(clearanceId).populate(
-        "tenant"
-      );
+      const clearance = await Clearance.findById(clearanceId);
       const towerId = clearance.tower;
 
       const validation = await validationUtils.validateAdminAndTower(
@@ -1329,15 +1418,15 @@ const adminController = {
           .json({ message: validation.message });
       }
 
-      if (clearance.is_resolved == true) {
+      if (clearance.is_cleared == true) {
         return res.status(400).json({ message: "Clearance already resolved" });
       }
 
-      clearance.is_resolved = true;
-      clearance.resolved_by = adminId;
-      clearance.date_resolved = new Date();
+      clearance.is_cleared = true;
+      clearance.cleared_by = adminId;
+      clearance.date_cleared = new Date();
 
-      clearance.tenant.statusTenancy = false;
+      // clearance.tenant.statusTenancy = false;
 
       await clearance.save();
     } catch (err) {

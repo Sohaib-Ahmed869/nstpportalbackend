@@ -1,43 +1,16 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const utilitySchema = new Schema({
-  cards: {
-    issued: {
-      type: Number,
-      required: true,
-    },
-    returned: {
-      type: Number,
-      required: true,
-    },
-  },
-  etags: {
-    issued: {
-      type: Number,
-      required: true,
-    },
-    returned: {
-      type: Number,
-      required: true,
-    },
-  },
-  keys_handed_over: {
-    type: Boolean,
-    default: false,
-  },
-});
-
 const clearanceSchema = new Schema(
   {
-    tenant: {
-      type: Schema.Types.ObjectId,
-      ref: "Tenant",
-      required: true,
-    },
     tower: {
       type: Schema.Types.ObjectId,
       ref: "Tower",
+      required: true,
+    },
+    tenant: {
+      type: Schema.Types.ObjectId,
+      ref: "Tenant",
       required: true,
     },
     applicant_name: {
@@ -46,7 +19,7 @@ const clearanceSchema = new Schema(
     },
     applicant_cnic: {
       type: String,
-      required: true,
+      // required: true,
     },
     applicant_designation: {
       type: String,
@@ -60,17 +33,14 @@ const clearanceSchema = new Schema(
       type: String,
       required: true,
     },
-    utilities: {
-      type: utilitySchema,
-    },
-    is_resolved: {
+    is_cleared: {
       type: Boolean,
       default: false,
     },
-    date_resolved: {
+    date_cleared: {
       type: Date,
     },
-    resolved_by: {
+    cleared_by: {
       type: Schema.Types.ObjectId,
       ref: "Admin",
     },

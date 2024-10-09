@@ -234,7 +234,7 @@ const authController = {
           .json({ message: "Please provide username and password" });
       }
 
-      Tenant.findOne({ username })
+      Tenant.findOne({ username, statusTenancy: true })
         .then(async (user) => {
           if (!user) {
             return res
