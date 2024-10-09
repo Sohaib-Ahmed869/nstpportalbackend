@@ -28,7 +28,6 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const receptionist = await Receptionist.findById(receptionistId);
       const allGatePasses = await GatePass.find({
         tower: towerId,
       }).lean();
@@ -47,6 +46,8 @@ const receptionistController = {
 
       const updatedRoomBookings = await Promise.all(
         allRoomBookings.map(async (booking) => {
+          const room = await Room.findById(booking.room_id).select("name");
+          booking.room_name = room.name;
           const tenant = await Tenant.findById(booking.tenant_id).select(
             "registration.organizationName"
           );
@@ -54,8 +55,6 @@ const receptionistController = {
           return booking;
         })
       );
-
-      // Now you can use updatedRoomBookings which includes tenant_name
 
       const bookings = {};
       bookings.completed = allRoomBookings.filter(
@@ -83,7 +82,7 @@ const receptionistController = {
 
       const dashboard = {
         gatePasses,
-        allBookings: allRoomBookings,
+        allBookings: updatedRoomBookings,
         bookings,
         complaints,
       };
