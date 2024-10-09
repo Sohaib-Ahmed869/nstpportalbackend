@@ -757,6 +757,7 @@ const tenantController = {
         applicantName,
         applicantDesignation,
         applicantCnic,
+        office,
         dateVacate,
         reason,
       } = req.body;
@@ -765,6 +766,7 @@ const tenantController = {
         !applicantName ||
         !applicantDesignation ||
         !applicantCnic ||
+        !office ||
         !dateVacate ||
         !reason
       ) {
@@ -833,6 +835,7 @@ const tenantController = {
         applicant_name: applicantName,
         applicant_designation: applicantDesignation,
         applicant_cnic: applicantCnic,
+        office,
         date_vacate: dateVacate,
         reason,
         // utilities,

@@ -25,7 +25,7 @@ const clearanceSchema = new Schema(
       type: String,
       required: true,
     },
-    office_no: {
+    office: {
       type: String,
       required: true,
     },
