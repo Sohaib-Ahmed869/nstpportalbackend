@@ -508,6 +508,7 @@ const receptionistController = {
           .status(validation.status)
           .send({ message: validation.message });
       }
+      
 
       let complaint = {
         subject,
