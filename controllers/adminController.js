@@ -267,7 +267,7 @@ const adminController = {
       // get number of violations
       tenant.violations = tenant.complaints.length;
 
-      tenant.meetingMinutes = tenant.bookings.reduce(
+      tenant.meetingMinutes = tenant.bookings?.reduce(
         (acc, booking) => acc + booking.minutes,
         0
       );
@@ -747,7 +747,7 @@ const adminController = {
         (card) => card.is_returned
       ).length;
 
-      const roomBookingCost = tenant.bookings.reduce(
+      const roomBookingCost = tenant.bookings?.reduce(
         (acc, booking) => acc + booking.cost,
         0
       );
