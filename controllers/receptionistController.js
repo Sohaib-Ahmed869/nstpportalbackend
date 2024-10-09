@@ -45,12 +45,17 @@ const receptionistController = {
         tower: towerId,
       }).lean();
 
-      allRoomBookings.forEach( async (booking) => {
-        let tenant = await Tenant.findById(booking.tenant_id).select(
-          "registration.organizationName"
-        );
-        booking.tenant_name = tenant.registration.organizationName;
-      });
+      const updatedRoomBookings = await Promise.all(
+        allRoomBookings.map(async (booking) => {
+          const tenant = await Tenant.findById(booking.tenant_id).select(
+            "registration.organizationName"
+          );
+          booking.tenant_name = tenant.registration.organizationName;
+          return booking;
+        })
+      );
+
+      // Now you can use updatedRoomBookings which includes tenant_name
 
       const bookings = {};
       bookings.completed = allRoomBookings.filter(

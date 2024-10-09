@@ -42,6 +42,9 @@ const etagAllocationSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    reason_decline: {
+      type: String,
+    },
     date_issued: {
       type: Date,
     },
