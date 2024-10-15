@@ -163,7 +163,7 @@ const tenantController = {
       // Get number of violations
       tenant.violations = tenant.complaints.length;
 
-      tenant.meetingMinutes = tenant.bookings.reduce(
+      tenant.meetingMinutes = tenant.bookings?.reduce(
         (acc, booking) => acc + booking.minutes,
         0
       );

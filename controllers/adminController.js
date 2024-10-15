@@ -274,7 +274,7 @@ const adminController = {
       // get number of violations
       tenant.violations = tenant.complaints.length;
 
-      tenant.meetingMinutes = tenant.bookings.reduce(
+      tenant.meetingMinutes = tenant.bookings?.reduce(
         (acc, booking) => acc + booking.minutes,
         0
       );
@@ -622,6 +622,14 @@ const adminController = {
       const workPermits = await WorkPermit.find({
         tower: towerId,
       }).lean();
+
+      // add tenant name
+      await Promise.all(
+        workPermits.map(async (workPermit) => {
+          const tenant = await Tenant.findById(workPermit.tenant).lean();
+          workPermit.tenant_name = tenant.registration.organizationName;
+        })
+      );
       return res.status(200).json({ workPermits });
     } catch (err) {
       console.error(err);
@@ -754,7 +762,7 @@ const adminController = {
         (card) => card.is_returned
       ).length;
 
-      const roomBookingCost = tenant.bookings.reduce(
+      const roomBookingCost = tenant.bookings?.reduce(
         (acc, booking) => acc + booking.cost,
         0
       );
@@ -1511,6 +1519,7 @@ const adminController = {
     try {
       const adminId = req.id;
       const { clearanceId } = req.body;
+      console.log(req.body)
 
       const clearanceValidation = await validationUtils.validateClearance(
         clearanceId
@@ -1545,6 +1554,8 @@ const adminController = {
       // clearance.tenant.statusTenancy = false;
 
       await clearance.save();
+
+      return res.status(200).json({ message: "Clearance resolved", clearance });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
