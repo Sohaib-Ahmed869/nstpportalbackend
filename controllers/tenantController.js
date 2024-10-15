@@ -353,6 +353,33 @@ const tenantController = {
     }
   },
 
+  getEvaluations: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const evaluations = await Evaluation.find({ tenant: tenant_id }).populate(
+        "admin"
+      ).lean();
+      return res.status(200).json({ evaluations });
+    } catch (err) {
+      console.log("🚀 ~ getEvaluations: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getEvaluation: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { evaluationId } = req.params;
+      const evaluation = await Evaluation.findById(evaluationId).populate(
+        "admin"
+      ).lean();
+      return res.status(200).json({ evaluation });
+    } catch (err) {
+      console.log("🚀 ~ getEvaluation: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   registerEmployee: async (req, res) => {
     try {
       const tenantId = req.id;
@@ -939,7 +966,9 @@ const tenantController = {
   submitEvaluation: async (req, res) => {
     try {
       const tenant_id = req.id;
-      const { evaluationBody } = req.body;
+      const { evaluationId, evaluationBody } = req.body;
+      console.log("🚀 ~ submitEvaluation: ~ evaluationId:", evaluationId);
+      console.log("🚀 ~ submitEvaluation: ~ evaluationBody:", evaluationBody);
 
       // Validate tenant
       const validateTenant = await validationUtils.validateTenant(tenant_id);
@@ -950,16 +979,16 @@ const tenantController = {
       }
 
       // Find the evaluation document for the tenant
-      const evaluation = await Evaluation.findOne({ tenant: tenant_id });
+      const evaluation = await Evaluation.findById(evaluationId);
       if (!evaluation) {
         return res.status(404).json({ message: "Evaluation not found" });
       }
 
       // Update the evaluation document with the provided data
-      evaluation.economic_performance = evaluationBody.economicPerformance;
-      evaluation.innovation_technology = evaluationBody.innovationTechnology;
-      evaluation.nust_interaction = evaluationBody.nustInteraction;
-      evaluation.other_details = evaluationBody.otherDetails;
+      evaluation.economic_performance = evaluationBody.economic_performance;
+      evaluation.innovation_technology = evaluationBody.innovation_technology;
+      evaluation.nust_interaction = evaluationBody.nust_interaction;
+      evaluation.other_details = evaluationBody.other_details;
       evaluation.is_submitted = true; // Mark as submitted
       evaluation.date_submitted = new Date();
 
@@ -968,7 +997,7 @@ const tenantController = {
 
       return res
         .status(200)
-        .json({ message: "Evaluation submitted successfully" });
+        .json({ message: "Evaluation submitted successfully", evaluation });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });

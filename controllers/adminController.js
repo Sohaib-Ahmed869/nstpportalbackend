@@ -1135,7 +1135,9 @@ const adminController = {
 
         const bucket = admin.storage().bucket();
         const uuid = uuidv4();
-        const imageFileName = `blogs/${title}_${new Date()}`;
+        const imageFileName = `blogs/${title}_${uuid}`;
+
+        console.log(bucket.name);
 
         await bucket.file(imageFileName).save(image.buffer, {
           metadata: {
@@ -1145,6 +1147,7 @@ const adminController = {
         });
 
         const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/blogs%2F${uuid}?alt=media&token=${uuid}`;
+        // const imageUrl = `https://firebasestorage.googleapis.com/v0/b/nstp-website.appspot.com/o/blogs%2Fnu.png?alt=media&token=172612e0-c77e-498d-bded-ad5acb9a1209`;
 
         const blog = new Blog({
           title,
@@ -1519,7 +1522,7 @@ const adminController = {
     try {
       const adminId = req.id;
       const { clearanceId } = req.body;
-      console.log(req.body)
+      console.log(req.body);
 
       const clearanceValidation = await validationUtils.validateClearance(
         clearanceId
