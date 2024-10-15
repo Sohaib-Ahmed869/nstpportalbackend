@@ -15,9 +15,11 @@ const WorkPermit = require("./workPermit");
 const Clearance = require("./clearance");
 const LostAndFound = require("./lostAndFound");
 const Inspection = require("./inspection");
+const Evaluation = require("./evaluation");
 const Room = require("./room");
 const RoomType = require("./roomType");
 const RoomBooking = require("./roomBooking");
+const Blog = require("./blog");
 
 module.exports = {
   Admin,
@@ -38,7 +40,9 @@ module.exports = {
   Clearance,
   LostAndFound,
   Inspection,
+  Evaluation,
   Room,
   RoomType,
   RoomBooking,
+  Blog,
 };

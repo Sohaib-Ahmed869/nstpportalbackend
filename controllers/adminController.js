@@ -13,9 +13,16 @@ const {
   GatePass,
   WorkPermit,
   LostAndFound,
+  Evaluation,
+  Blog,
 } = require("../models");
 const { validationUtils } = require("../utils");
 const COMPANY_CATEGORIES = ["Company", "Cube 8", "Hatch 8", "Startup"];
+const admin = require("firebase-admin");
+const { v4: uuidv4 } = require("uuid");
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const getNumberOfCards = async (adminId) => {
   try {
@@ -763,6 +770,16 @@ const adminController = {
     }
   },
 
+  getBlogs: async (req, res) => {
+    try {
+      const blogs = await Blog.find().lean();
+      return res.status(200).json({ blogs });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   addTenant: async (req, res) => {
     try {
       const {
@@ -958,7 +975,6 @@ const adminController = {
   addRoom: async (req, res) => {
     try {
       const adminId = req.id;
-      console.log("🚀 ~ addRoom ~ req.body", req.body);
       const { towerId, name, typeId, floor, timeStart, timeEnd } = req.body;
       if (!name || !typeId || !floor || !timeStart || !timeEnd) {
         return res.status(400).json({ message: "Please provide all fields" });
@@ -1010,9 +1026,6 @@ const adminController = {
       if (!name || !capacity) {
         return res.status(400).json({ message: "Please provide all fields" });
       }
-
-      console.log("🚀 ~ addRoomType ~ rateList", rateList);
-
       const validation = await validationUtils.validateAdminAndTower(
         adminId,
         towerId
@@ -1040,6 +1053,110 @@ const adminController = {
       return res.status(500).json({ message: "Internal server error" });
     }
   },
+
+  requestEvaluation: async (req, res) => {
+    try {
+      const adminId = req.id;
+      let { tenantId, deadline } = req.body;
+      if (!tenantId || !deadline) {
+        return res.status(400).json({ message: "Please provide all fields" });
+      }
+
+      const validateTenant = await validationUtils.validateTenant(tenantId);
+      if (!validateTenant.isValid) {
+        return res
+          .status(validateTenant.status)
+          .json({ message: validateTenant.message });
+      }
+
+      const evalExists = await Evaluation.findOne({
+        tenant: tenantId,
+        is_submitted: false,
+      });
+      if (evalExists) {
+        return res
+          .status(400)
+          .json({ message: "Evaluation already requested" });
+      }
+
+      const tenant = await Tenant.findById(tenantId);
+      // get tenant joining date
+      const joiningDate = tenant.dateJoining;
+      let dateStart;
+      // if joining date is before this year, set dateStart to 1st Jan of this year
+      if (joiningDate.getFullYear() < new Date().getFullYear()) {
+        dateStart = new Date(new Date().getFullYear(), 0, 1);
+      } else {
+        dateStart = joiningDate;
+      }
+
+      // date end is end of this year
+      const dateEnd = new Date(new Date().getFullYear(), 11, 31);
+      deadline = new Date(deadline);
+
+      const evaluation = new Evaluation({
+        tower: tenant.tower,
+        tenant: tenantId,
+        admin: adminId,
+        date_start: dateStart,
+        date_end: dateEnd,
+        deadline,
+      });
+
+      await evaluation.save();
+      return res
+        .status(200)
+        .json({ message: "Evaluation requested sucessfully", evaluation });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  addBlog: [
+    upload.single("image"),
+    async (req, res) => {
+      try {
+        const adminId = req.id;
+        const { title, imageIndex, paragraphs } = req.body;
+        const image = req.file;
+
+        if (!title || !image || !paragraphs || imageIndex === undefined) {
+          return res.status(400).json({ message: "Please provide all fields" });
+        }
+
+        const bucket = admin.storage().bucket();
+        const uuid = uuidv4();
+        const imageFileName = `blogs/${title}_${new Date()}`;
+
+        await bucket.file(imageFileName).save(image.buffer, {
+          metadata: {
+            contentType: image.mimetype,
+            firebaseStorageDownloadTokens: uuid,
+          },
+        });
+
+        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/blogs%2F${uuid}?alt=media&token=${uuid}`;
+
+        const blog = new Blog({
+          title,
+          image: imageUrl,
+          image_index: imageIndex,
+          paragraphs,
+          admin: adminId,
+        });
+
+        await blog.save();
+
+        return res
+          .status(201)
+          .json({ message: "Blog added successfully", blog });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  ],
 
   acceptCardRequest: async (req, res) => {
     try {
@@ -1104,12 +1221,6 @@ const adminController = {
     try {
       const adminId = req.id;
       const { allocationId, reasonDecline } = req.body;
-      console.log(
-        "🚀 ~ rejectCardRequest: ~ allocationId, reasonDecline:",
-        allocationId,
-        reasonDecline
-      );
-
       if (!allocationId || !reasonDecline) {
         return res.status(400).json({ message: "Please provide all fields" });
       }

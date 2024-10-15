@@ -13,6 +13,8 @@ app.use(cookieParser());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
+const admin = require("firebase-admin");
+const serviceAccount = require("./serviceAccountKey.json");
 
 // Connect to MongoDB
 
@@ -48,6 +50,16 @@ app.use(
     credentials: true,
   })
 );
+
+try {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: "nstp-website.appspot.com",
+  });
+  console.log("Firebase Admin Initialized");
+} catch (err) {
+  console.log("Firebase Admin Already Initialized");
+}
 
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 console.log("timezone: ", timezone);

@@ -28,14 +28,14 @@ const employeeSchema = new Schema(
       type: String,
       required: true,
     },
+    name: {
+      type: String,
+      required: true,
+    },
     father_name: {
       //
       type: String,
       // required: true,
-    },
-    name: {
-      type: String,
-      required: true,
     },
     image: {
       type: String,
@@ -57,6 +57,9 @@ const employeeSchema = new Schema(
       //
       type: String,
       required: true,
+    },
+    temp_address: {
+      type: String,
     },
     date_joining: {
       //
@@ -86,8 +89,14 @@ const employeeSchema = new Schema(
   { timestamps: true }
 );
 
-employeeSchema.index({ tenant_id: 1, email: 1 }, { unique: true });
-employeeSchema.index({ tenant_id: 1, cnic: 1 }, { unique: true });
+employeeSchema.index(
+  { tenant_id: 1, email: 1, status_employment: 1 },
+  { unique: true }
+);
+employeeSchema.index(
+  { tenant_id: 1, cnic: 1, status_employment: 1 },
+  { unique: true }
+);
 
 const Employee = mongoose.model("Employee", employeeSchema);
 

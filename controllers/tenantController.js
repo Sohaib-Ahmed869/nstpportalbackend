@@ -10,6 +10,7 @@ const {
   WorkPermit,
   Clearance,
   Inspection,
+  Evaluation,
   Service,
   LostAndFound,
 } = require("../models");
@@ -360,6 +361,7 @@ const tenantController = {
       const { empBody } = req.body;
       const {
         name,
+        fatherName,
         image,
         email,
         phone,
@@ -370,6 +372,7 @@ const tenantController = {
         empType,
         contractDuration,
         address,
+        tempAddress,
         internType,
       } = empBody;
 
@@ -434,10 +437,10 @@ const tenantController = {
       const isNustian = internType === "Nustian" ? true : false;
       console.log("🚀 ~ registerEmployee: ~ isNustian:", isNustian);
 
-      if (existingEmployee && !existingEmployee.status_employment) {
-        req.laidOff = true;
-        return await tenantController.updateEmployee(req, res);
-      }
+      // if (existingEmployee && !existingEmployee.status_employment) {
+      //   req.laidOff = true;
+      //   return await tenantController.updateEmployee(req, res);
+      // }
 
       console.log("🚀 ~ registerEmployee: ~ Continue");
       const employee = new Employee({
@@ -933,6 +936,45 @@ const tenantController = {
     }
   },
 
+  submitEvaluation: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { evaluationBody } = req.body;
+
+      // Validate tenant
+      const validateTenant = await validationUtils.validateTenant(tenant_id);
+      if (!validateTenant.isValid) {
+        return res
+          .status(validateTenant.status)
+          .json({ message: validateTenant.message });
+      }
+
+      // Find the evaluation document for the tenant
+      const evaluation = await Evaluation.findOne({ tenant: tenant_id });
+      if (!evaluation) {
+        return res.status(404).json({ message: "Evaluation not found" });
+      }
+
+      // Update the evaluation document with the provided data
+      evaluation.economic_performance = evaluationBody.economicPerformance;
+      evaluation.innovation_technology = evaluationBody.innovationTechnology;
+      evaluation.nust_interaction = evaluationBody.nustInteraction;
+      evaluation.other_details = evaluationBody.otherDetails;
+      evaluation.is_submitted = true; // Mark as submitted
+      evaluation.date_submitted = new Date();
+
+      // Save the updated evaluation document
+      await evaluation.save();
+
+      return res
+        .status(200)
+        .json({ message: "Evaluation submitted successfully" });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   updateEmployee: async (req, res) => {
     try {
       const tenant_id = req.id;
@@ -942,10 +984,12 @@ const tenantController = {
       const { employeeId, empBody } = req.body;
       const {
         name,
+        fatherName,
         email,
         phone,
         designation,
         address,
+        tempAddress,
         empType,
         contractDuration,
         internType,
