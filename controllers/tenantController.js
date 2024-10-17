@@ -399,7 +399,7 @@ const tenantController = {
         designation,
         empType,
         contractDuration,
-        address,
+        permAddress,
         tempAddress,
         internType,
       } = empBody;
@@ -414,7 +414,9 @@ const tenantController = {
         doj,
         designation,
         empType,
-        address
+        permAddress,
+        fatherName,
+        tempAddress
       );
 
       if (
@@ -426,7 +428,7 @@ const tenantController = {
         !doj ||
         !designation ||
         !empType ||
-        !address
+        !permAddress || !tempAddress
       ) {
         return res
           .status(400)
@@ -482,11 +484,14 @@ const tenantController = {
         designation,
         cnic,
         dob,
-        address,
         date_joining: doj,
         employee_type: empType,
         contract_duration: contractDuration,
         is_nustian: isNustian,
+        father_name: fatherName,
+        address: permAddress,
+        temp_address: tempAddress,
+
       });
 
       await employee.save();
