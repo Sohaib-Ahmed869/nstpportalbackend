@@ -25,5 +25,6 @@ router.put("/room/bookings/approval", auth.verifyToken, auth.verifyReceptionist,
 router.put("/room/bookings/cancel", auth.verifyToken, auth.verifyReceptionist, receptionistController.cancelRoomBooking);
 router.put("/lost-and-found/resolve", auth.verifyToken, auth.verifyReceptionist, receptionistController.resolveLostAndFound);
 router.put("/complaint/resolve", auth.verifyToken, auth.verifyReceptionist, receptionistController.handleComplaint);
+router.put("/complaint/feedback", auth.verifyToken, auth.verifyReceptionist, receptionistController.giveComplaintFeedback);
 
 module.exports = router;

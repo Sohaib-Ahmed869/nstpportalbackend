@@ -15,6 +15,9 @@ const blogSchema = new Schema(
     image: {
       type: String,
     },
+    token: {
+      type: String,
+    },
     caption: {
       type: String,
     },

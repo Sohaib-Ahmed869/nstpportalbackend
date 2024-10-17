@@ -1,6 +1,28 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const feedbackSchema = new Schema({
+  feedback: {
+    type: String,
+  },
+  service_feedback_by: {
+    type: Schema.Types.ObjectId,
+    ref: "Receptionist",
+  },
+  general_feedback_by: {
+    type: Schema.Types.ObjectId,
+    ref: "Admin",
+  },
+  is_tenant: {
+    type: Boolean,
+    default: false,
+  },
+  date: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
 const complaintSchema = new Schema(
   {
     tower: {
@@ -16,7 +38,7 @@ const complaintSchema = new Schema(
     },
     tenant_name: {
       type: String,
-      // required: true,      
+      // required: true,
     },
     complaint_type: {
       type: String,
@@ -52,7 +74,7 @@ const complaintSchema = new Schema(
     },
     status: {
       type: String,
-      default: "pending", 
+      default: "pending",
       enum: ["pending", "approved", "rejected"],
     },
     reason_decline: {
@@ -65,6 +87,11 @@ const complaintSchema = new Schema(
     service_resolved_by: {
       type: Schema.Types.ObjectId,
       ref: "Receptionist",
+    },
+    feedback: [feedbackSchema],
+    allow_tenant_feedback: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

@@ -1126,7 +1126,7 @@ const adminController = {
     async (req, res) => {
       try {
         const adminId = req.id;
-        const { title, imageIndex, paragraphs } = req.body;
+        const { title, imageIndex, caption, paragraphs } = req.body;
         const image = req.file;
 
         if (!title || !image || !paragraphs || imageIndex === undefined) {
@@ -1135,7 +1135,7 @@ const adminController = {
 
         const bucket = admin.storage().bucket();
         const uuid = uuidv4();
-        const imageFileName = `blogs/${title}_${uuid}`;
+        const imageFileName = `blogs/${uuid}`;
 
         console.log(bucket.name);
 
@@ -1155,6 +1155,8 @@ const adminController = {
           image_index: imageIndex,
           paragraphs,
           admin: adminId,
+          token: uuid,
+          caption,
         });
 
         await blog.save();
@@ -1422,6 +1424,53 @@ const adminController = {
       return res
         .status(200)
         .json({ message: "Complaint resolved successfully", complaint });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  giveComplaintFeedback: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { complaintId, feedback } = req.body;
+
+      const complaintValidation = await validationUtils.validateComplaint(
+        complaintId
+      );
+      if (!complaintValidation.isValid) {
+        return res
+          .status(complaintValidation.status)
+          .json({ message: complaintValidation.message });
+      }
+
+      const complaint = await Complaint.findById(complaintId);
+      const towerId = complaint.tower;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const feedbackObj = {
+        feedback,
+        date: new Date(),
+        general_feedback_by: adminId,
+      };
+
+      complaint.feedback.push(feedbackObj);
+      complaint.allow_tenant_feedback = true;
+
+      await complaint.save();
+
+      return res
+        .status(200)
+        .json({ message: "Feedback given successfully", complaint });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });

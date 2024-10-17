@@ -38,6 +38,7 @@ router.put("/card/reject", auth.verifyToken, auth.verifyAdmin, adminController.r
 router.put("/etag/accept", auth.verifyToken, auth.verifyAdmin, adminController.acceptEtagRequest);
 router.put("/etag/reject", auth.verifyToken, auth.verifyAdmin, adminController.rejectEtagRequest);
 router.put("/complaint/resolve", auth.verifyToken, auth.verifyAdmin, adminController.handleComplaint);
+router.put("/complaint/feedback", auth.verifyToken, auth.verifyAdmin, adminController.giveComplaintFeedback);
 router.put("/employee/layoff", auth.verifyToken, auth.verifyAdmin, adminController.layOffEmployee);
 router.put("/room/update", auth.verifyToken, auth.verifyAdmin, adminController.updateRoom);
 router.put("/clearance/resolve", auth.verifyToken, auth.verifyAdmin, adminController.handleClearance);

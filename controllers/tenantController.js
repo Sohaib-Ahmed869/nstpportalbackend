@@ -15,6 +15,7 @@ const {
   LostAndFound,
 } = require("../models");
 const { validationUtils } = require("../utils");
+const { giveComplaintFeedback } = require("./receptionistController");
 
 const tenantController = {
   getDashboard: async (req, res) => {
@@ -356,9 +357,9 @@ const tenantController = {
   getEvaluations: async (req, res) => {
     try {
       const tenant_id = req.id;
-      const evaluations = await Evaluation.find({ tenant: tenant_id }).populate(
-        "admin"
-      ).lean();
+      const evaluations = await Evaluation.find({ tenant: tenant_id })
+        .populate("admin")
+        .lean();
       return res.status(200).json({ evaluations });
     } catch (err) {
       console.log("🚀 ~ getEvaluations: ~ err:", err);
@@ -370,9 +371,9 @@ const tenantController = {
     try {
       const tenant_id = req.id;
       const { evaluationId } = req.params;
-      const evaluation = await Evaluation.findById(evaluationId).populate(
-        "admin"
-      ).lean();
+      const evaluation = await Evaluation.findById(evaluationId)
+        .populate("admin")
+        .lean();
       return res.status(200).json({ evaluation });
     } catch (err) {
       console.log("🚀 ~ getEvaluation: ~ err:", err);
@@ -1005,6 +1006,47 @@ const tenantController = {
         .json({ message: "Evaluation submitted successfully", evaluation });
     } catch (err) {
       console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  giveComplaintFeedback: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { complaintId, feedback } = req.body;
+
+      if (!tenant_id) {
+        return res.status(400).json({ message: "Please provide tenant ID" });
+      }
+
+      const validation = await validationUtils.validateComplaint(complaintId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const complaint = await Complaint.findById(complaintId);
+      if (!complaint.allow_tenant_feedback) {
+        return res.status(400).json({ message: "Feedback not allowed" });
+      }
+
+      const feedbackObj = {
+        feedback,
+        date: new Date(),
+        is_tenant: true,
+      };
+
+      complaint.feedback.push(feedbackObj);
+      complaint.allow_tenant_feedback = false;
+
+      await complaint.save();
+
+      return res
+        .status(200)
+        .json({ message: "Feedback given successfully", complaint });
+    } catch (err) {
+      console.log("🚀 ~ giveComplaintFeedback: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
