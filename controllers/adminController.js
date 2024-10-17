@@ -1135,7 +1135,7 @@ const adminController = {
 
         const bucket = admin.storage().bucket();
         const uuid = uuidv4();
-        const imageFileName = `blogs/${title}_${uuid}`;
+        const imageFileName = `blogs/${uuid}`;
 
         console.log(bucket.name);
 
@@ -1146,7 +1146,7 @@ const adminController = {
           },
         });
 
-        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/blogs%2F${title}_${uuid}?alt=media&token=${uuid}`;
+        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/blogs%2F${uuid}?alt=media&token=${uuid}`;
         // const imageUrl = `https://firebasestorage.googleapis.com/v0/b/nstp-website.appspot.com/o/blogs%2Fnu.png?alt=media&token=172612e0-c77e-498d-bded-ad5acb9a1209`;
 
         const blog = new Blog({
@@ -1155,6 +1155,7 @@ const adminController = {
           image_index: imageIndex,
           paragraphs,
           admin: adminId,
+          token: uuid,
         });
 
         await blog.save();
