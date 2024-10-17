@@ -779,6 +779,46 @@ const adminController = {
     }
   },
 
+  getEvaluations: async (req, res) => {
+    try {
+      const towerId = req.params.towerId;
+      const evaluations = await Evaluation.find({ tower: towerId }).lean();
+
+      const detailedEvaluations = await Promise.all(
+        evaluations.map(async (evaluation) => {
+          const tenant = await Tenant.findById(evaluation.tenant)
+            .select("registration.organizationName")
+            .lean();
+          evaluation.tenant_name = tenant.registration.organizationName;
+          return evaluation;
+        })
+      );
+
+      return res.status(200).json({ evaluations: detailedEvaluations });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getEvaluation: async (req, res) => {
+    try {
+      const evaluationId = req.params.evaluationId;
+      const evaluation = await Evaluation.findById(evaluationId).lean();
+
+      const tenant = await Tenant.findById(evaluation.tenant)
+        .select("registration.organizationName")
+        .lean();
+
+      evaluation.tenant_name = tenant.registration.organizationName;
+
+      return res.status(200).json({ evaluation });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   getBlogs: async (req, res) => {
     try {
       const blogs = await Blog.find().lean();
@@ -1127,7 +1167,7 @@ const adminController = {
     async (req, res) => {
       try {
         const adminId = req.id;
-        const { title, imageIndex, paragraphs } = req.body;
+        const { title, imageIndex, caption, paragraphs } = req.body;
         const image = req.file;
 
         if (!title || !image || !paragraphs || imageIndex === undefined) {
@@ -1136,7 +1176,7 @@ const adminController = {
 
         const bucket = admin.storage().bucket();
         const uuid = uuidv4();
-        const imageFileName = `blogs/${title}_${uuid}`;
+        const imageFileName = `blogs/${uuid}`;
 
         console.log(bucket.name);
 
@@ -1148,7 +1188,6 @@ const adminController = {
         });
 
         const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/blogs%2F${uuid}?alt=media&token=${uuid}`;
-        // const imageUrl = `https://firebasestorage.googleapis.com/v0/b/nstp-website.appspot.com/o/blogs%2Fnu.png?alt=media&token=172612e0-c77e-498d-bded-ad5acb9a1209`;
 
         const blog = new Blog({
           title,
@@ -1156,6 +1195,8 @@ const adminController = {
           image_index: imageIndex,
           paragraphs,
           admin: adminId,
+          token: uuid,
+          caption,
         });
 
         await blog.save();
