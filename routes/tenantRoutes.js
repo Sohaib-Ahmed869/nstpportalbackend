@@ -37,6 +37,7 @@ const routes = [
   { method: "put", path: "/employee/update", handler: tenantController.updateEmployee },
   { method: "put", path: "/employee/layoff", handler: tenantController.layoffEmployee },
   { method: "put", path: "/evaluation/submit", handler: tenantController.submitEvaluation },
+  { method: "put", path: "/complaint/feedback", handler: tenantController.giveComplaintFeedback },
 
   { method: "delete", path: "/complaints/:complaintId/cancel", handler: tenantController.cancelComplaint },
   { method: "delete", path: "/workpermit/cancel", handler: tenantController.cancelWorkPermit },

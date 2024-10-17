@@ -510,7 +510,6 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-
       let complaint = {
         subject,
         description,
@@ -849,6 +848,53 @@ const receptionistController = {
       return res
         .status(200)
         .send({ message: "Complaint updated successfully", complaint });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send({ message: err.message });
+    }
+  },
+
+  giveComplaintFeedback: async (req, res) => {
+    try {
+      const receptionistId = req.id;
+      const { complaintId, feedback } = req.body;
+
+      const validateComplaint = await validationUtils.validateComplaint(
+        complaintId
+      );
+      if (!validateComplaint.isValid) {
+        return res
+          .status(validateComplaint.status)
+          .send({ message: validateComplaint.message });
+      }
+
+      const complaint = await Complaint.findById(complaintId);
+      const towerId = complaint.tower;
+
+      const validation = await validationUtils.validateReceptionistAndTower(
+        receptionistId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .send({ message: validation.message });
+      }
+
+      const feedbackObj = {
+        feedback,
+        date: new Date(),
+        service_feedback_by: receptionistId,
+      };
+
+      complaint.feedback.push(feedbackObj);
+      complaint.allow_tenant_feedback = true;
+
+      await complaint.save();
+
+      return res
+        .status(200)
+        .send({ message: "Feedback given successfully", complaint });
     } catch (err) {
       console.log(err);
       return res.status(500).send({ message: err.message });

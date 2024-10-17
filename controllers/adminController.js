@@ -1146,7 +1146,7 @@ const adminController = {
           },
         });
 
-        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/blogs%2F${uuid}?alt=media&token=${uuid}`;
+        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/blogs%2F${title}_${uuid}?alt=media&token=${uuid}`;
         // const imageUrl = `https://firebasestorage.googleapis.com/v0/b/nstp-website.appspot.com/o/blogs%2Fnu.png?alt=media&token=172612e0-c77e-498d-bded-ad5acb9a1209`;
 
         const blog = new Blog({
@@ -1422,6 +1422,53 @@ const adminController = {
       return res
         .status(200)
         .json({ message: "Complaint resolved successfully", complaint });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  giveComplaintFeedback: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { complaintId, feedback } = req.body;
+
+      const complaintValidation = await validationUtils.validateComplaint(
+        complaintId
+      );
+      if (!complaintValidation.isValid) {
+        return res
+          .status(complaintValidation.status)
+          .json({ message: complaintValidation.message });
+      }
+
+      const complaint = await Complaint.findById(complaintId);
+      const towerId = complaint.tower;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const feedbackObj = {
+        feedback,
+        date: new Date(),
+        general_feedback_by: adminId,
+      };
+
+      complaint.feedback.push(feedbackObj);
+      complaint.allow_tenant_feedback = true;
+
+      await complaint.save();
+
+      return res
+        .status(200)
+        .json({ message: "Feedback given successfully", complaint });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });

@@ -54,7 +54,7 @@ app.use(
 try {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    storageBucket: "nstp-website.appspot.com",
+    storageBucket: "nstp-portal001.appspot.com",
   });
   console.log("Firebase Admin Initialized");
 } catch (err) {
