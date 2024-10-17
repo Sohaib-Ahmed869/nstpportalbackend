@@ -1126,7 +1126,7 @@ const adminController = {
     async (req, res) => {
       try {
         const adminId = req.id;
-        const { title, imageIndex, paragraphs } = req.body;
+        const { title, imageIndex, caption, paragraphs } = req.body;
         const image = req.file;
 
         if (!title || !image || !paragraphs || imageIndex === undefined) {
@@ -1156,6 +1156,7 @@ const adminController = {
           paragraphs,
           admin: adminId,
           token: uuid,
+          caption,
         });
 
         await blog.save();
