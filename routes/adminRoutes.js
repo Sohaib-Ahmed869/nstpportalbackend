@@ -26,6 +26,7 @@ router.get("/towers/:towerId/clearances/:clearanceId", auth.verifyToken, auth.ve
 router.get("/towers/:towerId/evaluations", auth.verifyToken, auth.verifyAdmin, adminController.getEvaluations);
 router.get("/towers/:towerId/evaluations/:evaluationId", auth.verifyToken, auth.verifyAdmin, adminController.getEvaluation);
 router.get("/blogs", auth.verifyToken, auth.verifyAdmin, adminController.getBlogs);
+router.get("/blogs/:blogId", auth.verifyToken, auth.verifyAdmin, adminController.getBlog);
 
 router.post("/tenant/add", auth.verifyToken, auth.verifyAdmin, adminController.addTenant);
 router.post("/service/add", auth.verifyToken, auth.verifyAdmin, adminController.addService);

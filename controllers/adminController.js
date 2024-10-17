@@ -828,6 +828,17 @@ const adminController = {
     }
   },
 
+  getBlog: async (req, res) => {
+    try {
+      const blogId = req.params.blogId;
+      const blog = await Blog.findById(blogId).lean();
+      return res.status(200).json({ blog });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   addTenant: async (req, res) => {
     try {
       const {
