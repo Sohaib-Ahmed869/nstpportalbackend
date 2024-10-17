@@ -6,6 +6,7 @@ const {
   Supervisor,
   Receptionist,
   Tenant,
+  Evaluation,
 } = require("../models");
 
 const authController = {
@@ -248,8 +249,18 @@ const authController = {
               .json({ message: "Invalid username or password" });
           }
 
+          let evalRequested = false;
+          const evaluations = await Evaluation.find({ tenant: user._id });
+          evaluations.forEach((evaluation) => {
+            if (evaluation.is_submitted === false) {
+              evalRequested = true;
+              return;
+            }
+          });
+
+
           const token = jwt.sign(
-            { id: user._id, role: role },
+            { id: user._id, role: role, evalRequested },
             process.env.JWT_SECRET,
             {
               expiresIn: "12h",
@@ -263,7 +274,7 @@ const authController = {
               sameSite: "none",
               secure: true,
             })
-            .json({ message: "Login successful", role: role });
+            .json({ message: "Login successful", role: role, evalRequested });
         })
         .catch((err) => {
           console.error(err);

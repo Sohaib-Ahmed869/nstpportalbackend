@@ -23,6 +23,7 @@ router.get("/towers/:towerId/lost-and-found", auth.verifyToken, auth.verifyAdmin
 router.get("/towers/:towerId/room/bookings", auth.verifyToken, auth.verifyAdmin, adminController.getRoomBookings);
 router.get("/towers/:towerId/clearances", auth.verifyToken, auth.verifyAdmin, adminController.getClearances);
 router.get("/towers/:towerId/clearances/:clearanceId", auth.verifyToken, auth.verifyAdmin, adminController.getClearance);
+router.get("/towers/:towerId/evaluations", auth.verifyToken, auth.verifyAdmin, adminController.getEvaluations);
 router.get("/blogs", auth.verifyToken, auth.verifyAdmin, adminController.getBlogs);
 
 router.post("/tenant/add", auth.verifyToken, auth.verifyAdmin, adminController.addTenant);

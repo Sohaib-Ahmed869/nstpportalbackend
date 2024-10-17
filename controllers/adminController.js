@@ -778,6 +778,28 @@ const adminController = {
     }
   },
 
+  getEvaluations: async (req, res) => {
+    try {
+      const towerId = req.params.towerId;
+      const evaluations = await Evaluation.find({ tower: towerId }).lean();
+
+      const detailedEvaluations = await Promise.all(
+        evaluations.map(async (evaluation) => {
+          const tenant = await Tenant.findById(evaluation.tenant)
+            .select("registration.organizationName")
+            .lean();
+          evaluation.tenant_name = tenant.registration.organizationName;
+          return evaluation;
+        })
+      );
+
+      return res.status(200).json({ evaluations: detailedEvaluations });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   getBlogs: async (req, res) => {
     try {
       const blogs = await Blog.find().lean();
@@ -1147,7 +1169,6 @@ const adminController = {
         });
 
         const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/blogs%2F${uuid}?alt=media&token=${uuid}`;
-        // const imageUrl = `https://firebasestorage.googleapis.com/v0/b/nstp-website.appspot.com/o/blogs%2Fnu.png?alt=media&token=172612e0-c77e-498d-bded-ad5acb9a1209`;
 
         const blog = new Blog({
           title,
