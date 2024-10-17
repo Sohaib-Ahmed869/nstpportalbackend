@@ -21,6 +21,7 @@ const COMPANY_CATEGORIES = ["Company", "Cube 8", "Hatch 8", "Startup"];
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");
 const multer = require("multer");
+const { giveComplaintFeedback } = require("./receptionistController");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
@@ -1480,52 +1481,7 @@ const adminController = {
     }
   },
 
-  giveComplaintFeedback: async (req, res) => {
-    try {
-      const adminId = req.id;
-      const { complaintId, feedback } = req.body;
-
-      const complaintValidation = await validationUtils.validateComplaint(
-        complaintId
-      );
-      if (!complaintValidation.isValid) {
-        return res
-          .status(complaintValidation.status)
-          .json({ message: complaintValidation.message });
-      }
-
-      const complaint = await Complaint.findById(complaintId);
-      const towerId = complaint.tower;
-
-      const validation = await validationUtils.validateAdminAndTower(
-        adminId,
-        towerId
-      );
-      if (!validation.isValid) {
-        return res
-          .status(validation.status)
-          .json({ message: validation.message });
-      }
-
-      const feedbackObj = {
-        feedback,
-        date: new Date(),
-        general_feedback_by: adminId,
-      };
-
-      complaint.feedback.push(feedbackObj);
-      complaint.allow_tenant_feedback = true;
-
-      await complaint.save();
-
-      return res
-        .status(200)
-        .json({ message: "Feedback given successfully", complaint });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  },
+  giveComplaintFeedback: async (req, res) => {},
 
   layOffEmployee: async (req, res) => {
     try {
