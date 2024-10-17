@@ -800,6 +800,24 @@ const adminController = {
     }
   },
 
+  getEvaluation: async (req, res) => {
+    try {
+      const evaluationId = req.params.evaluationId;
+      const evaluation = await Evaluation.findById(evaluationId).lean();
+
+      const tenant = await Tenant.findById(evaluation.tenant)
+        .select("registration.organizationName")
+        .lean();
+
+      evaluation.tenant_name = tenant.registration.organizationName;
+
+      return res.status(200).json({ evaluation });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   getBlogs: async (req, res) => {
     try {
       const blogs = await Blog.find().lean();
