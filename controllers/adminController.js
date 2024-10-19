@@ -244,7 +244,7 @@ const adminController = {
       );
       tenant.activeEmployees = activeEmployees.length;
 
-      const internedEmployees = activeEmployees.filter(
+      const internedEmployees = employees.filter(
         (employee) => employee.employee_type === "intern"
       );
       tenant.internedEmployees = internedEmployees.length;
