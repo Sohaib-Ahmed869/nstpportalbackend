@@ -24,6 +24,7 @@ const multer = require("multer");
 const { giveComplaintFeedback } = require("./receptionistController");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+const firebase_blogs_dir = 'blogs/';
 
 const getNumberOfCards = async (adminId) => {
   try {
@@ -1810,6 +1811,36 @@ const adminController = {
       return res
         .status(200)
         .json({ message: "Service deleted successfully", service });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  deleteBlog: async (req, res) => {
+    try {
+      const { blogId } = req.body;
+
+      const blogValidation = await validationUtils.validateBlog(blogId);
+      if (!blogValidation.isValid) {
+        return res
+          .status(blogValidation.status)
+          .json({ message: blogValidation.message });
+      }
+
+      const blog = await Blog.findById(blogId);
+
+      const firebaseToken = blog.token;
+      const bucket = admin.storage().bucket();
+
+      const url = firebase_blogs_dir + firebaseToken;
+
+      await bucket.file(url).delete();
+      await blog.deleteOne();
+
+      return res
+        .status(200)
+        .json({ message: "Blog deleted successfully", blog });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });

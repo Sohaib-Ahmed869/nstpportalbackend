@@ -50,5 +50,6 @@ router.put("/service/edit", auth.verifyToken, auth.verifyAdmin, adminController.
 
 router.delete("/room/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteRoom);
 router.delete("/service/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteService);
+router.delete("/blog/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteBlog);
 
 module.exports = router;

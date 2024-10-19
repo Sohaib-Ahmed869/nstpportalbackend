@@ -16,6 +16,7 @@ const {
   EtagAllocation,
   Clearance,
   LostAndFound,
+  Blog,
 } = require("../models");
 
 const validationUtils = {
@@ -217,6 +218,10 @@ const validationUtils = {
 
   async validateRoomBooking(roomBookingId) {
     return this.validateEntity(RoomBooking, roomBookingId, "Room Booking");
+  },
+
+  async validateBlog(blogId) {
+    return this.validateEntity(Blog, blogId, "Blog");
   },
 
   async validateTenantRoomBooking(tenantId, bookingId) {
