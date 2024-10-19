@@ -222,13 +222,27 @@ const adminController = {
       var tenant = await Tenant.findById(tenantId).lean();
       //etags, gatepasses, cards, workpermits, violations, employees
 
-      // get number of etags
-      const etags = await EtagAllocation.find({ tenant_id: tenantId }).lean();
-      tenant.etags = etags.length;
+      // Get number of etags
+      tenant.etags = {};
+      const etags = await EtagAllocation.find({
+        tenant_id: tenantId,
+        date_invalid: undefined,
+      }).lean();
+      tenant.etags.issued = etags.filter((etag) => etag.is_issued).length;
+      tenant.etags.pending = etags.filter((etag) => etag.is_requested).length;
 
-      // get number of gatepasses
-      const gatepasses = await GatePass.find({ tenant_id: tenantId }).lean();
-      tenant.gatepasses = gatepasses.length;
+      // Get number of gatepasses
+      tenant.gatepasses = {};
+      const gatepasses = await GatePass.find({
+        tenant_id: tenantId,
+        reason_decline: undefined,
+      }).lean();
+      tenant.gatepasses.issued = gatepasses.filter(
+        (gatepass) => gatepass.is_approved
+      ).length;
+      tenant.gatepasses.pending = gatepasses.filter(
+        (gatepass) => !gatepass.is_approved
+      ).length;
 
       // get number of cards
       const cards = await CardAllocation.find({ tenant_id: tenantId }).lean();
@@ -275,10 +289,12 @@ const adminController = {
       // get number of violations
       tenant.violations = tenant.complaints.length;
 
-      tenant.meetingMinutes = tenant.bookings?.reduce(
-        (acc, booking) => acc + booking.minutes,
-        0
-      );
+      tenant.meetingMinutes = 0;
+      tenant.meetingMinutesMoney = 0;
+      tenant.bookings?.forEach((booking) => {
+        tenant.meetingMinutes += booking.minutes;
+        tenant.meetingMinutesMoney += booking.cost;
+      });
 
       return res.status(200).json({ tenant });
     } catch (err) {

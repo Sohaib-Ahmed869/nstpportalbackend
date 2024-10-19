@@ -117,12 +117,26 @@ const tenantController = {
       // etags, gatepasses, cards, workpermits, violations, employees
 
       // Get number of etags
-      const etags = await EtagAllocation.find({ tenant_id: tenantId }).lean();
-      tenant.etags = etags.length;
+      tenant.etags = {};
+      const etags = await EtagAllocation.find({
+        tenant_id: tenantId,
+        date_invalid: undefined,
+      }).lean();
+      tenant.etags.issued = etags.filter((etag) => etag.is_issued).length;
+      tenant.etags.pending = etags.filter((etag) => etag.is_requested).length;
 
       // Get number of gatepasses
-      const gatepasses = await GatePass.find({ tenant_id: tenantId }).lean();
-      tenant.gatepasses = gatepasses.length;
+      tenant.gatepasses = {};
+      const gatepasses = await GatePass.find({
+        tenant_id: tenantId,
+        reason_decline: undefined,
+      }).lean();
+      tenant.gatepasses.issued = gatepasses.filter(
+        (gatepass) => gatepass.is_approved
+      ).length;
+      tenant.gatepasses.pending = gatepasses.filter(
+        (gatepass) => !gatepass.is_approved
+      ).length;
 
       // Get number of cards
       const cards = await CardAllocation.find({ tenant_id: tenantId }).lean();
@@ -132,7 +146,7 @@ const tenantController = {
       }).lean();
 
       tenant.totalEmployees = employees.length;
-      
+
       const activeEmployees = employees.filter(
         (employee) => employee.status_employment
       );
@@ -170,10 +184,12 @@ const tenantController = {
       // Get number of violations
       tenant.violations = tenant.complaints.length;
 
-      tenant.meetingMinutes = tenant.bookings?.reduce(
-        (acc, booking) => acc + booking.minutes,
-        0
-      );
+      tenant.meetingMinutes = 0;
+      tenant.meetingMinutesMoney = 0;
+      tenant.bookings?.forEach((booking) => {
+        tenant.meetingMinutes += booking.minutes;
+        tenant.meetingMinutesMoney += booking.cost;
+      });
 
       return res.status(200).json({ tenant });
     } catch (err) {
