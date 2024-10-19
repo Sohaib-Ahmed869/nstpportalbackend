@@ -226,7 +226,7 @@ const adminController = {
       tenant.etags = {};
       const etags = await EtagAllocation.find({
         tenant_id: tenantId,
-        date_invalid: undefined,
+        reason_decline: undefined,
       }).lean();
       tenant.etags.issued = etags.filter((etag) => etag.is_issued).length;
       tenant.etags.pending = etags.filter((etag) => etag.is_requested).length;
@@ -247,19 +247,20 @@ const adminController = {
       // get number of cards
       const cards = await CardAllocation.find({ tenant_id: tenantId }).lean();
 
-      const employees = await Employee.find({
+      let employees = await Employee.find({
         tenant_id: tenantId,
-        status_employment: true,
       }).lean();
-      tenant.employees = employees;
+
+      tenant.totalEmployees = employees.length;
 
       const activeEmployees = employees.filter(
         (employee) => employee.status_employment
       );
       tenant.activeEmployees = activeEmployees.length;
+      tenant.employees = activeEmployees;
 
       const internedEmployees = employees.filter(
-        (employee) => employee.employee_type === "intern"
+        (employee) => employee.employee_type === "Intern"
       );
       tenant.internedEmployees = internedEmployees.length;
 
@@ -280,7 +281,7 @@ const adminController = {
       tenant.cardsNotIssued = tenant.activeEmployees - tenant.cardsIssued;
 
       // get number of workpermits
-      const workpermits = await WorkPermit.find({ tenant_id: tenantId }).lean();
+      const workpermits = await WorkPermit.find({ tenant: tenantId }).lean();
       // only approved work permits
       tenant.workpermits = workpermits.filter(
         (workpermit) => workpermit.status === "approved"
