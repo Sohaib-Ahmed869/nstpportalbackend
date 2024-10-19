@@ -24,7 +24,7 @@ const tenantController = {
       const towerId = req.towerId;
 
       const complaints = await Complaint.find({ tenant_id });
-      complaintsData = {};
+      let complaintsData = {};
       complaintsData.sent = complaints.length;
       complaintsData.resolved = complaints.filter(
         (complaint) => complaint.is_resolved
@@ -133,8 +133,8 @@ const tenantController = {
       );
       tenant.activeEmployees = activeEmployees.length;
 
-      const internedEmployees = activeEmployees.filter(
-        (employee) => employee.employee_type === "intern"
+      const internedEmployees = employees.filter(
+        (employee) => employee.employee_type === "Intern"
       );
       tenant.internedEmployees = internedEmployees.length;
 
