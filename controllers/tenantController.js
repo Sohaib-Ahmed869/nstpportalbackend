@@ -30,6 +30,11 @@ const tenantController = {
         (complaint) => complaint.is_resolved
       ).length;
       complaintsData.unresolved = complaintsData.sent - complaintsData.resolved;
+      // get the 5 oldest unresolved complaints
+      complaintsData.oldest = complaints
+        .filter((complaint) => !complaint.is_resolved)
+        .sort((a, b) => a.date - b.date)
+        .slice(0, 5);
 
       const employees = await Employee.find({ tenant_id });
       const employeeData = {};
@@ -122,16 +127,17 @@ const tenantController = {
       // Get number of cards
       const cards = await CardAllocation.find({ tenant_id: tenantId }).lean();
 
-      const employees = await Employee.find({
+      let employees = await Employee.find({
         tenant_id: tenantId,
-        status_employment: true,
       }).lean();
-      tenant.employees = employees;
 
+      tenant.totalEmployees = employees.length;
+      
       const activeEmployees = employees.filter(
         (employee) => employee.status_employment
       );
       tenant.activeEmployees = activeEmployees.length;
+      tenant.employees = activeEmployees;
 
       const internedEmployees = employees.filter(
         (employee) => employee.employee_type === "Intern"
@@ -428,7 +434,8 @@ const tenantController = {
         !doj ||
         !designation ||
         !empType ||
-        !permAddress || !tempAddress
+        !permAddress ||
+        !tempAddress
       ) {
         return res
           .status(400)
@@ -491,7 +498,6 @@ const tenantController = {
         father_name: fatherName,
         address: permAddress,
         temp_address: tempAddress,
-
       });
 
       await employee.save();
