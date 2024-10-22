@@ -89,10 +89,6 @@ const complaintSchema = new Schema(
       ref: "Receptionist",
     },
     feedback: [feedbackSchema],
-    allow_tenant_feedback: {
-      type: Boolean,
-      default: false,
-    },
   },
   { timestamps: true }
 );
