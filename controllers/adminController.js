@@ -24,7 +24,7 @@ const multer = require("multer");
 const { giveComplaintFeedback } = require("./receptionistController");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-const firebase_blogs_dir = 'blogs/';
+const firebase_blogs_dir = "blogs/";
 
 const getNumberOfCards = async (adminId) => {
   try {
@@ -135,13 +135,13 @@ const adminController = {
       }).lean();
       const complaintsResolved = complaints.filter((complaint) => {
         return (
-          complaint.status == "Resolved" &&
+          complaint.status == "resolved" &&
           complaint.general_handled_by == adminId
         );
       }).length;
 
       const complaintsPending = complaints.filter((complaint) => {
-        return complaint.status == "Pending";
+        return complaint.status == "pending";
       }).length;
 
       complaints = {
@@ -369,12 +369,19 @@ const adminController = {
           .json({ message: validation.message });
       }
 
-      const complaints = await Complaint.find({
+      let complaints = await Complaint.find({
         tower: towerId,
         complaint_type: "General",
-      })
-        .populate("tenant_id")
-        .lean();
+      }).populate({
+        path: "tenant_id",
+        select: "registration.organizationName",
+      });
+
+      complaints = complaints.map((complaint) => {
+        complaint.tenant_name =
+          complaint.tenant_id.registration.organizationName;
+        return complaint;
+      });
 
       return res.status(200).json({ complaints });
     } catch (err) {
@@ -1452,7 +1459,7 @@ const adminController = {
   handleComplaint: async (req, res) => {
     try {
       const adminId = req.id;
-      const { complaintId, approval, reasonDecline } = req.body;
+      const { complaintId, approval } = req.body;
       const complaintValidation = await validationUtils.validateComplaint(
         complaintId
       );
@@ -1477,16 +1484,21 @@ const adminController = {
       if (complaint.is_resolved == true) {
         return res.status(400).json({ message: "Complaint already resolved" });
       }
+
+      let minutesToResolved = Math.abs(
+        new Date(complaint.date_resolved) - new Date(complaint.date_initiated)
+      );
+      // convert to minutes
+      minutesToResolved = Math.floor(minutesToResolved / 60000);
+
       if (approval) {
-        complaint.status = "approved";
-      } else {
-        complaint.status = "rejected";
-        complaint.reason_decline = reasonDecline;
+        complaint.status = "resolved";
       }
 
       complaint.is_resolved = true;
       complaint.date_resolved = new Date();
       complaint.general_resolved_by = adminId;
+      complaint.minutes_to_resolved = minutesToResolved;
 
       await complaint.save();
 
@@ -1499,7 +1511,54 @@ const adminController = {
     }
   },
 
-  giveComplaintFeedback: async (req, res) => {},
+  giveComplaintFeedback: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { complaintId, feedback } = req.body;
+      if (!feedback) {
+        return res.status(400).json({ message: "Please provide feedback" });
+      }
+
+      const complaintValidation = await validationUtils.validateComplaint(
+        complaintId
+      );
+      if (!complaintValidation.isValid) {
+        return res
+          .status(complaintValidation.status)
+          .json({ message: complaintValidation.message });
+      }
+
+      const complaint = await Complaint.findById(complaintId);
+      const towerId = complaint.tower;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const feedbackObj = {
+        feedback,
+        date: new Date(),
+        general_feedback_by: adminId,
+      };
+
+      complaint.feedback.push(feedbackObj);
+
+      await complaint.save();
+
+      return res
+        .status(200)
+        .json({ message: "Feedback given successfully", complaint });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
 
   layOffEmployee: async (req, res) => {
     try {

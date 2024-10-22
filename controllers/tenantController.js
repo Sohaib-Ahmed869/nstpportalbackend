@@ -781,7 +781,6 @@ const tenantController = {
       const complaint = new Complaint({
         tower: towerId,
         tenant_id,
-        tenant_name: tenant.registration.organizationName,
         complaint_type: complaintType,
         subject,
         description,
@@ -790,6 +789,7 @@ const tenantController = {
         urgency,
       });
       await complaint.save();
+      complaint.tenant_name = tenant.registration.organizationName;
 
       return res
         .status(200)
@@ -1037,8 +1037,8 @@ const tenantController = {
       const tenant_id = req.id;
       const { complaintId, feedback } = req.body;
 
-      if (!tenant_id) {
-        return res.status(400).json({ message: "Please provide tenant ID" });
+      if (!feedback) {
+        return res.status(400).json({ message: "Please provide feedback" });
       }
 
       const validation = await validationUtils.validateComplaint(complaintId);
@@ -1060,7 +1060,6 @@ const tenantController = {
       };
 
       complaint.feedback.push(feedbackObj);
-      complaint.allow_tenant_feedback = false;
 
       await complaint.save();
 
@@ -1071,6 +1070,10 @@ const tenantController = {
       console.log("🚀 ~ giveComplaintFeedback: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
+  },
+
+  reOpenComplaint: async (req, res) => {
+    
   },
 
   updateEmployee: async (req, res) => {

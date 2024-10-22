@@ -252,9 +252,18 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      const complaints = await Complaint.find({
+      let complaints = await Complaint.find({
         tower: towerId,
         complaint_type: "Service",
+      }).populate({
+        path: "tenant_id",
+        select: "registration.organizationName",
+      });
+
+      complaints = complaints.map((complaint) => {
+        complaint.tenant_name =
+          complaint.tenant_id.registration.organizationName;
+        return complaint;
       });
 
       return res.status(200).send({ complaints });
@@ -797,7 +806,7 @@ const receptionistController = {
   handleComplaint: async (req, res) => {
     try {
       const receptionistId = req.id;
-      const { complaintId, approval, reasonDecline } = req.body;
+      const { complaintId, approval } = req.body;
 
       const validateComplaint = await validationUtils.validateComplaint(
         complaintId
@@ -827,19 +836,23 @@ const receptionistController = {
           .send({ message: validation.message });
       }
 
-      complaint.is_resolved = approval;
-      if (!approval) {
-        if (!reasonDecline) {
-          return res
-            .status(400)
-            .send({ message: "Please provide reason for decline" });
-        }
-        complaint.reason_decline = reasonDecline;
+      if (complaint.is_resolved) {
+        return res
+          .status(400)
+          .send({ message: "Complaint is already resolved" });
       }
 
+      let minutesToResolved = Math.abs(
+        new Date(complaint.date_resolved) - new Date(complaint.date_initiated)
+      );
+      // convert to minutes
+      minutesToResolved = Math.floor(minutesToResolved / 60000);
+
+      complaint.is_resolved = approval;
       complaint.service_resolved_by = receptionistId;
       complaint.date_resolved = new Date();
-      complaint.status = "approved";
+      complaint.status = "resolved";
+      complaint.time_to_resolve = minutesToResolved;
       const receptionist = await Receptionist.findById(receptionistId);
       receptionist.handled_complaints += 1;
 
@@ -858,6 +871,10 @@ const receptionistController = {
     try {
       const receptionistId = req.id;
       const { complaintId, feedback } = req.body;
+
+      if (!feedback) {
+        return res.status(400).send({ message: "Please provide feedback" });
+      }
 
       const validateComplaint = await validationUtils.validateComplaint(
         complaintId
@@ -888,7 +905,6 @@ const receptionistController = {
       };
 
       complaint.feedback.push(feedbackObj);
-      complaint.allow_tenant_feedback = true;
 
       await complaint.save();
 

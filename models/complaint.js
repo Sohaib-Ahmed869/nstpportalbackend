@@ -75,10 +75,7 @@ const complaintSchema = new Schema(
     status: {
       type: String,
       default: "pending",
-      enum: ["pending", "approved", "rejected"],
-    },
-    reason_decline: {
-      type: String,
+      enum: ["pending", "resolved"],
     },
     general_resolved_by: {
       type: Schema.Types.ObjectId,
@@ -89,6 +86,9 @@ const complaintSchema = new Schema(
       ref: "Receptionist",
     },
     feedback: [feedbackSchema],
+    time_to_resolve: {
+      type: Number,
+    },
   },
   { timestamps: true }
 );
