@@ -89,6 +89,10 @@ const complaintSchema = new Schema(
     time_to_resolve: {
       type: Number,
     },
+    buffer_time: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

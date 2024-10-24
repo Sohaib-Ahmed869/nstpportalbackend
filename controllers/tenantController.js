@@ -1,5 +1,6 @@
 const {
   Employee,
+  Receptionist,
   CardAllocation,
   EtagAllocation,
   Tenant,
@@ -1073,7 +1074,101 @@ const tenantController = {
   },
 
   reOpenComplaint: async (req, res) => {
-    
+    try {
+      const tenant_id = req.id;
+      const { complaintId } = req.body;
+
+      const validation = await validationUtils.validateComplaint(complaintId);
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const complaint = await Complaint.findById(complaintId);
+      if (!complaint) {
+        return res.status(400).json({ message: "Complaint not found" });
+      }
+
+      // Check if complaint is already open
+      if (complaint.status === "pending") {
+        return res.status(400).json({ message: "Complaint already open" });
+      }
+
+      // Check if the complaint was resolved within the last day
+      const oneDayInMillis = 24 * 60 * 60 * 1000;
+      const now = new Date();
+      let timeSinceResolved = now - new Date(complaint.date_resolved);
+
+      if (timeSinceResolved > oneDayInMillis) {
+        return res.status(400).json({
+          message:
+            "Complaint can only be reopened within one day of resolution",
+        });
+      }
+
+      // convert timeSinceResolved to minutes
+      timeSinceResolved = timeSinceResolved / (1000 * 60);
+
+      complaint.status = "pending";
+      complaint.is_resolved = false;
+      complaint.date_resolved = undefined;
+      complaint.general_resolved_by = undefined;
+      complaint.time_to_resolve = undefined; // Reset time to resolve
+      complaint.buffer_time += timeSinceResolved; // Set buffer time to time since resolved
+      
+      if (complaint.complaint_type === "Service") {
+        const receptionist = await Receptionist.findById(
+          complaint.service_resolved_by
+        );
+        receptionist.handled_complaints -= 1;
+        await receptionist.save();
+        complaint.service_resolved_by = undefined;
+      }
+
+      await complaint.save();
+
+      return res
+        .status(200)
+        .json({ message: "Complaint reopened successfully", complaint });
+    } catch (err) {
+      console.log("🚀 ~ reOpenComplaint: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  updatePassword: async (req, res) => {
+    try {
+      const tenant_id = req.id;
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        return res
+          .status(400)
+          .json({ message: "Please provide current and new password" });
+      }
+
+      const tenant = await Tenant.findById(tenant_id);
+      if (!tenant) {
+        return res.status(400).json({ message: "Tenant not found" });
+      }
+
+      const isMatch = await tenant.comparePassword(currentPassword);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Invalid current password" });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      tenant.password = hashedPassword;
+      await tenant.save();
+
+      return res.status(200).json({ message: "Password updated successfully" });
+    } catch (err) {
+      console.log("🚀 ~ updatePassword: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
   },
 
   updateEmployee: async (req, res) => {

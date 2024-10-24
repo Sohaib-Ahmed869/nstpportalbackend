@@ -852,7 +852,7 @@ const receptionistController = {
       complaint.service_resolved_by = receptionistId;
       complaint.date_resolved = new Date();
       complaint.status = "resolved";
-      complaint.time_to_resolve = minutesToResolved;
+      complaint.time_to_resolve = minutesToResolved - complaint.buffer_time;
       const receptionist = await Receptionist.findById(receptionistId);
       receptionist.handled_complaints += 1;
 

@@ -25,6 +25,7 @@ router.get("/towers/:towerId/clearances", auth.verifyToken, auth.verifyAdmin, ad
 router.get("/towers/:towerId/clearances/:clearanceId", auth.verifyToken, auth.verifyAdmin, adminController.getClearance);
 router.get("/towers/:towerId/evaluations", auth.verifyToken, auth.verifyAdmin, adminController.getEvaluations);
 router.get("/towers/:towerId/evaluations/:evaluationId", auth.verifyToken, auth.verifyAdmin, adminController.getEvaluation);
+router.get("/towers/:towerId/tenants/:tenantId/notes", auth.verifyToken, auth.verifyAdmin, adminController.getNotes);
 router.get("/blogs", auth.verifyToken, auth.verifyAdmin, adminController.getBlogs);
 router.get("/blogs/:blogId", auth.verifyToken, auth.verifyAdmin, adminController.getBlog);
 
@@ -34,6 +35,7 @@ router.post("/office/assign", auth.verifyToken, auth.verifyAdmin, adminControlle
 router.post("/room/add", auth.verifyToken, auth.verifyAdmin, adminController.addRoom);
 router.post("/room-type/add", auth.verifyToken, auth.verifyAdmin, adminController.addRoomType);
 router.post("/evaluation/request", auth.verifyToken, auth.verifyAdmin, adminController.requestEvaluation);
+router.post("/note/add", auth.verifyToken, auth.verifyAdmin, adminController.addNote);
 router.post("/blog/add", auth.verifyToken, auth.verifyAdmin, adminController.addBlog);
 
 router.put("/card/accept", auth.verifyToken, auth.verifyAdmin, adminController.acceptCardRequest);

@@ -34,6 +34,7 @@ const routes = [
   { method: "post", path: "/workpermit/request", handler: tenantController.requestWorkPermit },
   { method: "post", path: "/clearance/initiate", handler: tenantController.initiateClearance },
 
+  { method: "put", path: "/password/update", handler: tenantController.updatePassword },
   { method: "put", path: "/employee/update", handler: tenantController.updateEmployee },
   { method: "put", path: "/employee/layoff", handler: tenantController.layoffEmployee },
   { method: "put", path: "/evaluation/submit", handler: tenantController.submitEvaluation },

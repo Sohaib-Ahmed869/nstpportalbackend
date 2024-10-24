@@ -64,6 +64,11 @@ const roomBookingSchema = new Schema({
   cost: { type: Number, required: true },
 });
 
+const notesSchema = new Schema({
+  note: { type: String, required: true },
+  date: { type: Date, default: Date.now },
+  admin: { type: Schema.Types.ObjectId, ref: "Admin", required: true },
+});
 
 const tenantSchema = new Schema(
   {
@@ -75,6 +80,7 @@ const tenantSchema = new Schema(
     companyResourceComposition: companyResourceCompositionSchema,
     complaints: [complaintSchema],
     bookings: [roomBookingSchema],
+    notes: [notesSchema],
 
     username: { type: String, unique: true },
     password: { type: String },

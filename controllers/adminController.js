@@ -21,10 +21,59 @@ const COMPANY_CATEGORIES = ["Company", "Cube 8", "Hatch 8", "Startup"];
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");
 const multer = require("multer");
-const { giveComplaintFeedback } = require("./receptionistController");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const firebase_blogs_dir = "blogs/";
+const nodemailer = require("nodemailer");
+
+const generateUsername = async (registration) => {
+  try {
+    let baseUsername = registration.organizationName
+      .replace(/\s+/g, "") // Remove spaces
+      .replace(/[^a-zA-Z0-9]/g, "") // Remove special characters
+      .toLowerCase(); // Convert to lowercase
+
+    let username = baseUsername;
+    let counter = 1;
+
+    // Check if the username exists in the database
+    while (await Tenant.exists({ username })) {
+      username = `${baseUsername}${counter}`;
+      counter++;
+    }
+
+    return username;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+};
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    // user: process.env.EMAIL,
+    // pass: process.env.EMAIL_PASSWORD,
+  },
+});
+
+const sendEmail = async (email, subject, message) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject,
+      html: message,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully");
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+};
 
 const getNumberOfCards = async (adminId) => {
   try {
@@ -844,6 +893,36 @@ const adminController = {
     }
   },
 
+  getNotes: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { towerId, tenantId } = req.params;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const tenant = await Tenant.findById(tenantId)
+        .select("notes registration.organizationName")
+        .populate("notes.admin", "name")
+        .lean();
+
+      return res.status(200).json({
+        notes: tenant.notes,
+        tenant_name: tenant.registration.organizationName,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   getBlogs: async (req, res) => {
     try {
       const blogs = await Blog.find().lean();
@@ -951,11 +1030,7 @@ const adminController = {
           .json({ message: "Please provide all required fields" });
       }
 
-      const username = registration.organizationName
-        .replace(/\s+/g, "") // Remove spaces
-        .replace(/[^a-zA-Z0-9]/g, "") // Remove special characters
-        .toLowerCase(); // Convert to lowercase
-
+      const username = await generateUsername(registration);
       const password = process.env.TENANT_PASSWORD;
 
       const tenant = new Tenant({
@@ -1049,6 +1124,11 @@ const adminController = {
 
       // Save the updated tenant document
       await tenant.save();
+
+      // send email to tenant
+      const subject = "Welcome to NSTP";
+      const text = `Your Tenant account has been successfully created. Your username is ${tenant.username} and password is ${process.env.TENANT_PASSWORD}`;
+      // await sendEmail(tenant.registration.companyEmail, subject, text);
 
       res.status(200).json({ message: "Office assigned successfully", tenant });
     } catch (error) {
@@ -1192,6 +1272,43 @@ const adminController = {
       return res
         .status(200)
         .json({ message: "Evaluation requested sucessfully", evaluation });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  addNote: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { tenantId, note } = req.body;
+      if (!tenantId || !note) {
+        return res.status(400).json({ message: "Please provide all fields" });
+      }
+
+      const validateTenant = await validationUtils.validateTenant(tenantId);
+      if (!validateTenant.isValid) {
+        return res
+          .status(validateTenant.status)
+          .json({ message: validateTenant.message });
+      }
+
+      const tenant = await Tenant.findById(tenantId);
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        tenant.tower
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      tenant.notes.push({ admin: adminId, note });
+      await tenant.save();
+
+      return res.status(200).json({ message: "Note added successfully" });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
@@ -1498,7 +1615,7 @@ const adminController = {
       complaint.is_resolved = true;
       complaint.date_resolved = new Date();
       complaint.general_resolved_by = adminId;
-      complaint.minutes_to_resolved = minutesToResolved;
+      complaint.time_to_resolved = minutesToResolved - complaint.buffer_time;
 
       await complaint.save();
 
