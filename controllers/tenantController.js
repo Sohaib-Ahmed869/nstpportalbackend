@@ -16,6 +16,7 @@ const {
   LostAndFound,
 } = require("../models");
 const { validationUtils } = require("../utils");
+const bcrypt = require("bcrypt");
 
 const tenantController = {
   getDashboard: async (req, res) => {
@@ -1158,10 +1159,7 @@ const tenantController = {
         return res.status(400).json({ message: "Invalid current password" });
       }
 
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-      tenant.password = hashedPassword;
+      tenant.password = newPassword;
       await tenant.save();
 
       return res.status(200).json({ message: "Password updated successfully" });

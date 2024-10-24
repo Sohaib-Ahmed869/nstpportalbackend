@@ -9,6 +9,8 @@ const registrationSchema = new Schema({
   presentAddress: { type: String, required: true },
   website: { type: String, required: true },
   companyEmail: { type: String, required: true },
+  companyLogo: { type: String },
+  companyLogoToken: { type: String },
 });
 
 const contactInformationSchema = new Schema({
