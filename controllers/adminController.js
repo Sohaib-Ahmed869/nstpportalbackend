@@ -909,13 +909,31 @@ const adminController = {
       }
 
       const tenant = await Tenant.findById(tenantId)
-        .select("notes registration.organizationName")
+        .select("notes")
         .populate("notes.admin", "name")
         .lean();
 
+      let notes = [];
+      if (tenant.notes) {
+        notes = tenant.notes?.map((note) => {
+          // check if note was written by the admin hisself
+          let isEditable = false;
+          if (note.admin._id.toString() == adminId) {
+            isEditable = true;
+          }
+          return {
+            id: note._id,
+            note: note.note,
+            date: note.date,
+            adminName: note.admin.name,
+            isEditable,
+          };
+        });
+      }
+
       return res.status(200).json({
-        notes: tenant.notes,
-        tenant_name: tenant.registration.organizationName,
+        notes,
+        message: "Notes fetched successfully",
       });
     } catch (err) {
       console.error(err);

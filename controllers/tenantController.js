@@ -16,7 +16,6 @@ const {
   LostAndFound,
 } = require("../models");
 const { validationUtils } = require("../utils");
-const { giveComplaintFeedback } = require("./receptionistController");
 
 const tenantController = {
   getDashboard: async (req, res) => {
@@ -1116,6 +1115,7 @@ const tenantController = {
       complaint.general_resolved_by = undefined;
       complaint.time_to_resolve = undefined; // Reset time to resolve
       complaint.buffer_time += timeSinceResolved; // Set buffer time to time since resolved
+      if (complaint.feedback == undefined) 
       
       if (complaint.complaint_type === "Service") {
         const receptionist = await Receptionist.findById(
