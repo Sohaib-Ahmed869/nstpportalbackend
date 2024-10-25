@@ -19,6 +19,7 @@ const {
 const { validationUtils } = require("../utils");
 const COMPANY_CATEGORIES = ["Company", "Cube 8", "Hatch 8", "Startup"];
 const admin = require("firebase-admin");
+const { ref, getDownloadURL } = require("firebase-admin/storage");
 const { v4: uuidv4 } = require("uuid");
 const multer = require("multer");
 const storage = multer.memoryStorage();
@@ -348,6 +349,48 @@ const adminController = {
       });
 
       return res.status(200).json({ tenant });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  getTenantLogoDownload: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { towerId, tenantId } = req.params;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const validateTenant = await validationUtils.validateTenant(tenantId);
+      if (!validateTenant.isValid) {
+        return res
+          .status(validateTenant.status)
+          .json({ message: validateTenant.message });
+      }
+
+      const tenant = await Tenant.findById(tenantId).lean();
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant not found" });
+      }
+
+      if (!tenant.registration.companyLogo) {
+        return res.status(404).json({ message: "Logo not found" });
+      }
+
+      const downloadURL = await getDownloadURL(
+        ref(admin.storage().bucket(), tenant.registration.companyLogo)
+      );
+
+      return res.status(200).json({ downloadURL });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
@@ -962,114 +1005,259 @@ const adminController = {
     }
   },
 
-  addTenant: async (req, res) => {
-    try {
-      const {
-        registration,
-        contactInfo,
-        stakeholders,
-        companyProfile,
-        industrySector,
-        companyResourceComposition,
-      } = req.body;
-      const registrationFields = [
-        "category",
-        "organizationName",
-        "presentAddress",
-        "website",
-        "companyEmail",
-      ];
+  addTenant: [
+    upload.single("companyLogo"),
+    async (req, res) => {
+      try {
+        const registration = JSON.parse(req.body.registration);
+        const contactInfo = JSON.parse(req.body.contactInfo);
+        const stakeholders = JSON.parse(req.body.stakeholders);
+        const companyProfile = JSON.parse(req.body.companyProfile);
+        const industrySector = JSON.parse(req.body.industrySector);
+        const companyResourceComposition = JSON.parse(
+          req.body.companyResourceComposition
+        );
+        const image = req.file;
 
-      const contactInformationFields = [
-        "applicantName",
-        "applicantPhone",
-        "applicantEmail",
-        // "applicantLandline",
-      ];
+        console.log(registration);
+        console.log(contactInfo);
+        console.log(stakeholders);
+        console.log(companyProfile);
+        console.log(industrySector);
+        console.log(companyResourceComposition);
 
-      const stakeholderFields = [
-        "name",
-        "designation",
-        "email",
-        "presentAddress",
-        "nationality",
-        // "dualNationality",
-        "profile",
-        "isNustAlumni",
-        "isNustEmployee",
-      ];
+        // const registrationFields = [
+        //   "category",
+        //   "organizationName",
+        //   "presentAddress",
+        //   "website",
+        //   "companyEmail",
+        // ];
 
-      const companyProfileFields = [
-        "companyHeadquarters",
-        "yearsInBusiness",
-        "numberOfEmployees",
-        "registrationNumber",
-      ];
+        // const contactInformationFields = [
+        //   "applicantName",
+        //   "applicantPhone",
+        //   "applicantEmail",
+        //   // "applicantLandline",
+        // ];
 
-      const industrySectorFields = ["category", "rentalSpaceSqFt", "timeFrame"];
+        // const stakeholderFields = [
+        //   "name",
+        //   "designation",
+        //   "email",
+        //   "presentAddress",
+        //   "nationality",
+        //   // "dualNationality",
+        //   "profile",
+        //   "isNustAlumni",
+        //   "isNustEmployee",
+        // ];
 
-      const companyResourceCompositionFields = [
-        "management",
-        "engineering",
-        "marketingAndSales",
-        // "remainingPredominantArea",
-        "areasOfResearch",
-        // "nustSchoolToCollab",
-      ];
+        // const companyProfileFields = [
+        //   "companyHeadquarters",
+        //   "yearsInBusiness",
+        //   "numberOfEmployees",
+        //   "registrationNumber",
+        // ];
 
-      if (
-        !validationUtils.validateRequiredFields(
+        // const industrySectorFields = [
+        //   "category",
+        //   "rentalSpaceSqFt",
+        //   "timeFrame",
+        // ];
+
+        // const companyResourceCompositionFields = [
+        //   "management",
+        //   "engineering",
+        //   "marketingAndSales",
+        //   // "remainingPredominantArea",
+        //   "areasOfResearch",
+        //   // "nustSchoolToCollab",
+        // ];
+
+        // if (
+        //   !validationUtils.validateRequiredFields(
+        //     registration,
+        //     registrationFields
+        //   ) ||
+        //   !validationUtils.validateRequiredFields(
+        //     contactInfo,
+        //     contactInformationFields
+        //   ) ||
+        //   !validationUtils.validateRequiredFieldsArray(
+        //     stakeholders,
+        //     stakeholderFields
+        //   ) ||
+        //   !validationUtils.validateRequiredFields(
+        //     companyProfile,
+        //     companyProfileFields
+        //   ) ||
+        //   !validationUtils.validateRequiredFields(
+        //     industrySector,
+        //     industrySectorFields
+        //   ) ||
+        //   !validationUtils.validateRequiredFields(
+        //     companyResourceComposition,
+        //     companyResourceCompositionFields
+        //   )
+        // ) {
+        //   return res
+        //     .status(400)
+        //     .json({ message: "Please provide all required fields" });
+        // }
+
+        if (!image) {
+          return res.status(400).json({ message: "Image is required" });
+        }
+
+        const bucket = admin.storage().bucket();
+        const uuid = uuidv4();
+        const imageFileName = `logos/${uuid}`;
+
+        await bucket.file(imageFileName).save(image.buffer, {
+          metadata: {
+            contentType: image.mimetype,
+            firebaseStorageDownloadTokens: uuid,
+          },
+        });
+
+        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/logos%2F${uuid}?alt=media&token=${uuid}`;
+
+        registration.companyLogo = imageUrl;
+        registration.companyLogoToken = uuid;
+
+        const username = await generateUsername(registration);
+        const password = process.env.TENANT_PASSWORD;
+
+        const tenant = new Tenant({
           registration,
-          registrationFields
-        ) ||
-        !validationUtils.validateRequiredFields(
           contactInfo,
-          contactInformationFields
-        ) ||
-        !validationUtils.validateRequiredFieldsArray(
           stakeholders,
-          stakeholderFields
-        ) ||
-        !validationUtils.validateRequiredFields(
           companyProfile,
-          companyProfileFields
-        ) ||
-        !validationUtils.validateRequiredFields(
           industrySector,
-          industrySectorFields
-        ) ||
-        !validationUtils.validateRequiredFields(
           companyResourceComposition,
-          companyResourceCompositionFields
-        )
-      ) {
-        return res
-          .status(400)
-          .json({ message: "Please provide all required fields" });
+          username,
+          password,
+        });
+
+        await tenant.save();
+
+        res.status(200).json({ message: "Registration successful", username });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Internal server error" });
       }
+    },
+  ],
 
-      const username = await generateUsername(registration);
-      const password = process.env.TENANT_PASSWORD;
+  // addTenant: async (req, res) => {
+  //   try {
+  //     const {
+  //       registration,
+  //       contactInfo,
+  //       stakeholders,
+  //       companyProfile,
+  //       industrySector,
+  //       companyResourceComposition,
+  //     } = req.body;
+  //     const registrationFields = [
+  //       "category",
+  //       "organizationName",
+  //       "presentAddress",
+  //       "website",
+  //       "companyEmail",
+  //     ];
 
-      const tenant = new Tenant({
-        registration,
-        contactInfo,
-        stakeholders,
-        companyProfile,
-        industrySector,
-        companyResourceComposition,
+  //     const contactInformationFields = [
+  //       "applicantName",
+  //       "applicantPhone",
+  //       "applicantEmail",
+  //       // "applicantLandline",
+  //     ];
 
-        username,
-        password,
-      });
-      await tenant.save();
+  //     const stakeholderFields = [
+  //       "name",
+  //       "designation",
+  //       "email",
+  //       "presentAddress",
+  //       "nationality",
+  //       // "dualNationality",
+  //       "profile",
+  //       "isNustAlumni",
+  //       "isNustEmployee",
+  //     ];
 
-      res.status(200).json({ message: "Registeration successful", username });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  },
+  //     const companyProfileFields = [
+  //       "companyHeadquarters",
+  //       "yearsInBusiness",
+  //       "numberOfEmployees",
+  //       "registrationNumber",
+  //     ];
+
+  //     const industrySectorFields = ["category", "rentalSpaceSqFt", "timeFrame"];
+
+  //     const companyResourceCompositionFields = [
+  //       "management",
+  //       "engineering",
+  //       "marketingAndSales",
+  //       // "remainingPredominantArea",
+  //       "areasOfResearch",
+  //       // "nustSchoolToCollab",
+  //     ];
+
+  //     if (
+  //       !validationUtils.validateRequiredFields(
+  //         registration,
+  //         registrationFields
+  //       ) ||
+  //       !validationUtils.validateRequiredFields(
+  //         contactInfo,
+  //         contactInformationFields
+  //       ) ||
+  //       !validationUtils.validateRequiredFieldsArray(
+  //         stakeholders,
+  //         stakeholderFields
+  //       ) ||
+  //       !validationUtils.validateRequiredFields(
+  //         companyProfile,
+  //         companyProfileFields
+  //       ) ||
+  //       !validationUtils.validateRequiredFields(
+  //         industrySector,
+  //         industrySectorFields
+  //       ) ||
+  //       !validationUtils.validateRequiredFields(
+  //         companyResourceComposition,
+  //         companyResourceCompositionFields
+  //       )
+  //     ) {
+  //       return res
+  //         .status(400)
+  //         .json({ message: "Please provide all required fields" });
+  //     }
+
+  //     const username = await generateUsername(registration);
+  //     const password = process.env.TENANT_PASSWORD;
+
+  //     const tenant = new Tenant({
+  //       registration,
+  //       contactInfo,
+  //       stakeholders,
+  //       companyProfile,
+  //       industrySector,
+  //       companyResourceComposition,
+
+  //       username,
+  //       password,
+  //     });
+  //     await tenant.save();
+
+  //     res.status(200).json({ message: "Registeration successful", username });
+  //   } catch (err) {
+  //     console.error(err);
+  //     res.status(500).json({ message: "Internal server error" });
+  //   }
+  // },
 
   addService: async (req, res) => {
     try {
@@ -1104,54 +1292,6 @@ const adminController = {
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
-  assignOffice: async (req, res) => {
-    // CONFIRM office service
-    try {
-      const adminId = req.id;
-      const { tenantId, towerId, office } = req.body;
-
-      const validation = await validationUtils.validateAdminAndTower(
-        adminId,
-        towerId
-      );
-      if (!validation.isValid) {
-        return res
-          .status(validation.status)
-          .json({ message: validation.message });
-      }
-
-      const validateTenant = await validationUtils.validateTenant(tenantId);
-      if (!validateTenant.isValid) {
-        return res
-          .status(validateTenant.status)
-          .json({ message: validateTenant.message });
-      }
-
-      const tenant = await Tenant.findById(tenantId);
-      if (!tenant) {
-        return res.status(404).json({ message: "Tenant not found" });
-      }
-
-      tenant.tower = towerId;
-      tenant.offices.push(office);
-      tenant.dateJoining = new Date();
-      tenant.statusTenancy = true;
-
-      // Save the updated tenant document
-      await tenant.save();
-
-      // send email to tenant
-      const subject = "Welcome to NSTP";
-      const text = `Your Tenant account has been successfully created. Your username is ${tenant.username} and password is ${process.env.TENANT_PASSWORD}`;
-      // await sendEmail(tenant.registration.companyEmail, subject, text);
-
-      res.status(200).json({ message: "Office assigned successfully", tenant });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Internal server error" });
     }
   },
 
@@ -1381,6 +1521,54 @@ const adminController = {
       }
     },
   ],
+
+  assignOffice: async (req, res) => {
+    // CONFIRM office service
+    try {
+      const adminId = req.id;
+      const { tenantId, towerId, office } = req.body;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const validateTenant = await validationUtils.validateTenant(tenantId);
+      if (!validateTenant.isValid) {
+        return res
+          .status(validateTenant.status)
+          .json({ message: validateTenant.message });
+      }
+
+      const tenant = await Tenant.findById(tenantId);
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant not found" });
+      }
+
+      tenant.tower = towerId;
+      tenant.offices.push(office);
+      tenant.dateJoining = new Date();
+      tenant.statusTenancy = true;
+
+      // Save the updated tenant document
+      await tenant.save();
+
+      // send email to tenant
+      const subject = "Welcome to NSTP";
+      const text = `Your Tenant account has been successfully created. Your username is ${tenant.username} and password is ${process.env.TENANT_PASSWORD}`;
+      // await sendEmail(tenant.registration.companyEmail, subject, text);
+
+      res.status(200).json({ message: "Office assigned successfully", tenant });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
 
   acceptCardRequest: async (req, res) => {
     try {
@@ -1931,6 +2119,128 @@ const adminController = {
       return res
         .status(200)
         .json({ message: "Service updated successfully", service });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  uploadTenantLogo: [
+    upload.single("logo"), 
+    async (req, res) => {
+      try {
+        const adminId = req.id;
+        const { tenantId } = req.body;
+        const logo = req.file;
+
+        if (!tenantId || !logo) {
+          return res.status(400).json({ message: "Please provide all fields" });
+        }
+
+        const tenantValidation = await validationUtils.validateTenant(tenantId);
+        if (!tenantValidation.isValid) {
+          return res
+            .status(tenantValidation.status)
+            .json({ message: tenantValidation.message });
+        }
+
+        const tenant = await Tenant.findById(tenantId);
+        const towerId = tenant.tower;
+
+        const validation = await validationUtils.validateAdminAndTower(
+          adminId,
+          towerId
+        );
+        if (!validation.isValid) {
+          return res
+            .status(validation.status)
+            .json({ message: validation.message });
+        }
+
+        const bucket = admin.storage().bucket();
+
+        // check if tenant already has a logo
+        if (tenant.registration.companyLogo) {
+          const imageUrl = tenant.registration.companyLogo;
+          const token = tenant.registration.companyLogoToken;
+          const fileName = `logos/${token}`;
+
+          await bucket.file(fileName).delete();
+
+          tenant.registration.companyLogo = null;
+          tenant.registration.companyLogoToken = null;
+        }
+
+        const uuid = uuidv4();
+        const imageFileName = `logos/${uuid}`;
+
+        await bucket.file(imageFileName).save(logo.buffer, {
+          metadata: {
+            contentType: logo.mimetype,
+            firebaseStorageDownloadTokens: uuid,
+          },
+        });
+
+        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/logos%2F${uuid}?alt=media&token=${uuid}`;
+
+        tenant.registration.companyLogo = imageUrl;
+        tenant.registration.companyLogoToken = uuid;
+
+        await tenant.save();
+
+        return res
+          .status(200)
+          .json({ message: "Logo uploaded successfully", tenant });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  ],
+
+  deleteTenantLogo: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { tenantId } = req.body;
+
+      const tenantValidation = await validationUtils.validateTenant(tenantId);
+      if (!tenantValidation.isValid) {
+        return res
+          .status(tenantValidation.status)
+          .json({ message: tenantValidation.message });
+      }
+
+      const tenant = await Tenant.findById(tenantId);
+      const towerId = tenant.tower;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      if (!tenant.registration.companyLogo) {
+        return res.status(400).json({ message: "Tenant does not have a logo" });
+      }
+      
+      const bucket = admin.storage().bucket();
+      const token = tenant.registration.companyLogoToken;
+      const fileName = `logos/${token}`;
+
+      await bucket.file(fileName).delete();
+
+      tenant.registration.companyLogo = null;
+      tenant.registration.companyLogoToken = null;
+
+      await tenant.save();
+
+      return res
+        .status(200)
+        .json({ message: "Logo deleted successfully", tenant });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });

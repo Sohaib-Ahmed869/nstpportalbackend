@@ -7,6 +7,7 @@ const auth = require("../middlewares/auth");
 router.get("/towers/:towerId/dashboard", auth.verifyToken, auth.verifyAdmin, adminController.getDashboard);
 router.get("/towers/:towerId/tenants", auth.verifyToken, auth.verifyAdmin, adminController.getTenants);
 router.get("/towers/:towerId/tenants/:tenantId", auth.verifyToken, auth.verifyAdmin, adminController.getTenant);
+router.get("/towers/:towerId/tenants/:tenantId/logo/download", auth.verifyToken, auth.verifyAdmin, adminController.getTenantLogoDownload);
 router.get("/towers/:towerId/receptionists", auth.verifyToken, auth.verifyAdmin, adminController.getReceptionists);
 router.get("/towers/:towerId/employees", auth.verifyToken, auth.verifyAdmin, adminController.getEmployees);
 router.get("/towers/:towerId/complaints", auth.verifyToken, auth.verifyAdmin, adminController.getComplaints);
@@ -31,13 +32,13 @@ router.get("/blogs/:blogId", auth.verifyToken, auth.verifyAdmin, adminController
 
 router.post("/tenant/add", auth.verifyToken, auth.verifyAdmin, adminController.addTenant);
 router.post("/service/add", auth.verifyToken, auth.verifyAdmin, adminController.addService);
-router.post("/office/assign", auth.verifyToken, auth.verifyAdmin, adminController.assignOffice);
 router.post("/room/add", auth.verifyToken, auth.verifyAdmin, adminController.addRoom);
 router.post("/room-type/add", auth.verifyToken, auth.verifyAdmin, adminController.addRoomType);
 router.post("/evaluation/request", auth.verifyToken, auth.verifyAdmin, adminController.requestEvaluation);
 router.post("/tenant/note/add", auth.verifyToken, auth.verifyAdmin, adminController.addNote);
 router.post("/blog/add", auth.verifyToken, auth.verifyAdmin, adminController.addBlog);
 
+router.put("/tenant/office/assign", auth.verifyToken, auth.verifyAdmin, adminController.assignOffice);
 router.put("/card/accept", auth.verifyToken, auth.verifyAdmin, adminController.acceptCardRequest);
 router.put("/card/reject", auth.verifyToken, auth.verifyAdmin, adminController.rejectCardRequest);
 router.put("/etag/accept", auth.verifyToken, auth.verifyAdmin, adminController.acceptEtagRequest);
@@ -49,6 +50,8 @@ router.put("/room/update", auth.verifyToken, auth.verifyAdmin, adminController.u
 router.put("/clearance/resolve", auth.verifyToken, auth.verifyAdmin, adminController.handleClearance);
 router.put("/workpermit/resolve", auth.verifyToken, auth.verifyAdmin, adminController.handleWorkPermit);
 router.put("/service/edit", auth.verifyToken, auth.verifyAdmin, adminController.editService);
+router.put("/tenant/logo/upload", auth.verifyToken, auth.verifyAdmin, adminController.uploadTenantLogo);
+router.put("/tenant/logo/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteTenantLogo);
 
 router.delete("/room/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteRoom);
 router.delete("/service/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteService);

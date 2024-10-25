@@ -89,7 +89,6 @@ const tenantSchema = new Schema(
     dateJoining: { type: Date },
     dateLeaving: { type: Date },
     statusTenancy: { type: Boolean, default: false },
-    logo: { type: String },
     tower: { type: Schema.Types.ObjectId, ref: "Tower" },
     offices: [
       {
