@@ -25,6 +25,7 @@ const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const firebase_blogs_dir = "blogs/";
+const firebase_logos_dir = "logos/";
 const nodemailer = require("nodemailer");
 
 const generateUsername = async (registration) => {
@@ -377,20 +378,25 @@ const adminController = {
           .json({ message: validateTenant.message });
       }
 
-      const tenant = await Tenant.findById(tenantId).lean();
+      const tenant = await Tenant.findById(tenantId);
       if (!tenant) {
         return res.status(404).json({ message: "Tenant not found" });
       }
 
-      if (!tenant.registration.companyLogo) {
+      const { companyLogo, companyLogoToken } = tenant.registration;
+      if (!companyLogo || !companyLogoToken) {
         return res.status(404).json({ message: "Logo not found" });
       }
 
-      const downloadURL = await getDownloadURL(
-        ref(admin.storage().bucket(), tenant.registration.companyLogo)
-      );
+      // verify if file exists
+      const bucket = admin.storage().bucket();
+      const file = bucket.file(`${firebase_logos_dir}${companyLogo}`);
+      const [exists] = await file.exists();
+      if (!exists) {
+        return res.status(404).json({ message: "Logo not found" });
+      }
 
-      return res.status(200).json({ downloadURL });
+      return res.status(200).json({ downloadUrl: companyLogo });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
@@ -2229,7 +2235,7 @@ const adminController = {
       
       const bucket = admin.storage().bucket();
       const token = tenant.registration.companyLogoToken;
-      const fileName = `logos/${token}`;
+      const fileName = `${firebase_logos_dir}${token}`;
 
       await bucket.file(fileName).delete();
 
