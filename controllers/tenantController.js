@@ -1050,9 +1050,6 @@ const tenantController = {
       }
 
       const complaint = await Complaint.findById(complaintId);
-      if (!complaint.allow_tenant_feedback) {
-        return res.status(400).json({ message: "Feedback not allowed" });
-      }
 
       const feedbackObj = {
         feedback,
