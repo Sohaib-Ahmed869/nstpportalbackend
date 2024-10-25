@@ -35,7 +35,7 @@ router.post("/office/assign", auth.verifyToken, auth.verifyAdmin, adminControlle
 router.post("/room/add", auth.verifyToken, auth.verifyAdmin, adminController.addRoom);
 router.post("/room-type/add", auth.verifyToken, auth.verifyAdmin, adminController.addRoomType);
 router.post("/evaluation/request", auth.verifyToken, auth.verifyAdmin, adminController.requestEvaluation);
-router.post("/note/add", auth.verifyToken, auth.verifyAdmin, adminController.addNote);
+router.post("/tenant/note/add", auth.verifyToken, auth.verifyAdmin, adminController.addNote);
 router.post("/blog/add", auth.verifyToken, auth.verifyAdmin, adminController.addBlog);
 
 router.put("/card/accept", auth.verifyToken, auth.verifyAdmin, adminController.acceptCardRequest);
@@ -53,5 +53,6 @@ router.put("/service/edit", auth.verifyToken, auth.verifyAdmin, adminController.
 router.delete("/room/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteRoom);
 router.delete("/service/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteService);
 router.delete("/blog/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteBlog);
+router.delete("/tenant/note/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteNote);
 
 module.exports = router;
