@@ -1620,6 +1620,7 @@ const adminController = {
         return res.status(400).json({ message: "Complaint already resolved" });
       }
 
+      complaint.date_resolved = new Date();
       let minutesToResolved = Math.abs(
         new Date(complaint.date_resolved) - new Date(complaint.date_initiated)
       );
@@ -1631,9 +1632,8 @@ const adminController = {
       }
 
       complaint.is_resolved = true;
-      complaint.date_resolved = new Date();
       complaint.general_resolved_by = adminId;
-      complaint.time_to_resolved = minutesToResolved - complaint.buffer_time;
+      complaint.time_to_resolve = +minutesToResolved - +complaint.buffer_time;
 
       await complaint.save();
 

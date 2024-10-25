@@ -85,7 +85,10 @@ const complaintSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Receptionist",
     },
-    feedback: [feedbackSchema],
+    feedback: {
+      type: [feedbackSchema],
+      default: null,
+    },
     time_to_resolve: {
       type: Number,
     },

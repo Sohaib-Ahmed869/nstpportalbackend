@@ -1116,8 +1116,9 @@ const tenantController = {
       complaint.general_resolved_by = undefined;
       complaint.time_to_resolve = undefined; // Reset time to resolve
       complaint.buffer_time += timeSinceResolved; // Set buffer time to time since resolved
-      if (complaint.feedback == undefined) 
-      
+      if (complaint.feedback == undefined) {
+        complaint.feedback = [];
+      }
       if (complaint.complaint_type === "Service") {
         const receptionist = await Receptionist.findById(
           complaint.service_resolved_by

@@ -841,18 +841,20 @@ const receptionistController = {
           .status(400)
           .send({ message: "Complaint is already resolved" });
       }
-
+      
+      complaint.date_resolved = new Date();
       let minutesToResolved = Math.abs(
         new Date(complaint.date_resolved) - new Date(complaint.date_initiated)
       );
       // convert to minutes
       minutesToResolved = Math.floor(minutesToResolved / 60000);
+      console.log("🚀 ~ handleComplaint: ~ minutesToResolved", minutesToResolved);
+      console.log("🚀 ~ handleComplaint: ~ complaint.buffer_time", complaint.buffer_time);
 
       complaint.is_resolved = approval;
       complaint.service_resolved_by = receptionistId;
-      complaint.date_resolved = new Date();
       complaint.status = "resolved";
-      complaint.time_to_resolve = minutesToResolved - complaint.buffer_time;
+      complaint.time_to_resolve = +minutesToResolved - +complaint.buffer_time;
       const receptionist = await Receptionist.findById(receptionistId);
       receptionist.handled_complaints += 1;
 

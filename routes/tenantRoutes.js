@@ -39,7 +39,7 @@ const routes = [
   { method: "put", path: "/employee/layoff", handler: tenantController.layoffEmployee },
   { method: "put", path: "/evaluation/submit", handler: tenantController.submitEvaluation },
   { method: "put", path: "/complaint/feedback", handler: tenantController.giveComplaintFeedback },
-  { method: "put", path: "/complaint/re-open", handler: tenantController.reOpenComplaint },
+  { method: "put", path: "/complaint/reopen", handler: tenantController.reOpenComplaint },
 
   { method: "delete", path: "/complaints/:complaintId/cancel", handler: tenantController.cancelComplaint },
   { method: "delete", path: "/workpermit/cancel", handler: tenantController.cancelWorkPermit },
