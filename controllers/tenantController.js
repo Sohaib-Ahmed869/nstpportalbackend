@@ -813,6 +813,16 @@ const tenantController = {
         return res.status(400).json({ message: "Please provide time slots" });
       }
 
+      // if end time is before start time
+      if (new Date(timeEnd) < new Date(timeStart)) {
+        return res.status(400).json({ message: "Invalid time slots" });
+      }
+
+      // if times are before current time
+      if (new Date(timeStart) < new Date()) {
+        return res.status(400).json({ message: "Invalid time slots" });
+      }
+
       // fetch all bookings for the room and check if the requested time slot is available
       const roomBookings = await RoomBooking.find({ room_id: roomId });
       const isAvailable = roomBookings.every((booking) => {
