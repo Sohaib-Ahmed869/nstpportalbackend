@@ -72,7 +72,7 @@ const tenantController = {
       cards.issued = cardAllocations.filter(
         (allocation) => allocation.is_active
       ).length;
-      cards.notIssued = cardAllocations.length - cards.issued;
+      cards.notIssued = employeeData.active - cards.issued;
 
       const interns = {};
       interns.total = employees.filter(
@@ -94,7 +94,7 @@ const tenantController = {
         interns,
       };
 
-      console.log("🚀 ~ getDashboard: ~ dashboard:", dashboard);
+      // console.log("🚀 ~ getDashboard: ~ dashboard:", dashboard);
       return res.status(200).json({ dashboard });
     } catch (err) {
       console.log("🚀 ~ getDashboard: ~ err:", err);
@@ -167,12 +167,7 @@ const tenantController = {
       tenant.nonNustianInterns =
         tenant.internedEmployees - tenant.nustianInterns;
 
-      const activeEmployeesWithCards = activeEmployees.filter((employee) =>
-        cards.some(
-          (card) => card.employee_id.toString() === employee._id.toString()
-        )
-      );
-      tenant.cardsIssued = activeEmployeesWithCards.length;
+      tenant.cardsIssued = cards.filter((card) => card.is_active).length;
       tenant.cardsNotIssued = tenant.activeEmployees - tenant.cardsIssued;
 
       // Get number of workpermits
@@ -1261,10 +1256,29 @@ const tenantController = {
         return res.status(400).json({ message: "Employee already laid off" });
       }
 
+      const cardAllocation = await CardAllocation.findOne({
+        tenant_id,
+        employee_id: employeeId,
+      });
+
+      const etagAllocation = await EtagAllocation.findOne({
+        tenant_id,
+        employee_id: employeeId,
+      });
+
       employee.status_employment = false;
       employee.layoff_date = new Date();
 
       await employee.save();
+      if (cardAllocation) {
+        cardAllocation.is_active = false;
+        await cardAllocation.save();
+      }
+      if (etagAllocation) {
+        etagAllocation.is_active = false;
+        await etagAllocation.save();
+      }
+
       return res
         .status(200)
         .json({ message: "Employee laid off successfully", employee });

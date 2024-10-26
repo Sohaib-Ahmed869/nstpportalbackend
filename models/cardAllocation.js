@@ -38,7 +38,7 @@ const cardAllocationSchema = new Schema(
     },
     is_active: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     date_issued: {
       type: Date,

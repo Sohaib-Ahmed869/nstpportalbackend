@@ -352,12 +352,7 @@ const adminController = {
       tenant.nonNustianInterns =
         tenant.internedEmployees - tenant.nustianInterns;
 
-      const activeEmployeesWithCards = activeEmployees.filter((employee) =>
-        cards.some(
-          (card) => card.employee_id.toString() === employee._id.toString()
-        )
-      );
-      tenant.cardsIssued = activeEmployeesWithCards.length;
+      tenant.cardsIssued = cards.filter((card) => card.is_issued).length;
       tenant.cardsNotIssued = tenant.activeEmployees - tenant.cardsIssued;
 
       // get number of workpermits
