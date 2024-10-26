@@ -813,6 +813,22 @@ const tenantController = {
         return res.status(400).json({ message: "Please provide time slots" });
       }
 
+      // fetch all bookings for the room and check if the requested time slot is available
+      const roomBookings = await RoomBooking.find({ room_id: roomId });
+      const isAvailable = roomBookings.every((booking) => {
+        const bookingStart = new Date(booking.time_start);
+        const bookingEnd = new Date(booking.time_end);
+        return (
+          (timeStart < bookingStart && timeEnd <= bookingStart) || // New booking ends before existing booking starts
+          (timeStart >= bookingEnd && timeEnd > bookingEnd) // New booking starts after existing booking ends
+        );
+      });
+
+      if (!isAvailable) {
+        return res.status(400).json({ message: "Room not available" });
+      }
+
+
       const booking = new RoomBooking({
         tower: towerId,
         tenant_id,
