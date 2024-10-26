@@ -2196,7 +2196,7 @@ const adminController = {
 
         return res
           .status(200)
-          .json({ message: "Logo uploaded successfully", tenant });
+          .json({ message: "Logo uploaded successfully", imageUrl });
       } catch (err) {
         console.error(err);
         return res.status(500).json({ message: "Internal server error" });
