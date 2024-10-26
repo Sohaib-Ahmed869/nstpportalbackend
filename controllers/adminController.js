@@ -182,23 +182,51 @@ const adminController = {
       // get complaints with type "General"
       let complaints = await Complaint.find({
         tower: towerId,
-        type: "General",
       }).lean();
+
+      console.log("Complaints: ", complaints);
       const complaintsResolved = complaints.filter((complaint) => {
         return (
-          complaint.status == "resolved" &&
-          complaint.general_handled_by == adminId
+          complaint.complaint_type == "General" &&
+          complaint.status == "resolved"
         );
-      }).length;
+      });
+      // console.log("Complaints Resolved: ",complaintsResolved);
+
+      // calculate mean time to repair
+      let generalMinutes = 0;
+      let serviceMinutes = 0;
+      let generalCount = 0;
+      let serviceCount = 0;
+      complaints.forEach((complaint) => {
+        if (complaint.complaint_type == "General") {
+          if(complaint.time_to_resolve != undefined) {
+            generalMinutes += complaint.time_to_resolve;
+            generalCount++;
+          }
+        } else {
+          if(complaint.time_to_resolve != undefined) {
+            serviceMinutes += complaint.time_to_resolve;
+            serviceCount++;
+          }
+        } 
+      });
 
       const complaintsPending = complaints.filter((complaint) => {
-        return complaint.status == "pending";
-      }).length;
+        return (
+          complaint.complaint_type == "General" && complaint.status == "pending"
+        );
+      });
+      // console.log("Complaints Pending: ",complaintsPending);
 
       complaints = {
-        total: complaints.length,
-        resolved: complaintsResolved,
-        pending: complaintsPending,
+        total: complaintsResolved.length + complaintsPending.length,
+        resolved: complaintsResolved.length,
+        pending: complaintsPending.length,
+        mttr: {
+          general:  Math.floor(generalMinutes / generalCount),
+          service: Math.floor(serviceMinutes / serviceCount),
+        }
       };
 
       const dashboard = {
@@ -2132,7 +2160,7 @@ const adminController = {
   },
 
   uploadTenantLogo: [
-    upload.single("logo"), 
+    upload.single("logo"),
     async (req, res) => {
       try {
         const adminId = req.id;
@@ -2201,7 +2229,7 @@ const adminController = {
         console.error(err);
         return res.status(500).json({ message: "Internal server error" });
       }
-    }
+    },
   ],
 
   deleteTenantLogo: async (req, res) => {
@@ -2232,7 +2260,7 @@ const adminController = {
       if (!tenant.registration.companyLogo) {
         return res.status(400).json({ message: "Tenant does not have a logo" });
       }
-      
+
       const bucket = admin.storage().bucket();
       const token = tenant.registration.companyLogoToken;
       const fileName = `${firebase_logos_dir}${token}`;
