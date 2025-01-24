@@ -261,7 +261,42 @@ const tenantController = {
       if (!tenant_id) {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
-      const complaints = await Complaint.find({ tenant_id });
+      let complaints = await Complaint.find({ tenant_id });
+
+      // Separate complaints by type
+      let serviceComplaints = complaints.filter(
+        (complaint) => complaint.complaint_type === "Service"
+      );
+      let generalComplaints = complaints.filter(
+        (complaint) => complaint.complaint_type === "General"
+      );
+
+      // Populate service_type for service complaints
+      serviceComplaints = await Complaint.populate(serviceComplaints, {
+        path: "service_type",
+        select: "name",
+      });
+
+      // Combine the complaints back
+      complaints = [...serviceComplaints, ...generalComplaints];
+
+      complaints = complaints.map((complaint) => {
+        const complaintObj = complaint.toObject();
+
+        // Add service_name only for Service complaints
+        if (complaint.complaint_type === "Service" && complaint.service_type) {
+          complaintObj.service_name = complaint.service_type.name
+            ? complaint.service_type.name
+            : null;
+        } else {
+          complaintObj.service_name = null;
+        }
+
+        return complaintObj;
+      });
+
+      console.log("🚀 ~ getComplaints: ~ complaints:", complaints);
+
       return res.status(200).json({ complaints });
     } catch (err) {
       console.log("🚀 ~ getComplaints: ~ err:", err);
@@ -781,11 +816,11 @@ const tenantController = {
         subject,
         description,
         service_type: serviceType,
-        service_name: serviceName,
         urgency,
       });
       await complaint.save();
       complaint.tenant_name = tenant.registration.organizationName;
+      complaint.service_name = serviceName ? serviceName : null;
 
       return res
         .status(200)
@@ -837,7 +872,6 @@ const tenantController = {
       if (!isAvailable) {
         return res.status(400).json({ message: "Room not available" });
       }
-
 
       const booking = new RoomBooking({
         tower: towerId,

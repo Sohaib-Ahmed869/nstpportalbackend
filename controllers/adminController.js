@@ -499,9 +499,10 @@ const adminController = {
       });
 
       complaints = complaints.map((complaint) => {
-        complaint.tenant_name =
+        let complaintObj = complaint.toObject();
+        complaintObj.tenant_name =
           complaint.tenant_id.registration.organizationName;
-        return complaint;
+        return complaintObj;
       });
 
       return res.status(200).json({ complaints });
@@ -1602,7 +1603,14 @@ const adminController = {
   acceptCardRequest: async (req, res) => {
     try {
       const adminId = req.id;
-      let { allocationId, validity } = req.body;
+      let { allocationId, validity, cardNumber } = req.body;
+
+      // if((validity == undefined || validity ==null || validity < 1) || (cardNumber == undefined || cardNumber == null || cardNumber < 0)) {
+      //   return res
+      //     .status(400)
+      //     .json({ message: "Inalid Values" });
+      // }
+
       if (!allocationId) {
         // add validity to required fields
         return res
@@ -1630,15 +1638,15 @@ const adminController = {
           .json({ message: validation.message });
       }
 
-      const cardNumber = await getNumberOfCards(adminId);
-      if (cardNumber === -1) {
-        return res
-          .status(500)
-          .json({ message: "Error in getting card number" });
-      }
+      // const cardNumber = await getNumberOfCards(adminId);
+      // if (cardNumber === -1) {
+      //   return res
+      //     .status(500)
+      //     .json({ message: "Error in getting card number" });
+      // }
 
       validity = validity || 6;
-      cardAllocation.card_number = cardNumber;
+      cardAllocation.card_number = cardNumber || -1;
       cardAllocation.is_requested = false;
       cardAllocation.is_issued = true;
       cardAllocation.validity = validity;
@@ -1709,7 +1717,11 @@ const adminController = {
   acceptEtagRequest: async (req, res) => {
     try {
       const adminId = req.id;
-      let { allocationId, validity } = req.body;
+      let { allocationId, validity, etagNumber } = req.body;
+
+      // if(validity < 1 || etagNumber < 0){
+      //   return res.status(400).json({ message: "Invalid Values" });
+      // }
 
       if (!allocationId) {
         return res.status(400).json({ message: "Please provide all fields" });
@@ -1735,15 +1747,15 @@ const adminController = {
           .json({ message: validation.message });
       }
 
-      const etagNumber = await getNumberOfEtags(adminId);
-      if (etagNumber === -1) {
-        return res
-          .status(500)
-          .json({ message: "Error in getting etag number" });
-      }
+      // const etagNumber = await getNumberOfEtags(adminId);
+      // if (etagNumber === -1) {
+      //   return res
+      //     .status(500)
+      //     .json({ message: "Error in getting etag number" });
+      // }
 
       validity = validity || 6;
-      etagAllocation.etag_number = etagNumber;
+      etagAllocation.etag_number = etagNumber || -1;
       etagAllocation.is_requested = false;
       etagAllocation.is_issued = true;
       etagAllocation.is_active = true;

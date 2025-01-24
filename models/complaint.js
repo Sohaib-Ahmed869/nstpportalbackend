@@ -56,7 +56,8 @@ const complaintSchema = new Schema(
       type: String,
     },
     service_type: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "Service",
     },
     service_name: {
       type: String,

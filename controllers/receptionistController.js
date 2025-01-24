@@ -9,7 +9,13 @@ const {
   WorkPermit,
   Complaint,
 } = require("../models");
+
 const { validationUtils } = require("../utils");
+const admin = require("firebase-admin");
+const { v4: uuidv4 } = require("uuid");
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const receptionistController = {
   getDashboard: async (req, res) => {
@@ -255,16 +261,29 @@ const receptionistController = {
       let complaints = await Complaint.find({
         tower: towerId,
         complaint_type: "Service",
-      }).populate({
-        path: "tenant_id",
-        select: "registration.organizationName",
-      });
+      })
+        .populate({
+          path: "tenant_id",
+          select: "registration.organizationName",
+        })
+        .populate({
+          path: "service_type",
+          select: "name",
+        });
 
       complaints = complaints.map((complaint) => {
-        complaint.tenant_name =
-          complaint.tenant_id.registration.organizationName;
-        return complaint;
+        const complaintObj = complaint.toObject();
+
+        let tenant_name = complaint.tenant_id.registration.organizationName;
+        let service_name = complaint.service_type.name;
+
+        complaintObj.tenant_name = tenant_name;
+        complaintObj.service_name = service_name;
+
+        return complaintObj;
       });
+
+      console.log("🚀 ~ getComplaints: ~ complaints", complaints);
 
       return res.status(200).send({ complaints });
     } catch (err) {
@@ -391,41 +410,103 @@ const receptionistController = {
     }
   },
 
-  addLostAndFound: async (req, res) => {
-    try {
-      const receptionistId = req.id;
-      const towerId = req.towerId;
-      const { item, description, image } = req.body;
+  addLostAndFound: [
+    upload.single("image"),
+    async (req, res) => {
+      try {
+        const receptionistId = req.id;
+        const towerId = req.towerId;
 
-      const validation = await validationUtils.validateReceptionistAndTower(
-        receptionistId,
-        towerId
-      );
-      console.log(validation);
-      if (!validation.isValid) {
+        // console.log("🚀 ~ addLostAndFound: ~ req", req);
+        console.log("🚀 ~ addLostAndFound: ~ req.body", req.body);
+        const image = req.file;
+        console.log("🚀 ~ addLostAndFound: ~ image", image);
+        const item = JSON.parse(req.body.title);
+        console.log("🚀 ~ addLostAndFound: ~ item", item);
+        const description = JSON.parse(req.body.desc);
+        console.log("🚀 ~ addLostAndFound: ~ description", description);
+
+        const validation = await validationUtils.validateReceptionistAndTower(
+          receptionistId,
+          towerId
+        );
+        if (!validation.isValid) {
+          return res
+            .status(validation.status)
+            .send({ message: validation.message });
+        }
+
+        let imageUrl = null;
+        if (image) {
+          const bucket = admin.storage().bucket();
+          const uuid = uuidv4();
+          const imageFileName = `lost_and_found/${uuid}`;
+
+          await bucket.file(imageFileName).save(image.buffer, {
+            metadata: {
+              contentType: image.mimetype,
+              firebaseStorageDownloadTokens: uuid,
+            },
+          });
+
+          imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/lost_and_found%2F${uuid}?alt=media&token=${uuid}`;
+        }
+
+        const lostAndFound = new LostAndFound({
+          tower: towerId,
+          item,
+          description,
+          image: imageUrl,
+          reported_by: receptionistId,
+        });
+
+        await lostAndFound.save();
+
         return res
-          .status(validation.status)
-          .send({ message: validation.message });
+          .status(200)
+          .send({ message: "Lost and found item added successfully" });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).send({ message: err.message });
       }
+    },
+  ],
 
-      const lostAndFound = new LostAndFound({
-        tower: towerId,
-        item,
-        description,
-        image,
-        reported_by: receptionistId,
-      });
+  // addLostAndFound: async (req, res) => {
+  //   try {
+  //     const receptionistId = req.id;
+  //     const towerId = req.towerId;
+  //     const { item, description, image } = req.body;
 
-      await lostAndFound.save();
+  //     const validation = await validationUtils.validateReceptionistAndTower(
+  //       receptionistId,
+  //       towerId
+  //     );
+  //     console.log(validation);
+  //     if (!validation.isValid) {
+  //       return res
+  //         .status(validation.status)
+  //         .send({ message: validation.message });
+  //     }
 
-      return res
-        .status(200)
-        .send({ message: "Lost and found item added successfully" });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).send({ message: err.message });
-    }
-  },
+  //     const lostAndFound = new LostAndFound({
+  //       tower: towerId,
+  //       item,
+  //       description,
+  //       image,
+  //       reported_by: receptionistId,
+  //     });
+
+  //     await lostAndFound.save();
+
+  //     return res
+  //       .status(200)
+  //       .send({ message: "Lost and found item added successfully" });
+  //   } catch (err) {
+  //     console.log(err);
+  //     return res.status(500).send({ message: err.message });
+  //   }
+  // },
 
   getRooms: async (req, res) => {
     try {
@@ -841,15 +922,21 @@ const receptionistController = {
           .status(400)
           .send({ message: "Complaint is already resolved" });
       }
-      
+
       complaint.date_resolved = new Date();
       let minutesToResolved = Math.abs(
         new Date(complaint.date_resolved) - new Date(complaint.date_initiated)
       );
       // convert to minutes
       minutesToResolved = Math.floor(minutesToResolved / 60000);
-      console.log("🚀 ~ handleComplaint: ~ minutesToResolved", minutesToResolved);
-      console.log("🚀 ~ handleComplaint: ~ complaint.buffer_time", complaint.buffer_time);
+      console.log(
+        "🚀 ~ handleComplaint: ~ minutesToResolved",
+        minutesToResolved
+      );
+      console.log(
+        "🚀 ~ handleComplaint: ~ complaint.buffer_time",
+        complaint.buffer_time
+      );
 
       complaint.is_resolved = approval;
       complaint.service_resolved_by = receptionistId;
