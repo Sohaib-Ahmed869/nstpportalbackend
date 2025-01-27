@@ -40,6 +40,10 @@ const cardAllocationSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    is_declined: {
+      type: Boolean,
+      default: false,
+    },
     date_issued: {
       type: Date,
     },

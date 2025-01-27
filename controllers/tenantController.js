@@ -591,6 +591,7 @@ const tenantController = {
       });
 
       cardAllocation.is_requested = true;
+      cardAllocation.is_declined = false
       cardAllocation.date_requested = new Date();
       await cardAllocation.save();
 

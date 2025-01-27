@@ -200,16 +200,16 @@ const adminController = {
       let serviceCount = 0;
       complaints.forEach((complaint) => {
         if (complaint.complaint_type == "General") {
-          if(complaint.time_to_resolve != undefined) {
+          if (complaint.time_to_resolve != undefined) {
             generalMinutes += complaint.time_to_resolve;
             generalCount++;
           }
         } else {
-          if(complaint.time_to_resolve != undefined) {
+          if (complaint.time_to_resolve != undefined) {
             serviceMinutes += complaint.time_to_resolve;
             serviceCount++;
           }
-        } 
+        }
       });
 
       const complaintsPending = complaints.filter((complaint) => {
@@ -224,9 +224,9 @@ const adminController = {
         resolved: complaintsResolved.length,
         pending: complaintsPending.length,
         mttr: {
-          general:  Math.floor(generalMinutes / generalCount),
+          general: Math.floor(generalMinutes / generalCount),
           service: Math.floor(serviceMinutes / serviceCount),
-        }
+        },
       };
 
       const dashboard = {
@@ -631,6 +631,7 @@ const adminController = {
 
       const rooms = await Room.find({
         tower: towerId,
+        is_active: true,
       }).lean();
       return res.status(200).json({ rooms });
     } catch (err) {
@@ -656,7 +657,10 @@ const adminController = {
 
       const roomTypes = await RoomType.find({
         tower: towerId,
+        is_active: true,
       }).lean();
+
+
       return res.status(200).json({ roomTypes });
     } catch (err) {
       console.error(err);
@@ -1307,6 +1311,16 @@ const adminController = {
           .json({ message: validation.message });
       }
 
+      const existingService = await Service.findOne({
+        tower: towerId,
+        name,
+        is_active: true,
+      });
+
+      if (existingService) {
+        return res.status(400).json({ message: "Service already exists" });
+      }
+
       const service = new Service({
         tower: towerId,
         name,
@@ -1387,6 +1401,16 @@ const adminController = {
         return res
           .status(validation.status)
           .json({ message: validation.message });
+      }
+
+      const existingRoomType = await RoomType.findOne({
+        tower: towerId,
+        name,
+        is_active: true,
+      });
+
+      if (existingRoomType) {
+        return res.status(400).json({ message: "Room type already exists" });
       }
 
       const roomType = new RoomType({
@@ -1649,6 +1673,8 @@ const adminController = {
       cardAllocation.card_number = cardNumber || -1;
       cardAllocation.is_requested = false;
       cardAllocation.is_issued = true;
+      cardAllocation.is_active = true;
+      cardAllocation.is_declined = false;
       cardAllocation.validity = validity;
       cardAllocation.date_issued = new Date();
       cardAllocation.date_invalid = new Date(
@@ -1701,6 +1727,7 @@ const adminController = {
       }
 
       cardAllocation.is_requested = false;
+      cardAllocation.is_declined = true;
       cardAllocation.reason_decline = reasonDecline;
 
       await cardAllocation.save();
@@ -2014,6 +2041,44 @@ const adminController = {
     }
   },
 
+  updateRoomType: async (req, res) => {
+    try {
+      const adminId = req.id;
+      const { roomTypeId, towerId, name, capacity, rateList } = req.body;
+      if (!roomTypeId || !name || !capacity) {
+        return res.status(400).json({ message: "Please provide all fields" });
+      }
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      const roomType = await RoomType.findById(roomTypeId);
+      if (!roomType) {
+        return res.status(404).json({ message: "Room type not found" });
+      }
+
+      roomType.name = name;
+      roomType.capacity = capacity;
+      roomType.rate_list = rateList;
+
+      await roomType.save();
+
+      return res
+        .status(200)
+        .json({ message: "Room type updated successfully", roomType });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   handleClearance: async (req, res) => {
     try {
       const adminId = req.id;
@@ -2140,6 +2205,16 @@ const adminController = {
 
       const service = await Service.findById(serviceId);
       const towerId = service.tower;
+
+      const existingService = await Service.findOne({
+        tower: towerId,
+        name,
+        is_active: true,
+      });
+
+      if (existingService && existingService._id != serviceId) {
+        return res.status(400).json({ message: "Service already exists" });
+      }
 
       const validation = await validationUtils.validateAdminAndTower(
         adminId,
@@ -2313,12 +2388,51 @@ const adminController = {
           .json({ message: validation.message });
       }
 
-      await room.deleteOne();
+      room.is_active = false;
+      await room.save();
 
       return res
         .status(200)
         .json({ message: "Room deleted successfully", room });
     } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  deleteRoomType: async (req, res) => {
+    try{
+      const adminId = req.id;
+      const { roomTypeId } = req.body;
+
+      const roomTypeValidation = await validationUtils.validateRoomType(roomTypeId);
+      if (!roomTypeValidation.isValid) {
+        return res
+          .status(roomTypeValidation.status)
+          .json({ message: roomTypeValidation.message });
+      }
+
+      const roomType = await RoomType.findById(roomTypeId);
+      const towerId = roomType.tower;
+
+      const validation = await validationUtils.validateAdminAndTower(
+        adminId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .json({ message: validation.message });
+      }
+
+      roomType.is_active = false;
+      await roomType.save();
+
+      return res
+        .status(200)
+        .json({ message: "Room type deleted successfully", roomType });
+
+    } catch {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });
     }
@@ -2351,7 +2465,9 @@ const adminController = {
           .json({ message: validation.message });
       }
 
-      await service.deleteOne();
+      service.is_active = false;
+
+      await service.save();
 
       return res
         .status(200)

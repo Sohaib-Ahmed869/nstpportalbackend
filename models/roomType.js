@@ -44,6 +44,10 @@ const roomTypeSchema = new Schema(
       type: [rateListSchema],
       required: true,
     },
+    is_active: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );

@@ -12,7 +12,7 @@ const roomBookingSchema = new Schema(
     tenant_id: {
       type: Schema.Types.ObjectId,
       ref: "Tenant",
-      required: true,
+      // required: true,
       index: true,
     },
     room_id: {
@@ -59,6 +59,10 @@ const roomBookingSchema = new Schema(
     cancelled_by: {
       type: Schema.Types.ObjectId,
       ref: "Receptionist",
+    },
+    for_admin: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

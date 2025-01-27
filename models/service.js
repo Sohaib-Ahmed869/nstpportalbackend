@@ -11,7 +11,7 @@ const serviceSchema = new Schema(
     name: {
       type: String,
       required: true,
-      unique: true,
+      // unique: true,
     },
     description: {
       type: String,
@@ -20,6 +20,10 @@ const serviceSchema = new Schema(
     icon: {
       type: Number,
       enum: [1, 2, 3, 4, 5, 6, 7],
+    },
+    is_active: {
+      type: Boolean,
+      default: true,
     },
   },
   { timestamps: true }

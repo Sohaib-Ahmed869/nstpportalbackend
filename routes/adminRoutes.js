@@ -47,6 +47,7 @@ router.put("/complaint/resolve", auth.verifyToken, auth.verifyAdmin, adminContro
 router.put("/complaint/feedback", auth.verifyToken, auth.verifyAdmin, adminController.giveComplaintFeedback);
 router.put("/employee/layoff", auth.verifyToken, auth.verifyAdmin, adminController.layOffEmployee);
 router.put("/room/update", auth.verifyToken, auth.verifyAdmin, adminController.updateRoom);
+router.put("/room-type/update", auth.verifyToken, auth.verifyAdmin, adminController.updateRoomType);
 router.put("/clearance/resolve", auth.verifyToken, auth.verifyAdmin, adminController.handleClearance);
 router.put("/workpermit/resolve", auth.verifyToken, auth.verifyAdmin, adminController.handleWorkPermit);
 router.put("/service/edit", auth.verifyToken, auth.verifyAdmin, adminController.editService);
@@ -54,6 +55,7 @@ router.put("/tenant/logo/upload", auth.verifyToken, auth.verifyAdmin, adminContr
 router.put("/tenant/logo/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteTenantLogo);
 
 router.delete("/room/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteRoom);
+router.delete("/room-type/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteRoomType);
 router.delete("/service/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteService);
 router.delete("/blog/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteBlog);
 router.delete("/tenant/note/delete", auth.verifyToken, auth.verifyAdmin, adminController.deleteNote);

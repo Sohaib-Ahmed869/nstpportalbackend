@@ -320,6 +320,37 @@ const receptionistController = {
     }
   },
 
+  getTenantsWithId: async (req, res) => {
+    try {
+      const receptionistId = req.id;
+      const towerId = req.towerId;
+
+      const validation = await validationUtils.validateReceptionistAndTower(
+        receptionistId,
+        towerId
+      );
+      if (!validation.isValid) {
+        return res
+          .status(validation.status)
+          .send({ message: validation.message });
+      }
+
+      let tenants = await Tenant.find({ tower: towerId }).select(
+        "registration.organizationName"
+      );
+
+      tenants = tenants.map((tenant) => ({
+        tenantId: tenant._id,
+        name: tenant.registration.organizationName,
+      }));
+
+      return res.status(200).send({ tenants });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send({ message: err.message });
+    }
+  },
+
   getTenantOccurences: async (req, res) => {
     // violations
     try {
@@ -551,12 +582,15 @@ const receptionistController = {
       // get the tenant name and room name
       bookings = await Promise.all(
         bookings.map(async (booking) => {
-          const tenant = await Tenant.findById(booking.tenant_id).select(
-            "registration.organizationName"
-          );
+          let tenant = null;
+          if(booking.tenant_id){
+            tenant = await Tenant.findById(booking.tenant_id).select(
+              "registration.organizationName"
+            );
+          }
           const room = await Room.findById(booking.room_id).select("name");
 
-          booking.tenant_name = tenant.registration.organizationName;
+          booking.tenant_name = tenant? tenant.registration.organizationName : "Admin";
           booking.room_name = room.name;
 
           return booking;
@@ -618,6 +652,72 @@ const receptionistController = {
     } catch (err) {
       console.log(err);
       return res.status(500).send({ message: err.message });
+    }
+  },
+
+  addRoomBooking: async (req, res) => {
+    try {
+      const receptionistId = req.id;
+      const towerId = req.towerId;
+      const { roomId, timeStart, timeEnd, reasonBooking, forAdmin } = req.body;
+      let tenantId = req.body.tenantId;
+
+      const roomValidation = await validationUtils.validateRoom(roomId);
+      if (!roomValidation.isValid) {
+        return res
+          .status(roomValidation.status)
+          .json({ message: roomValidation.message });
+      }
+
+      if (!timeStart || !timeEnd) {
+        return res.status(400).json({ message: "Please provide time slots" });
+      }
+
+      // if end time is before start time
+      if (new Date(timeEnd) < new Date(timeStart)) {
+        return res.status(400).json({ message: "Invalid time slots" });
+      }
+
+      // if times are before current time
+      if (new Date(timeStart) < new Date()) {
+        return res.status(400).json({ message: "Invalid time slots" });
+      }
+
+      // fetch all bookings for the room and check if the requested time slot is available
+      const roomBookings = await RoomBooking.find({ room_id: roomId });
+      const isAvailable = roomBookings.every((booking) => {
+        const bookingStart = new Date(booking.time_start);
+        const bookingEnd = new Date(booking.time_end);
+        return (
+          (new Date(timeStart) < bookingStart && new Date(timeEnd) <= bookingStart) || // New booking ends before existing booking starts
+          (new Date(timeStart) >= bookingEnd && new Date(timeEnd) > bookingEnd) // New booking starts after existing booking ends
+        );
+      });
+
+      if (!isAvailable) {
+        return res.status(400).json({ message: "Room not available" });
+      }
+
+      tenantId = tenantId || null;
+
+      const booking = new RoomBooking({
+        tower: towerId,
+        handled_by: receptionistId,
+        room_id: roomId,
+        time_start: new Date(timeStart),
+        time_end: new Date(timeEnd),
+        reason_booking: reasonBooking,
+        for_admin: forAdmin,
+        status_booking: "approved",
+        tenant_id: tenantId,
+      });
+
+      await booking.save();
+
+      return res.status(200).json({ message: "Booking added successfully", booking });
+    } catch (err) {
+      console.log("🚀 ~ addRoomBooking: ~ err:", err);
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 

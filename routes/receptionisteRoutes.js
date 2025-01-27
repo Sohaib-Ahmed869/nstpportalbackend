@@ -11,6 +11,7 @@ router.get("/workpermits", auth.verifyToken, auth.verifyReceptionist, receptioni
 router.get("/clearances", auth.verifyToken, auth.verifyReceptionist, receptionistController.getClearances);
 router.get("/complaints", auth.verifyToken, auth.verifyReceptionist, receptionistController.getComplaints);
 router.get("/tenants", auth.verifyToken, auth.verifyReceptionist, receptionistController.getTenants);
+router.get("/tenantsId", auth.verifyToken, auth.verifyReceptionist, receptionistController.getTenantsWithId);
 router.get("/tenants/:tenantId/occurences", auth.verifyToken, auth.verifyReceptionist, receptionistController.getTenantOccurences);
 router.get("/occurences", auth.verifyToken, auth.verifyReceptionist, receptionistController.getAllTenantsOccurences);
 router.get("/lost-and-found", auth.verifyToken, auth.verifyReceptionist, receptionistController.getLostAndFound);
@@ -19,6 +20,7 @@ router.get("/room/bookings", auth.verifyToken, auth.verifyReceptionist, receptio
 
 router.post("/lost-and-found/add", auth.verifyToken, auth.verifyReceptionist, receptionistController.addLostAndFound);
 router.post("/occurence/add", auth.verifyToken, auth.verifyReceptionist, receptionistController.addOccurence);
+router.post("/room/bookings/add", auth.verifyToken, auth.verifyReceptionist, receptionistController.addRoomBooking);
 
 router.put("/gatepass/approval", auth.verifyToken, auth.verifyReceptionist, receptionistController.handleGatePass);
 router.put("/room/bookings/approval", auth.verifyToken, auth.verifyReceptionist, receptionistController.handleRoomBooking);
