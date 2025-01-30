@@ -631,7 +631,7 @@ const adminController = {
 
       const rooms = await Room.find({
         tower: towerId,
-        is_active: true,
+        // is_active: true,
       }).lean();
       return res.status(200).json({ rooms });
     } catch (err) {
@@ -657,7 +657,7 @@ const adminController = {
 
       const roomTypes = await RoomType.find({
         tower: towerId,
-        is_active: true,
+        // is_active: true,
       }).lean();
 
 
@@ -1997,7 +1997,8 @@ const adminController = {
   updateRoom: async (req, res) => {
     try {
       const adminId = req.id;
-      const { roomId, name, floor, timeStart, timeEnd, description, capacity } =
+      console.log("update body: ", req.body)
+      const { roomId, name, floor, timeStart, timeEnd, description, capacity, typeId } =
         req.body;
       if (!name || !floor || !timeStart || !timeEnd) {
         return res.status(400).json({ message: "Please provide all fields" });
@@ -2029,6 +2030,7 @@ const adminController = {
       room.time_end = timeEnd;
       room.description = description;
       room.capacity = capacity;
+      room.type = typeId;
 
       await room.save();
 
