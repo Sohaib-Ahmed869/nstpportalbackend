@@ -95,7 +95,7 @@ const receptionistController = {
 
       return res.status(200).send({ dashboard });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -120,7 +120,7 @@ const receptionistController = {
 
       return res.status(200).send({ gatePasses });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -147,7 +147,7 @@ const receptionistController = {
 
       return res.status(200).send({ gatePasses });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -183,7 +183,7 @@ const receptionistController = {
 
       return res.status(200).send({ gatePasses });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -214,7 +214,7 @@ const receptionistController = {
 
       return res.status(200).send({ workPermits });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -238,7 +238,7 @@ const receptionistController = {
 
       return res.status(200).send({ clearances });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -283,11 +283,11 @@ const receptionistController = {
         return complaintObj;
       });
 
-      console.log("🚀 ~ getComplaints: ~ complaints", complaints);
+      // console.log("🚀 ~ getComplaints: ~ complaints", complaints);
 
       return res.status(200).send({ complaints });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -315,7 +315,7 @@ const receptionistController = {
 
       return res.status(200).send({ tenants });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -346,7 +346,7 @@ const receptionistController = {
 
       return res.status(200).send({ tenants });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -380,7 +380,7 @@ const receptionistController = {
 
       return res.status(200).send({ complaints });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -412,7 +412,7 @@ const receptionistController = {
 
       return res.status(200).send({ tenants });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -436,7 +436,7 @@ const receptionistController = {
 
       return res.status(200).send({ lostAndFound });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -448,14 +448,14 @@ const receptionistController = {
         const receptionistId = req.id;
         const towerId = req.towerId;
 
-        // console.log("🚀 ~ addLostAndFound: ~ req", req);
-        console.log("🚀 ~ addLostAndFound: ~ req.body", req.body);
+        // // console.log("🚀 ~ addLostAndFound: ~ req", req);
+        // console.log("🚀 ~ addLostAndFound: ~ req.body", req.body);
         const image = req.file;
-        console.log("🚀 ~ addLostAndFound: ~ image", image);
+        // console.log("🚀 ~ addLostAndFound: ~ image", image);
         const item = JSON.parse(req.body.title);
-        console.log("🚀 ~ addLostAndFound: ~ item", item);
+        // console.log("🚀 ~ addLostAndFound: ~ item", item);
         const description = JSON.parse(req.body.desc);
-        console.log("🚀 ~ addLostAndFound: ~ description", description);
+        // console.log("🚀 ~ addLostAndFound: ~ description", description);
 
         const validation = await validationUtils.validateReceptionistAndTower(
           receptionistId,
@@ -513,7 +513,7 @@ const receptionistController = {
   //       receptionistId,
   //       towerId
   //     );
-  //     console.log(validation);
+  //     // console.log(validation);
   //     if (!validation.isValid) {
   //       return res
   //         .status(validation.status)
@@ -534,7 +534,7 @@ const receptionistController = {
   //       .status(200)
   //       .send({ message: "Lost and found item added successfully" });
   //   } catch (err) {
-  //     console.log(err);
+  //     // console.log(err);
   //     return res.status(500).send({ message: err.message });
   //   }
   // },
@@ -558,7 +558,7 @@ const receptionistController = {
 
       return res.status(200).send({ rooms });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -599,7 +599,7 @@ const receptionistController = {
 
       return res.status(200).send({ bookings });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -650,7 +650,7 @@ const receptionistController = {
         .status(200)
         .send({ message: "Complaint filed successfully", complaint });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -716,7 +716,7 @@ const receptionistController = {
 
       return res.status(200).json({ message: "Booking added successfully", booking });
     } catch (err) {
-      console.log("🚀 ~ addRoomBooking: ~ err:", err);
+      // console.log("🚀 ~ addRoomBooking: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -726,13 +726,13 @@ const receptionistController = {
       const { gatepassId, approval, representative, reasonDecline } = req.body;
       const receptionistId = req.id;
 
-      console.log("🚀 ~ handleGatePass: ~ req.body:", req.body);
+      // console.log("🚀 ~ handleGatePass: ~ req.body:", req.body);
 
       const validateGatePass = await validationUtils.validateGatePass(
         gatepassId
       );
 
-      console.log("🚀 ~ handleGatePass: ~ validateGatePass", validateGatePass);
+      // console.log("🚀 ~ handleGatePass: ~ validateGatePass", validateGatePass);
 
       if (!validateGatePass.isValid) {
         return res
@@ -749,14 +749,14 @@ const receptionistController = {
       const gatePass = await GatePass.findById(gatepassId);
       const towerId = gatePass.tower;
 
-      console.log("🚀 ~ handleGatePass: ~ gatePass:", gatePass);
+      // console.log("🚀 ~ handleGatePass: ~ gatePass:", gatePass);
 
       const validation = await validationUtils.validateReceptionistAndTower(
         receptionistId,
         towerId
       );
 
-      console.log("🚀 ~ handleGatePass: ~ validation", validation);
+      // console.log("🚀 ~ handleGatePass: ~ validation", validation);
 
       if (!validation.isValid) {
         return res
@@ -785,7 +785,7 @@ const receptionistController = {
         .status(200)
         .send({ message: "Gate pass updated successfully" });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -836,10 +836,10 @@ const receptionistController = {
         let bookingDuration =
           (new Date(booking.time_end) - new Date(booking.time_start)) /
           (1000 * 60 * 60);
-        console.log(
-          "🚀 ~ handleRoomBooking: ~ bookingDuration",
-          bookingDuration
-        );
+        // console.log(
+        //   "🚀 ~ handleRoomBooking: ~ bookingDuration",
+        //   bookingDuration
+        // );
         let bookingType;
         if (bookingDuration > 4) {
           bookingType = "per_hour";
@@ -851,8 +851,8 @@ const receptionistController = {
         tenantCategory = tenantCategory.toLowerCase();
         const room = await Room.findById(booking.room_id).populate("type");
         const rateList = room.type.rate_list;
-        console.log("🚀 ~ handleRoomBooking: ~ tenantCategory", tenantCategory);
-        console.log("🚀 ~ handleRoomBooking: ~ rateList", rateList);
+        // console.log("🚀 ~ handleRoomBooking: ~ tenantCategory", tenantCategory);
+        // console.log("🚀 ~ handleRoomBooking: ~ rateList", rateList);
         const rate = rateList.find((rate) => rate.category === tenantCategory);
         let cost = rate.rates.find(
           (rate) => rate.rate_type === bookingType
@@ -884,7 +884,7 @@ const receptionistController = {
         .status(200)
         .send({ message: "Room booking updated successfully", booking });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -934,7 +934,7 @@ const receptionistController = {
         .status(200)
         .send({ message: "Room booking cancelled", booking });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -979,7 +979,7 @@ const receptionistController = {
         .status(200)
         .send({ message: "Lost and found item resolved successfully" });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -1029,14 +1029,14 @@ const receptionistController = {
       );
       // convert to minutes
       minutesToResolved = Math.floor(minutesToResolved / 60000);
-      console.log(
-        "🚀 ~ handleComplaint: ~ minutesToResolved",
-        minutesToResolved
-      );
-      console.log(
-        "🚀 ~ handleComplaint: ~ complaint.buffer_time",
-        complaint.buffer_time
-      );
+      // console.log(
+      //   "🚀 ~ handleComplaint: ~ minutesToResolved",
+      //   minutesToResolved
+      // );
+      // console.log(
+      //   "🚀 ~ handleComplaint: ~ complaint.buffer_time",
+      //   complaint.buffer_time
+      // );
 
       complaint.is_resolved = approval;
       complaint.service_resolved_by = receptionistId;
@@ -1051,7 +1051,7 @@ const receptionistController = {
         .status(200)
         .send({ message: "Complaint updated successfully", complaint });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },
@@ -1101,7 +1101,7 @@ const receptionistController = {
         .status(200)
         .send({ message: "Feedback given successfully", complaint });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).send({ message: err.message });
     }
   },

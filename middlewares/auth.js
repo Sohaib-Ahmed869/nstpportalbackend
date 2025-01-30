@@ -6,7 +6,7 @@ const authMiddlewares = {
   verifyToken: (req, res, next) => {
     try {
       const token = req.cookies.token;
-      console.log("🚀 ~ jwt.verify ~ token:", token);
+      // console.log("🚀 ~ jwt.verify ~ token:", token);
       if (!token) return res.status(403).send({ message: "No token provided" });
 
       jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
@@ -18,13 +18,13 @@ const authMiddlewares = {
         req.id = decoded.id;
         req.role = decoded.role;
 
-        console.log("🚀 ~ jwt.verify ~ req.id:", req.id);
-        console.log("🚀 ~ jwt.verify ~ req.role:", req.role);
+        // console.log("🚀 ~ jwt.verify ~ req.id:", req.id);
+        // console.log("🚀 ~ jwt.verify ~ req.role:", req.role);
 
         next();
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(401).send({ message: err.message });
     }
   },
@@ -74,7 +74,7 @@ const authMiddlewares = {
       return res.status(404).send({ message: "Receptionist not found" });
 
     const towerId = receptionist.tower;
-    console.log("🚀 ~ verifyReceptionist: ~ towerId:", towerId);
+    // console.log("🚀 ~ verifyReceptionist: ~ towerId:", towerId);
     req.towerId = towerId;
 
     next();
@@ -92,7 +92,7 @@ const authMiddlewares = {
     if (!tenant) return res.status(404).send({ message: "Tenant not found" });
 
     const towerId = tenant.tower;
-    console.log("🚀 ~ verifyTenant: ~ towerId:", towerId);
+    // console.log("🚀 ~ verifyTenant: ~ towerId:", towerId);
     req.towerId = towerId;
 
     next();

@@ -94,10 +94,10 @@ const tenantController = {
         interns,
       };
 
-      // console.log("🚀 ~ getDashboard: ~ dashboard:", dashboard);
+      // // console.log("🚀 ~ getDashboard: ~ dashboard:", dashboard);
       return res.status(200).json({ dashboard });
     } catch (err) {
-      console.log("🚀 ~ getDashboard: ~ err:", err);
+      // console.log("🚀 ~ getDashboard: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -203,7 +203,7 @@ const tenantController = {
       const employees = await Employee.find({ tenant_id });
       return res.status(200).json({ employees, message: "Employees found" });
     } catch (err) {
-      console.log("🚀 ~ getEmployees: ~ err:", err);
+      // console.log("🚀 ~ getEmployees: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -217,26 +217,26 @@ const tenantController = {
       const cardAllocations = await CardAllocation.find({ tenant_id });
       return res.status(200).json({ cardAllocations });
     } catch (err) {
-      console.log("🚀 ~ getCardAllocations: ~ err:", err);
+      // console.log("🚀 ~ getCardAllocations: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
 
   getEtagAllocations: async (req, res) => {
     try {
-      console.log("🚀 ~ getEtagAllocations: ~ req.id:", req.id);
+      // console.log("🚀 ~ getEtagAllocations: ~ req.id:", req.id);
       const tenant_id = req.id;
       if (!tenant_id) {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
       const etagAllocations = await EtagAllocation.find({ tenant_id });
       // const activeAllocations = etagAllocations.filter((allocation) => {
-      //   console.log("🚀 ~ getEtagAllocations: ~ allocation:", allocation);
+      //   // console.log("🚀 ~ getEtagAllocations: ~ allocation:", allocation);
       //   return allocation.is_active;
       // });
       return res.status(200).json({ etagAllocations });
     } catch (err) {
-      console.log("🚀 ~ getEtagAllocations: ~ err:", err);
+      // console.log("🚀 ~ getEtagAllocations: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -250,7 +250,7 @@ const tenantController = {
       const gatePasses = await GatePass.find({ tenant_id });
       return res.status(200).json({ gatePasses });
     } catch (err) {
-      console.log("🚀 ~ getGatePasses: ~ err:", err);
+      // console.log("🚀 ~ getGatePasses: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -295,11 +295,11 @@ const tenantController = {
         return complaintObj;
       });
 
-      console.log("🚀 ~ getComplaints: ~ complaints:", complaints);
+      // console.log("🚀 ~ getComplaints: ~ complaints:", complaints);
 
       return res.status(200).json({ complaints });
     } catch (err) {
-      console.log("🚀 ~ getComplaints: ~ err:", err);
+      // console.log("🚀 ~ getComplaints: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -313,7 +313,7 @@ const tenantController = {
       const workPermits = await WorkPermit.find({ tenant: tenant_id });
       return res.status(200).json({ workPermits });
     } catch (err) {
-      console.log("🚀 ~ getWorkPermits: ~ err:", err);
+      // console.log("🚀 ~ getWorkPermits: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -325,7 +325,7 @@ const tenantController = {
 
       return res.status(200).json({ clearance });
     } catch (err) {
-      console.log("🚀 ~ viewClearance: ~ err:", err);
+      // console.log("🚀 ~ viewClearance: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -336,7 +336,7 @@ const tenantController = {
       const complaints = await Tenant.findById(tenant_id).select("complaints");
       return res.status(200).json({ complaints });
     } catch (err) {
-      console.log("🚀 ~ getOccurences: ~ err:", err);
+      // console.log("🚀 ~ getOccurences: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -347,7 +347,7 @@ const tenantController = {
       const inspections = await Inspection.find({ tenant: tenant_id });
       return res.status(200).json({ inspections });
     } catch (err) {
-      console.log("🚀 ~ getInspections: ~ err:", err);
+      // console.log("🚀 ~ getInspections: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -358,7 +358,7 @@ const tenantController = {
       const services = await Service.find({ tower: towerId });
       return res.status(200).json({ services });
     } catch (err) {
-      console.log("🚀 ~ getInspections: ~ err:", err);
+      // console.log("🚀 ~ getInspections: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -369,7 +369,7 @@ const tenantController = {
       const lostAndFound = await LostAndFound.find({ tower: towerId });
       return res.status(200).json({ lostAndFound });
     } catch (err) {
-      console.log("🚀 ~ getLostAndFound: ~ err:", err);
+      // console.log("🚀 ~ getLostAndFound: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -380,7 +380,7 @@ const tenantController = {
       const rooms = await Room.find({ tower: towerId });
       return res.status(200).json({ rooms });
     } catch (err) {
-      console.log("🚀 ~ getRooms: ~ err:", err);
+      // console.log("🚀 ~ getRooms: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -391,7 +391,7 @@ const tenantController = {
       const bookings = await RoomBooking.find({ tenant_id });
       return res.status(200).json({ bookings });
     } catch (err) {
-      console.log("🚀 ~ getRoomBooking: ~ err:", err);
+      // console.log("🚀 ~ getRoomBooking: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -402,7 +402,7 @@ const tenantController = {
       const bookings = await RoomBooking.find({ tower: towerId });
       return res.status(200).json({ bookings });
     } catch (err) {
-      console.log("🚀 ~ getAllRoomBookings: ~ err:", err);
+      // console.log("🚀 ~ getAllRoomBookings: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -415,7 +415,7 @@ const tenantController = {
         .lean();
       return res.status(200).json({ evaluations });
     } catch (err) {
-      console.log("🚀 ~ getEvaluations: ~ err:", err);
+      // console.log("🚀 ~ getEvaluations: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -429,7 +429,7 @@ const tenantController = {
         .lean();
       return res.status(200).json({ evaluation });
     } catch (err) {
-      console.log("🚀 ~ getEvaluation: ~ err:", err);
+      // console.log("🚀 ~ getEvaluation: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -438,7 +438,7 @@ const tenantController = {
     try {
       const tenantId = req.id;
       const towerId = req.towerId;
-      console.log("🚀 ~ registerEmployee: ~ req.body:", req.body);
+      // console.log("🚀 ~ registerEmployee: ~ req.body:", req.body);
       const { empBody } = req.body;
       const {
         name,
@@ -457,20 +457,20 @@ const tenantController = {
         internType,
       } = empBody;
 
-      console.log(
-        "🚀 ~ registerEmployee ~ required fields:",
-        name,
-        email,
-        phone,
-        cnic,
-        dob,
-        doj,
-        designation,
-        empType,
-        permAddress,
-        fatherName,
-        tempAddress
-      );
+      // console.log(
+      //   "🚀 ~ registerEmployee ~ required fields:",
+      //   name,
+      //   email,
+      //   phone,
+      //   cnic,
+      //   dob,
+      //   doj,
+      //   designation,
+      //   empType,
+      //   permAddress,
+      //   fatherName,
+      //   tempAddress
+      // );
 
       if (
         !name ||
@@ -494,23 +494,23 @@ const tenantController = {
         cnic,
       });
 
-      console.log(
-        "🚀 ~ registerEmployee: ~ existingEmployee:",
-        existingEmployee
-      );
+      // console.log(
+      //   "🚀 ~ registerEmployee: ~ existingEmployee:",
+      //   existingEmployee
+      // );
 
       if (existingEmployee && existingEmployee.status_employment) {
         return res.status(400).json({ message: "Employee already exists" });
       }
 
-      console.log("🚀 ~ registerEmployee: ~ tenantId:", tenantId);
+      // console.log("🚀 ~ registerEmployee: ~ tenantId:", tenantId);
       if (!tenantId) {
         return res.status(400).json({ message: "Please provide tenant ID" });
       }
       const tenant = await Tenant.findById(tenantId).select(
         "registration.organizationName"
       );
-      console.log("🚀 ~ registerEmployee: ~ tenant:", tenant);
+      // console.log("🚀 ~ registerEmployee: ~ tenant:", tenant);
       if (!tenant) {
         return res.status(400).json({ message: "Tenant not found" });
       }
@@ -519,14 +519,14 @@ const tenantController = {
         return res.status(400).json({ message: "Tenant name not found" });
       }
       const isNustian = internType === "Nustian" ? true : false;
-      console.log("🚀 ~ registerEmployee: ~ isNustian:", isNustian);
+      // console.log("🚀 ~ registerEmployee: ~ isNustian:", isNustian);
 
       // if (existingEmployee && !existingEmployee.status_employment) {
       //   req.laidOff = true;
       //   return await tenantController.updateEmployee(req, res);
       // }
 
-      console.log("🚀 ~ registerEmployee: ~ Continue");
+      // console.log("🚀 ~ registerEmployee: ~ Continue");
       const employee = new Employee({
         tower: towerId,
         tenant_id: tenantId,
@@ -552,7 +552,7 @@ const tenantController = {
         .status(200)
         .json({ message: "Employee registered successfully", employee });
     } catch (err) {
-      console.log("🚀 ~ registerEmployee: ~ err:", err);
+      // console.log("🚀 ~ registerEmployee: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -599,7 +599,7 @@ const tenantController = {
         .status(200)
         .json({ message: "Card requested successfully", cardAllocation });
     } catch (err) {
-      console.log("🚀 ~ requestCard: ~ err:", err);
+      // console.log("🚀 ~ requestCard: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -634,7 +634,7 @@ const tenantController = {
 
       return res.status(200).json({ message: "Card returned successfully" });
     } catch (err) {
-      console.log("🚀 ~ returnCard: ~ err:", err);
+      // console.log("🚀 ~ returnCard: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -674,7 +674,7 @@ const tenantController = {
       const employee = await Employee.findById(employeeId)
         .select("tower")
         .lean();
-      console.log("🚀 ~ requestEtag: ~ employee:", employee);
+      // console.log("🚀 ~ requestEtag: ~ employee:", employee);
       const tower = employee.tower;
 
       const etagAllocation = new EtagAllocation({
@@ -692,7 +692,7 @@ const tenantController = {
         .status(200)
         .json({ message: "Etag requested successfully", etagAllocation });
     } catch (err) {
-      console.log("🚀 ~ requestEtag: ~ err:", err);
+      // console.log("🚀 ~ requestEtag: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -726,14 +726,14 @@ const tenantController = {
 
       return res.status(200).json({ message: "Etag returned successfully" });
     } catch (err) {
-      console.log("🚀 ~ returnEtag: ~ err:", err);
+      // console.log("🚀 ~ returnEtag: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
 
   requestGatePass: async (req, res) => {
     try {
-      console.log("🚀 ~ requestGatePass: ~ req.bod  y:", req.body);
+      // console.log("🚀 ~ requestGatePass: ~ req.bod  y:", req.body);
       const tenant_id = req.id;
       const { guestName, guestCnic, guestContact, gateNumber } = req.body;
 
@@ -749,10 +749,10 @@ const tenantController = {
       }
 
       let towerId = await Tenant.findById(tenant_id).select("tower").lean();
-      console.log("🚀 ~ requestGatePass: ~ towerId:", towerId);
+      // console.log("🚀 ~ requestGatePass: ~ towerId:", towerId);
 
       towerId = towerId.tower;
-      console.log("🚀 ~ requestGatePass: ~ towerId:", towerId);
+      // console.log("🚀 ~ requestGatePass: ~ towerId:", towerId);
 
       const gatePass = new GatePass({
         tower: towerId,
@@ -767,7 +767,7 @@ const tenantController = {
       await gatePass.save();
       return res.status(200).json({ message: "Gate pass requested", gatePass });
     } catch (err) {
-      console.log("🚀 ~ requestGatePass: ~ err:", err);
+      // console.log("🚀 ~ requestGatePass: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -809,7 +809,7 @@ const tenantController = {
         .select("registration.organizationName registration.companyEmail")
         .lean();
 
-      console.log("🚀 ~ generateComplaint: ~ serviceName", serviceName);
+      // console.log("🚀 ~ generateComplaint: ~ serviceName", serviceName);
       const complaint = new Complaint({
         tower: towerId,
         tenant_id,
@@ -827,7 +827,7 @@ const tenantController = {
         .status(200)
         .json({ message: "Complaint generated successfully", complaint });
     } catch (err) {
-      console.log("🚀 ~ generateComplaint: ~ err:", err);
+      // console.log("🚀 ~ generateComplaint: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -887,7 +887,7 @@ const tenantController = {
 
       return res.status(200).json({ message: "Booking request sent", booking });
     } catch (err) {
-      console.log("🚀 ~ bookRoom: ~ err:", err);
+      // console.log("🚀 ~ bookRoom: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -939,7 +939,7 @@ const tenantController = {
         id: workPermit._id,
       });
     } catch (err) {
-      console.log("🚀 ~ requestWorkPermit: ~ err:", err);
+      // console.log("🚀 ~ requestWorkPermit: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -1043,7 +1043,7 @@ const tenantController = {
         .status(200)
         .json({ message: "Clearance initiated", clearance });
     } catch (err) {
-      console.log("🚀 ~ initiateClearance: ~ err:", err);
+      // console.log("🚀 ~ initiateClearance: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -1052,8 +1052,8 @@ const tenantController = {
     try {
       const tenant_id = req.id;
       const { evaluationId, evaluationBody } = req.body;
-      console.log("🚀 ~ submitEvaluation: ~ evaluationId:", evaluationId);
-      console.log("🚀 ~ submitEvaluation: ~ evaluationBody:", evaluationBody);
+      // console.log("🚀 ~ submitEvaluation: ~ evaluationId:", evaluationId);
+      // console.log("🚀 ~ submitEvaluation: ~ evaluationBody:", evaluationBody);
 
       // Validate tenant
       const validateTenant = await validationUtils.validateTenant(tenant_id);
@@ -1121,7 +1121,7 @@ const tenantController = {
         .status(200)
         .json({ message: "Feedback given successfully", complaint });
     } catch (err) {
-      console.log("🚀 ~ giveComplaintFeedback: ~ err:", err);
+      // console.log("🚀 ~ giveComplaintFeedback: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -1187,7 +1187,7 @@ const tenantController = {
         .status(200)
         .json({ message: "Complaint reopened successfully", complaint });
     } catch (err) {
-      console.log("🚀 ~ reOpenComplaint: ~ err:", err);
+      // console.log("🚀 ~ reOpenComplaint: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -1218,7 +1218,7 @@ const tenantController = {
 
       return res.status(200).json({ message: "Password updated successfully" });
     } catch (err) {
-      console.log("🚀 ~ updatePassword: ~ err:", err);
+      // console.log("🚀 ~ updatePassword: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -1227,8 +1227,8 @@ const tenantController = {
     try {
       const tenant_id = req.id;
       const laidOff = req.laidOff;
-      console.log("🚀 ~ updateEmployee: ~ req.laidOff:", req.laidOff);
-      console.log("🚀 ~ updateEmployee: ~ req.body:", req.body);
+      // console.log("🚀 ~ updateEmployee: ~ req.laidOff:", req.laidOff);
+      // console.log("🚀 ~ updateEmployee: ~ req.body:", req.body);
       const { employeeId, empBody } = req.body;
       const {
         name,
@@ -1256,7 +1256,7 @@ const tenantController = {
       let employee;
       if (laidOff) {
         let cnic = empBody.cnic;
-        console.log("🚀 ~ updateEmployee: ~ cnic:", cnic);
+        // console.log("🚀 ~ updateEmployee: ~ cnic:", cnic);
         employee = await Employee.findOne({ tenant_id, cnic });
       } else {
         employee = await Employee.findById(employeeId);
@@ -1291,7 +1291,7 @@ const tenantController = {
         .status(200)
         .json({ message: "Employee updated successfully", employee });
     } catch (err) {
-      console.log("🚀 ~ updateEmployee: ~ err:", err);
+      // console.log("🚀 ~ updateEmployee: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -1344,7 +1344,7 @@ const tenantController = {
         .status(200)
         .json({ message: "Employee laid off successfully", employee });
     } catch (err) {
-      console.log("🚀 ~ layoffEmployee: ~ err:", err);
+      // console.log("🚀 ~ layoffEmployee: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -1370,7 +1370,7 @@ const tenantController = {
         .status(200)
         .json({ message: "Complaint cancelled successfully", complaint });
     } catch (err) {
-      console.log("🚀 ~ cancelComplaint: ~ err:", err);
+      // console.log("🚀 ~ cancelComplaint: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -1396,7 +1396,7 @@ const tenantController = {
         .status(200)
         .json({ message: "Work permit cancelled successfully", workPermit });
     } catch (err) {
-      console.log("🚀 ~ cancelWorkPermit: ~ err:", err);
+      // console.log("🚀 ~ cancelWorkPermit: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -1417,7 +1417,7 @@ const tenantController = {
 
       return res.status(200).json({ message: "Booking cancelled", booking });
     } catch (err) {
-      console.log("🚀 ~ cancelRoomBooking: ~ err:", err);
+      // console.log("🚀 ~ cancelRoomBooking: ~ err:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },

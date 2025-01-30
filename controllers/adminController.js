@@ -69,7 +69,7 @@ const sendEmail = async (email, subject, message) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully");
+    // console.log("Email sent successfully");
     return true;
   } catch (err) {
     console.error(err);
@@ -184,14 +184,14 @@ const adminController = {
         tower: towerId,
       }).lean();
 
-      console.log("Complaints: ", complaints);
+      // console.log("Complaints: ", complaints);
       const complaintsResolved = complaints.filter((complaint) => {
         return (
           complaint.complaint_type == "General" &&
           complaint.status == "resolved"
         );
       });
-      // console.log("Complaints Resolved: ",complaintsResolved);
+      // // console.log("Complaints Resolved: ",complaintsResolved);
 
       // calculate mean time to repair
       let generalMinutes = 0;
@@ -217,7 +217,7 @@ const adminController = {
           complaint.complaint_type == "General" && complaint.status == "pending"
         );
       });
-      // console.log("Complaints Pending: ",complaintsPending);
+      // // console.log("Complaints Pending: ",complaintsPending);
 
       complaints = {
         total: complaintsResolved.length + complaintsPending.length,
@@ -866,7 +866,7 @@ const adminController = {
           cards.returned =
             cardAllocations.filter((card) => card.is_returned).length | 0;
 
-          console.log(tenant.bookings);
+          // console.log(tenant.bookings);
           const roomBookingCost =
             tenant.bookings?.reduce((acc, booking) => acc + booking.cost, 0) |
             0;
@@ -1053,12 +1053,12 @@ const adminController = {
         );
         const image = req.file;
 
-        console.log(registration);
-        console.log(contactInfo);
-        console.log(stakeholders);
-        console.log(companyProfile);
-        console.log(industrySector);
-        console.log(companyResourceComposition);
+        // console.log(registration);
+        // console.log(contactInfo);
+        // console.log(stakeholders);
+        // console.log(companyProfile);
+        // console.log(industrySector);
+        // console.log(companyResourceComposition);
 
         // const registrationFields = [
         //   "category",
@@ -1543,7 +1543,7 @@ const adminController = {
         const uuid = uuidv4();
         const imageFileName = `blogs/${uuid}`;
 
-        console.log(bucket.name);
+        // console.log(bucket.name);
 
         await bucket.file(imageFileName).save(image.buffer, {
           metadata: {
@@ -1997,7 +1997,7 @@ const adminController = {
   updateRoom: async (req, res) => {
     try {
       const adminId = req.id;
-      console.log("update body: ", req.body)
+      // console.log("update body: ", req.body)
       const { roomId, name, floor, timeStart, timeEnd, description, capacity, typeId } =
         req.body;
       if (!name || !floor || !timeStart || !timeEnd) {
@@ -2085,7 +2085,7 @@ const adminController = {
     try {
       const adminId = req.id;
       const { clearanceId } = req.body;
-      console.log(req.body);
+      // console.log(req.body);
 
       const clearanceValidation = await validationUtils.validateClearance(
         clearanceId

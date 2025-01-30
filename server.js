@@ -36,9 +36,9 @@ mongoose
 //     useUnifiedTopology: true,
 //   })
 //   .then(() => {
-//     console.log("MongoDB connected");
+//     // console.log("MongoDB connected");
 //     app.listen(PORT, () => {
-//       console.log(`Server is running on port ${PORT}`);
+//       // console.log(`Server is running on port ${PORT}`);
 //     });
 //   })
 //   .catch((err) => console.log("Error: ", err));
@@ -56,13 +56,13 @@ try {
     credential: admin.credential.cert(serviceAccount),
     storageBucket: "nstp-portal001.appspot.com",
   });
-  console.log("Firebase Admin Initialized");
+  // console.log("Firebase Admin Initialized");
 } catch (err) {
-  console.log("Firebase Admin Already Initialized");
+  // console.log("Firebase Admin Already Initialized");
 }
 
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-console.log("timezone: ", timezone);
+// console.log("timezone: ", timezone);
 
 app.get("/", (req, res) => {
   res.send("Welcome to the NSTP Portal");
@@ -92,5 +92,5 @@ app.use("/common", commonRoutes)
 
 // // Create HTTPS server
 // https.createServer(options, app).listen(PORT, () => {
-//   console.log(`HTTPS Server is running on port ${PORT}`);
+//   // console.log(`HTTPS Server is running on port ${PORT}`);
 // });

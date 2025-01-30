@@ -109,7 +109,7 @@ const signupController = {
 
   // tenantSignup: async (req, res) => {
   //   try {
-  //     console.log("🚀 ~ tenantSignup: ~ req.body", req.body);
+  //     // console.log("🚀 ~ tenantSignup: ~ req.body", req.body);
   //     const {
   //       registration,
   //       contactInfo,
@@ -119,7 +119,7 @@ const signupController = {
   //       companyResourceComposition,
   //     } = req.body;
 
-  //     console.log(
+  //     // console.log(
   //       "🚀 ~ tenantSignup: ~ ",
   //       registration,
   //       contactInfo,
